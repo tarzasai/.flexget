@@ -3,22 +3,933 @@ secrets: secrets.yml
 templates:
 
   global:
+    plugin_priority:
+      notify_xmpp: -255
+    private_torrents: no
+    regexp:
+      reject:
+        - (s|d)ub(s|bed)?\b: {from: title}
+        - \bTS\b: {from: title}
+        - \bHS\b: {from: title}
+        - \bHDTS\b: {from: title}
+        - \bVHS: {from: title}
+        - \b3-?D\b: {from: title}
+        - \btrailer\b: {from: title}
+        - \bscreener\b: {from: title}
+        - (\b|\bhd)cam\b: {from: title}
+        - \bdual\baudio\b: {from: title}
+        - r3mnants: {from: title}
+        - italian
+        - french
+        - german
+        - dutch
+        - hindi
+        - ipod
+    verify_ssl_certificates: no
+    domain_delay:
+      bt-chat.com: 1 seconds
+      torrentz.eu: 1 seconds
+      torrenticity.com: 1 seconds
+    manipulate:
+      - title:
+          replace:
+            regexp: '^([\[ ]*www.torrenting.com[\] -]*){1,}'
+            format: ''
+      - title:
+          replace:
+            regexp: '^([\[ ]*www.usabit.com[\] -]*){1,}'
+            format: ''
+    log_filter:
+      context:
+        - subs
+        - entry
+        - guessit
+        - premieres
+        - move_stage
+        - set_series_begin
+      terms:
+        - cannot find any subtitles
+        - subtitles found for a second-choice
+        - Running 2nd pass
+        - Transfo options
+        - First episode for
+        - does not exists (anymore)
+        - duplicate properties
+        - releasing quality restriction
+        - both guesses to be merged have more than
+
+  tvfeed:
+    inputs:
+      - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
+      - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
+      - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
+      - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
+      - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
+      - rss: { url: 'http://ezrss.it/feed/', silent: yes }
+      - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
+
+  tvinfo:
+    plugin_priority:
+      manipulate: 255
+      trakt_lookup: 112
+    metainfo_series: yes
+    thetvdb_lookup: yes
+    trakt_lookup: yes
+    manipulate:
+      - title:
+          replace:
+            regexp: '.*cosmos.a.space[\b-.]?time.odyssey[\b-.]*'
+            format: "cosmos_a_spacetime_odyssey."
+      - title:
+          replace:
+            regexp: '.*intelligence.us[\b-.]*'
+            format: 'intelligence_2014.'
+      - title:
+          replace:
+            regexp: '.*(marvel|marvels|marvel.s)?.agents.of.(s.h.i.e.l.d.|shield)[\b-.]*'
+            format: 'marvels_agents_of_shield.'
+      - title:
+          replace:
+            regexp: '.*resurrection.us[\b-.]*'
+            format: 'resurrection.'
+      - title:
+          replace:
+            regexp: '.*resurrection.2014[\b-.]*'
+            format: 'resurrection.'
+
+  tvfltr:
+    content_size:
+      min: 100
+      max: 3000
+    set:
+      specials: no
+      allow_teasers: no
+      propers: 12 hours
+
+  tvtran:
+    transmission:
+      path: D:\Temp\series
+
+  mvinfo:
+    plugin_priority:
+      tmdb_lookup: 128
+      rottentomatoes_lookup: 127
+    imdb_lookup: yes
+    tmdb_lookup: yes
+    rottentomatoes_lookup: yes
+
+  mvfltr:
+    content_size:
+      min: 800
+      max: 10000
+    quality: 1080p
+  
+  mvtran:
+    movie_queue: yes
+    transmission:
+      path: D:\Temp\movies
+  
+  transm:
+    transmission:
+      enabled: yes
+      host: 192.168.1.200
+      port: 9092
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Sto scaricando:'
+      text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
+
+  mkdirs:
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: D:\Media\fgprep.bat
+
+  retr10:
+    retry_failed:
+      max_retries: 10
+
+  noseen:
     disable_builtins:
       - seen
       - seen_info_hash
     disable_plugin:
       - seen_movies
 
+  nosumm:
+    disable_builtins:
+      - details
+
+  nofail:
+    disable_builtins:
+      - backlog
+      - remember_rejected
+      - retry_failed
+    no_input_cache: yes
+
+  movsrt:
+    move:
+      along:
+        - srt
+        - it.srt
+        - ita.srt
+        - en.srt
+        - eng.srt
+
+  xfeeds:
+    seen: local
+    accept_all: yes
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'News from {{ task.name }}:'
+      text: '{{ title }} -- {{ url }}'
+
 tasks:
 
-  _test:
-    mock:
-      - { title: "x", tvdb_id: 176941 }
-      - { title: "x", tvdb_id: 276312 }
-      - { title: "x", tvdb_id: 273351 }
-      - { title: "x", tvdb_id: 264991 }
-    accept_all: yes
-    thetvdb_add:
-    # thetvdb_remove:
-      account_id: '{{ secrets.tv.aid }}'
+  ###########################################
+  # WANT/MUST SEE MOVIES to TRAKT WATCHLIST:
+  #########################################
 
+  imdb2trakt:
+    priority: 5
+    interval: 1 hours
+    seen: local
+    imdb_list:
+      username: '{{ secrets.imdb.usr }}'
+      password: '{{ secrets.imdb.pwd }}'
+      list: watchlist
+    crossmatch:
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: watchlist
+      fields:
+        - imdb_id
+      action: reject
+    accept_all: yes
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+
+  rott2trakt:
+    priority: 6
+    interval: 12 hours
+    template:
+      - noseen
+      - mvinfo
+    plugin_priority:
+      crossmatch: 0
+    rottentomatoes_list:
+      dvds:
+        - top_rentals
+        - current_releases
+        - new_releases
+        - upcoming
+      movies:
+        - box_office
+        - in_theaters
+        - opening
+        - upcoming
+    require_field:
+      - imdb_id
+      - imdb_name
+      - imdb_year
+      - imdb_url
+    regexp:
+      reject:
+        - animation: {from: imdb_genres}
+        - documentary: {from: imdb_genres}
+        - family: {from: imdb_genres}
+        # - history: {from: imdb_genres}
+        - horror: {from: imdb_genres}
+        - music: {from: imdb_genres}
+        - musical: {from: imdb_genres}
+        - romance: {from: imdb_genres}
+        - sport: {from: imdb_genres}
+    if:
+      - not imdb_languages or not 'english' in imdb_languages: reject
+      - rt_releases|theater > now - timedelta(months=1): reject
+      - rt_critics_consensus is None: reject
+      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
+      - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
+    crossmatch:
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: watchlist
+      fields:
+        - imdb_id
+        - tmdb_id
+      action: reject
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Da Rotten Tomatoes:'
+      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
+
+  ##################################
+  # TRAKT WATCHLIST to MOVIE QUEUE:
+  ################################
+
+  watchlist:
+    priority: 7
+    interval: 1 hours
+    seen: local
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      api_key: '{{ secrets.trakt.api }}'
+      movies: watchlist
+    queue_movies:
+      quality: any
+    accept_all: yes
+
+  ############
+  # TV SHOWS:
+  ##########
+
+  chk_series:
+    priority: 9
+    interval: 1 days
+    template:
+      - noseen
+      - nofail
+      # - tvinfo
+    plugin_priority:
+      if: -250
+      manipulate: -251
+      trakt_remove: -252
+      trakt_add: -253
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      custom: tvall
+    thetvdb_lookup: yes
+    if:
+      - tvdb_status == 'Ended': accept
+    manipulate:
+      - series_name:
+          from: title
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvall
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvended
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Serie terminate/cancellate:'
+      text: '{{ tvdb_series_name|default(series_name) }}'
+
+  set_series:
+    priority: 10
+    interval: 50 minutes
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    plugin_priority:
+      set: -254
+      if: -255
+    inputs:
+      - trakt_emit:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          position: next
+          context: watched
+          list: tvall
+      - trakt_emit:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          position: next
+          context: collected
+          list: tvevaluate
+    trakt_ratings_lookup:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+    # default values
+    set:
+      quality: <720p hdtv
+      specials: no
+    # overrides
+    if:
+      # hi-res
+      - "trakt_rating == 'love'":
+          set:
+            quality: 720p hdtv
+      # netflix
+      - "tvdb_id in [264586, 262980]":
+          set:
+            quality: <720p hdtv|webdl|webrip
+      # doctor who
+      - tvdb_id == 78804:
+          set:
+            specials: yes
+    accept_all: yes
+    create_series_config:
+      set_fields:
+        - begin
+        - quality
+        - specials
+      filename: 'C:\\Users\\Administrator\\flexget\\series.yml'
+    set_series_begin: yes
+
+  get_series:
+    priority: 11
+    interval: 50 minutes
+    template:
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - tvtran
+      - transm
+      - retr10
+    seen: local
+    include: 'C:\Users\Administrator\flexget\series.yml'
+
+  ######################
+  # TV SHOWS PREMIERES:
+  ####################
+
+  premieres:
+    priority: 15
+    interval: 2 hours
+    template:
+      - tvfeed
+      - tvinfo
+      - tvfltr
+      - tvtran
+      - transm
+      - retr10
+    plugin_priority:
+      if: -252
+      friendfeed: -253
+      manipulate: -254
+      trakt_add: -255
+    seen: local
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+      - tvdb_first_air_date
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
+    series_premiere:
+      timeframe: 4 hours
+      quality: <720p hdtv|webdl|webrip
+    torrent_alive:
+      min_seeds: 40
+    if:
+      - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+    manipulate:
+      - series_season:
+          remove: yes
+      - series_episode:
+          remove: yes
+    friendfeed:
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [me, serietv]
+      text: "{% if tvdb_network|default(False) %}{{ tvdb_network }} {% endif %}#premiere: {{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}){% if tvdb_ep_name|default(False) %} - {{ tvdb_ep_name }}{% endif %}"
+      link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
+      image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
+      comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvevaluate
+
+  #################
+  # QUEUED MOVIES:
+  ###############
+
+  movies:
+    priority: 20
+    interval: 4 hours
+    template:
+      - mvfltr
+      - mvtran
+      - transm
+      - retr10
+    seen: local
+    discover:
+      what:
+        - emit_movie_queue: { year: no }
+      from:
+        - kat:
+            category: movies
+            verified: yes
+        - torrentz: verified
+      interval: 0 hour
+
+  ########################################
+  # DOWNLOAD EVERYTHING I PUT IN DROPBOX:
+  ######################################
+
+  dropbox_series:
+    priority: 25
+    template:
+      - noseen
+      - nosumm
+      - nofail
+      - tvinfo
+      - tvtran
+      - transm
+    find:
+      path:
+        - D:\Dropbox\Torrents\series
+      regexp: '.*\.torrent$'
+    accept_all: yes
+    exec:
+      on_output:
+        for_accepted: del "{{location}}"
+
+  dropbox_movies:
+    priority: 26
+    template:
+      - noseen
+      - nosumm
+      - nofail
+      - mvinfo
+      - mvtran
+      - transm
+    find:
+      path:
+        - D:\Dropbox\Torrents\movies
+      regexp: '.*\.torrent$'
+    accept_all: yes
+    exec:
+      on_output:
+        for_accepted: del "{{location}}"
+
+  #########################################
+  # MOVE DOWNLOADED STUFF TO STAGE FOLDER:
+  #######################################
+
+  move_stage:
+    priority: 50
+    template:
+      - noseen
+      - nosumm
+      - mkdirs
+      - movsrt
+    plugin_priority:
+      accept_all: 31
+      move: 0
+    from_transmission:
+      host: 192.168.1.200
+      port: 9092
+      enabled: yes
+      onlycomplete: yes
+    accept_all: yes
+    require_field: location
+    move:
+      to: "D:\\Media\\{% if 'series' in location %}Stage\\series{% elif 'movies' in location %}Stage\\movies{% else %}Media\\Incoming\\varie{% endif %}\\"
+      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
+      clean_source: 50
+    clean_transmission:
+      enabled: yes
+      host: 192.168.1.200
+      port: 9092
+      finished_for: 4 hours
+
+  #######################################
+  # SUBTITLES FOR STUFF IN STAGING AREA:
+  #####################################
+
+  subs:
+    priority: 60
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    find:
+      path:
+        - D:\Media\Stage
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    accept_all: yes
+    subliminal:
+      languages:
+        - ita
+      alternatives:
+        - eng
+
+  ##############################################
+  # MOVE READY-TO-WATCH STUFF IN INCOMING AREA:
+  ############################################
+
+  move_series:
+    priority: 70
+    template:
+      - noseen
+      - nosumm
+      - mkdirs
+      - tvinfo
+      - movsrt
+      - retr10
+    plugin_priority:
+      if: -255
+    find:
+      path: 
+        - D:\Media\Stage\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    if:
+      - series_name and series_name.lower() == 'mythbusters': accept
+      - subtitles and 'ita' in subtitles: accept
+      - subtitles and series_id == 'S01E01': accept
+      - subtitles and tvdb_id == 260586: accept
+      - subtitles and tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=730): accept
+      - subtitles and timestamp < now - timedelta(days=3): accept
+      - timestamp < now - timedelta(days=7): accept
+    move:
+      to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
+      clean_source: 50
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Nuovi episodi:'
+      text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %}'
+    run_task:
+      task: poster_series
+      when: accepted
+
+  move_movies:
+    priority: 80
+    template:
+      - noseen
+      - nosumm
+      - mkdirs
+      - mvinfo
+      - movsrt
+      - retr10
+    find:
+      path: 
+        - D:\Media\Stage\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    require_field:
+      - imdb_year
+      - timestamp
+    if:
+      - subtitles and 'ita' in subtitles: accept
+      - subtitles and imdb_year < now.year and timestamp < now - timedelta(days=1): accept
+      - imdb_year == now.year and timestamp < now - timedelta(days=30): accept
+    move:
+      to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
+      clean_source: 50
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Nuovi film:'
+      text: '{{ imdb_name }} ({{ imdb_year }})'
+    run_task:
+      task: poster_movies
+      when: accepted
+
+  ####################
+  # PURGE SEEN STUFF:
+  ##################
+
+  purge_movies:
+    priority: 100
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - mvinfo
+      - movsrt
+    find:
+      path:
+        - D:\Media\Incoming\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    crossmatch:
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            password: '{{ secrets.trakt.pwd }}'
+            api_key: '{{ secrets.trakt.api }}'
+            movies: watched
+            strip_dates: yes
+      fields:
+        - imdb_id
+      action: accept
+    move:
+      to: "D:\\Media\\Purge\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
+      clean_source: 10
+    run_task:
+      task: poster_movies
+      when: accepted
+
+  purge_series:
+    priority: 101
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
+      - movsrt
+    find:
+      path:
+        - D:\Media\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    trakt_watched_lookup:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+    if:
+      - trakt_watched: accept
+    move:
+      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}"
+      clean_source: 10
+    run_task:
+      task: poster_series
+      when: accepted
+
+  #################
+  # SERVER EVENTS:
+  ###############
+
+  events:
+    priority: 200
+    interval: 50 minutes
+    seen: local
+    winevents:
+      filename: c:\windows\sysnative\winevt\logs\Application.evtx
+      providers:
+        - APC UPS Service:
+            short: UPS
+            events:
+              - 61452: Test automatico riuscito
+              - 61453: Sistema alimentato a batteria per disturbo elettrico
+              - 173: Sistema alimentato a batteria per sottotensione
+              - 174: Sistema alimentato a batteria per blackout
+              - 61455: Alimentazione ripristinata a corrente di rete
+              - 61456: PowerChute non comunica con la batteria di backup
+              - 61465: PowerChute comunica di nuovo con la batteria di backup
+              - 176: PowerChute ha spento il sistema
+    accept_all: yes
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Eventi di sistema:'
+      text: "{{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
+
+  ###################
+  # NEWS & PODCASTS:
+  #################
+
+  Flexget:
+    priority: 500
+    interval: 2 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
+
+  Imogen Heap:
+    priority: 501
+    interval: 12 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://www.imogenheap.com/feed/', silent: yes, all_entries: no }
+      - rss: { url: 'http://blog.imogenheap.com/rss', silent: yes, all_entries: no }
+
+  Podcasts:
+    priority: 502
+    interval: 12 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://feeds.feedburner.com/Radionation', silent: yes, all_entries: no }
+
+  Dilbert:
+    priority: 503
+    interval: 12 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
+    dilbert_strip: yes
+
+  Zerocalcare:
+    priority: 504
+    interval: 12 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
+
+  Romantically Apocalyptic:
+    priority: 505
+    interval: 12 hours
+    template:
+      xfeeds
+    inputs:
+      - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
+
+  FrenfiComms:
+    priority: 510
+    interval: 1 hours
+    getffcomms:
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      posts:
+        - e-f1e550600ce349cc90271b3284bb22c3
+    seen: local
+    accept_all: yes
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Nuovi commenti da frenfi:'
+      text: '- {{ comment_body }}  ({{ comment_author }} su "{{ post_title }}")'
+
+  tvrencans:
+    priority: 515
+    interval: 7 days
+    plugin_priority:
+      if: -255
+    tvrage_rencans: 3
+    seen: local
+    if:
+      - tvrsu_date >= now - timedelta(days=8): accept
+    friendfeed:
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [me, serietv]
+      mode: comments
+      text: "TV #rencans: weekly status update"
+      link: 'http://www.tvrage.com/status_update.php'
+      comment: "{{ tvrsu_date.strftime('%d/%m') }}: {{ tvrsu_lines|join(' -- ') }}"
+
+  ################
+  # MANUAL TASKS:
+  ##############
+  
+  begin_series:
+    manual: yes
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    trakt_emit:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      position: next
+      # context: collected
+      context: watched
+      list: tvall
+    accept_all: yes
+    set_series_begin: yes
+
+  poster_series:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
+      - nofail
+    sleep: 5
+    find:
+      path:
+        - D:\Media\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: series.template
+      file: 'D:\Media\Incoming\series.html'
+
+  poster_movies:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - mvinfo
+      - nofail
+    sleep: 5
+    find:
+      path:
+        - D:\Media\Incoming\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: movies.template
+      file: 'D:\Media\Incoming\movies.html'
