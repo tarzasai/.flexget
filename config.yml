@@ -33,11 +33,7 @@ templates:
     manipulate:
       - title:
           replace:
-            regexp: '^([\[ ]*www.torrenting.com[\] -]*){1,}'
-            format: ''
-      - title:
-          replace:
-            regexp: '^([\[ ]*www.usabit.com[\] -]*){1,}'
+            regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
             format: ''
     log_filter:
       move_stage:
