@@ -4,7 +4,7 @@ import logging
 from flexget import plugin
 from flexget.event import event
 
-log = logging.getLogger('no_input_cache')
+log = logging.getLogger('no_cache')
 
 
 class NoInputCache(object):
@@ -27,4 +27,4 @@ class NoInputCache(object):
 
 @event('plugin.register')
 def register_plugin():
-    plugin.register(NoInputCache, 'no_input_cache', api_ver=2)
+    plugin.register(NoInputCache, 'no_cache', api_ver=2)

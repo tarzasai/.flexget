@@ -4,6 +4,8 @@ import logging
 from flexget import plugin
 from flexget.event import event
 
+log = logging.getLogger('logfilter')
+
 
 class MyFilter(logging.Filter):
     
@@ -11,26 +13,23 @@ class MyFilter(logging.Filter):
         self.term = term
     
     def filter(self, record):
-        if not isinstance(record.msg, basestring):
-            return False
-        if self.term in record.msg:
-            return False
+        return not (isinstance(record.msg, basestring) and self.term in record.msg)
 
 
 class MyLogFilter(object):
     """
     Prevent entries with specific text from being logged.
-
+    
     Example::
 
       log_filter:
-        context1:
+        some.context:
           - in a galaxy
           - far far away
-        context2:
+        another.context:
           - whatever text
           - what the heck?
-        
+    
     """
     
     schema = {
@@ -43,8 +42,6 @@ class MyLogFilter(object):
         }
     }
     
-    filters = None
-    
     @plugin.priority(255)
     def on_task_start(self, task, config):
         self.filters = {}
@@ -53,14 +50,17 @@ class MyLogFilter(object):
             for s in config[k]:
                 f = MyFilter(s)
                 logging.getLogger(k).addFilter(f)
+                log.verbose('Log filter %d added (context "%s", term "%s")' % (id(f), k, s))
                 self.filters[k].append(f)
     
     @plugin.priority(-255)
     def on_task_exit(self, task, config):
-        if self.filters is not None:
-            for k in self.filters.keys():
-                for f in self.filters[k]:
-                    logging.getLogger(k).removeFilter(f)
+        if self.filters is None:
+            return
+        for k in self.filters.keys():
+            for f in self.filters[k]:
+                logging.getLogger(k).removeFilter(f)
+                log.verbose('Log filter %d removed' % (id(f)))
     
     on_task_abort = on_task_exit
 
