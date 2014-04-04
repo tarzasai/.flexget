@@ -306,9 +306,9 @@ tasks:
       username: '{{ secrets.trakt.usr }}'
       api_key: '{{ secrets.trakt.api }}'
       movies: watchlist
+    accept_all: yes
     queue_movies:
       quality: any
-    accept_all: yes
 
   ############
   # TV SHOWS:
@@ -356,7 +356,7 @@ tasks:
 
   set_series:
     priority: 10
-    interval: 50 minutes
+    # interval: 50 minutes
     template:
       - noseen
       - nosumm
@@ -383,6 +383,7 @@ tasks:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
+    trakt_lookup: yes
     # default values
     set:
       quality: <720p hdtv
@@ -394,7 +395,7 @@ tasks:
           set:
             quality: 720p hdtv
       # netflix
-      - "tvdb_id in [264586, 262980]":
+      - trakt_series_network and trakt_series_network == "Netflix":
           set:
             quality: <720p hdtv|webdl|webrip
       # doctor who
@@ -412,7 +413,7 @@ tasks:
 
   get_series:
     priority: 11
-    interval: 50 minutes
+    # interval: 50 minutes
     template:
       - tvinfo
       - tvfeed
@@ -420,8 +421,8 @@ tasks:
       - tvtran
       - transm
       - retr10
-    seen: local
     include: 'C:\Users\Administrator\flexget\series.yml'
+    seen: local
 
   ######################
   # TV SHOWS PREMIERES:
