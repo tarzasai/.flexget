@@ -39,6 +39,8 @@ templates:
       entry:
         - subtitles for now
         - subtitles found for a second-choice
+      move:
+        - left because it exceeds safety value
       move_stage:
         - does not exists (anymore)
       set_series_begin:
@@ -48,17 +50,6 @@ templates:
       subs:
         - cannot find any subtitles
         - subtitles found for a second-choice
-
-      # context:
-        # - entry
-        # - guessit
-        # - premieres
-      # terms:
-        # - Running 2nd pass
-        # - Transfo options
-        # - duplicate properties
-        # - releasing quality restriction
-        # - both guesses to be merged have more than
 
   tvfeed:
     inputs:
@@ -751,7 +742,7 @@ tasks:
     if:
       - trakt_watched: accept
     move:
-      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}"
+      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
       clean_source: 10
     run_task:
       task: poster_series
