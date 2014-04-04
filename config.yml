@@ -36,10 +36,15 @@ templates:
             regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
             format: ''
     log_filter:
+      entry:
+        - subtitles for now
+        - subtitles found for a second-choice
       move_stage:
         - does not exists (anymore)
       set_series_begin:
         - First episode for
+      series:
+        - releasing quality restriction
       subs:
         - cannot find any subtitles
         - subtitles found for a second-choice
@@ -164,7 +169,7 @@ templates:
       - backlog
       - remember_rejected
       - retry_failed
-    no_input_cache: yes
+    no_cache: yes
 
   movsrt:
     move:
@@ -404,7 +409,7 @@ tasks:
         - begin
         - quality
         - specials
-      filename: 'C:\\Users\\Administrator\\flexget\\series.yml'
+      filename: 'C:\\Users\\Administrator\\.flexget\\series.yml'
     set_series_begin: yes
 
   get_series:
@@ -417,7 +422,7 @@ tasks:
       - tvtran
       - transm
       - retr10
-    include: 'C:\Users\Administrator\flexget\series.yml'
+    include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
 
   ######################

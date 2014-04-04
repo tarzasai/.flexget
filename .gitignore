@@ -214,6 +214,3 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 secrets.yml
-plugins/friendfeed2.py
-plugins/getffcomms.py
-plugins/post2frenfi.py
