@@ -391,7 +391,7 @@ tasks:
     # overrides
     if:
       # hi-res
-      - "trakt_rating == 'love'":
+      - trakt_rating == "love":
           set:
             quality: 720p hdtv
       # netflix
