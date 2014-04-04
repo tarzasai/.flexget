@@ -40,23 +40,24 @@ templates:
             regexp: '^([\[ ]*www.usabit.com[\] -]*){1,}'
             format: ''
     log_filter:
-      context:
-        - subs
-        - entry
-        - guessit
-        - premieres
-        - move_stage
-        - set_series_begin
-      terms:
+      move_stage:
+        - does not exists (anymore)
+      set_series_begin:
+        - First episode for
+      subs:
         - cannot find any subtitles
         - subtitles found for a second-choice
-        - Running 2nd pass
-        - Transfo options
-        - First episode for
-        - does not exists (anymore)
-        - duplicate properties
-        - releasing quality restriction
-        - both guesses to be merged have more than
+
+      # context:
+        # - entry
+        # - guessit
+        # - premieres
+      # terms:
+        # - Running 2nd pass
+        # - Transfo options
+        # - duplicate properties
+        # - releasing quality restriction
+        # - both guesses to be merged have more than
 
   tvfeed:
     inputs:
