@@ -41,15 +41,11 @@ templates:
         - subtitles found for a second-choice
       move:
         - left because it exceeds safety value
-      move_stage:
         - does not exists (anymore)
       set_series_begin:
         - First episode for
       series:
         - releasing quality restriction
-      subs:
-        - cannot find any subtitles
-        - subtitles found for a second-choice
 
   tvfeed:
     inputs:
