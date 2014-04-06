@@ -42,6 +42,8 @@ class MyLogFilter(object):
         }
     }
     
+    filters = None
+    
     @plugin.priority(255)
     def on_task_start(self, task, config):
         self.filters = {}
