@@ -179,136 +179,14 @@ templates:
 
 tasks:
 
-  ###########################################
-  # WANT/MUST SEE MOVIES to TRAKT WATCHLIST:
-  #########################################
-
-  imdb2trakt:
-    priority: 5
-    interval: 1 hours
-    seen: local
-    imdb_list:
-      username: '{{ secrets.imdb.usr }}'
-      password: '{{ secrets.imdb.pwd }}'
-      list: watchlist
-    crossmatch:
-      from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: all
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: watchlist
-      fields:
-        - imdb_id
-      action: reject
-    accept_all: yes
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: watchlist
-
-  rott2trakt:
-    priority: 6
-    interval: 12 hours
-    template:
-      - noseen
-      - mvinfo
-    plugin_priority:
-      crossmatch: 0
-    rottentomatoes_list:
-      dvds:
-        - top_rentals
-        - current_releases
-        - new_releases
-        - upcoming
-      movies:
-        - box_office
-        - in_theaters
-        - opening
-        - upcoming
-    require_field:
-      - imdb_id
-      - imdb_name
-      - imdb_year
-      - imdb_url
-    regexp:
-      reject:
-        - animation: {from: imdb_genres}
-        - documentary: {from: imdb_genres}
-        - family: {from: imdb_genres}
-        # - history: {from: imdb_genres}
-        - horror: {from: imdb_genres}
-        - music: {from: imdb_genres}
-        - musical: {from: imdb_genres}
-        - romance: {from: imdb_genres}
-        - sport: {from: imdb_genres}
-    if:
-      - not imdb_languages or not 'english' in imdb_languages: reject
-      - rt_releases|theater > now - timedelta(months=1): reject
-      - rt_critics_consensus is None: reject
-      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
-      - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
-    crossmatch:
-      from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: all
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: watchlist
-      fields:
-        - imdb_id
-        - tmdb_id
-      action: reject
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: watchlist
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Da Rotten Tomatoes:'
-      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
-
-  ##################################
-  # TRAKT WATCHLIST to MOVIE QUEUE:
-  ################################
-
-  watchlist:
-    priority: 7
-    interval: 1 hours
-    seen: local
-    trakt_list:
-      username: '{{ secrets.trakt.usr }}'
-      api_key: '{{ secrets.trakt.api }}'
-      movies: watchlist
-    accept_all: yes
-    queue_movies:
-      quality: any
-
-  ############
-  # TV SHOWS:
-  ##########
-
+  # This task check out for ended/cancelled series, to remove them from the 
+  # main trakt list used to create the series config file.
   chk_series:
-    priority: 9
+    priority: 1
     interval: 1 days
     template:
       - noseen
       - nofail
-      # - tvinfo
     plugin_priority:
       if: -250
       manipulate: -251
@@ -319,9 +197,13 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       custom: tvall
+    # We need the tvdb_status field here, but we can't use the tvinfo template 
+    # because it needs different manipulate priorities...
     thetvdb_lookup: yes
     if:
       - tvdb_status == 'Ended': accept
+    # Plugin trakt_list sets the title fields, but we need its value in the 
+    # series_name field as required by trakt_remove/add plugins.
     manipulate:
       - series_name:
           from: title
@@ -342,8 +224,11 @@ tasks:
       title: 'Serie terminate/cancellate:'
       text: '{{ tvdb_series_name|default(series_name) }}'
 
+  # This task creates a yaml file with series configuration using two trakt.tv 
+  # list content (favorites and temporary). Some options (quality, specials) 
+  # depends on the show and/or the network and/or my trakt.tv ratings and so.
   set_series:
-    priority: 10
+    priority: 2
     # interval: 50 minutes
     template:
       - noseen
@@ -353,6 +238,7 @@ tasks:
       set: -254
       if: -255
     inputs:
+      # My favorite TV shows...
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
@@ -360,6 +246,7 @@ tasks:
           position: next
           context: watched
           list: tvall
+      # ...and the "I can't decide yet" ones.
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
@@ -367,26 +254,29 @@ tasks:
           position: next
           context: collected
           list: tvevaluate
+    # This will set the trakt_rating/trakt_rating_advanced fields in entries.
     trakt_ratings_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
+    # We need this for the trakt_series_network field.
     trakt_lookup: yes
-    # default values
+    # These are the default values.
     set:
-      quality: <720p hdtv
+      quality: <720p hdtv+
       specials: no
-    # overrides
+    # overrides:
     if:
-      # hi-res
+      # I just need to rate a show on trakt.tv to switch between hi-res and 
+      # default quality.
       - trakt_rating == "love":
           set:
-            quality: 720p hdtv
-      # netflix
+            quality: 720p hdtv+
+      # Netflix' stuff usually is webrip source only.
       - trakt_series_network and trakt_series_network == "Netflix":
           set:
-            quality: <720p hdtv|webdl|webrip
-      # doctor who
+            quality: webrip
+      # Doctor Who's specials are a very important part of the show.
       - tvdb_id == 78804:
           set:
             specials: yes
@@ -397,10 +287,12 @@ tasks:
         - quality
         - specials
       filename: 'C:\\Users\\Administrator\\.flexget\\series.yml'
+    # This is probably useless...
     set_series_begin: yes
 
+  # This is the search & download task for series.
   get_series:
-    priority: 11
+    priority: 3
     # interval: 50 minutes
     template:
       - tvinfo
@@ -412,12 +304,9 @@ tasks:
     include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
 
-  ######################
-  # TV SHOWS PREMIERES:
-  ####################
-
+  # A task to download series pilots.
   premieres:
-    priority: 15
+    priority: 5
     interval: 2 hours
     template:
       - tvfeed
@@ -451,16 +340,19 @@ tasks:
         - talk show: {from: tvdb_genres}
     series_premiere:
       timeframe: 4 hours
-      quality: <720p hdtv|webdl|webrip
+      quality: <720p hdtv+
     torrent_alive:
       min_seeds: 40
     if:
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+    # I need to remove season/episode numbers otherwise trakt_add plugin will 
+    # handle it as a single episode, but I need it to handle as a series.
     manipulate:
       - series_season:
           remove: yes
       - series_episode:
           remove: yes
+    # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
@@ -469,18 +361,142 @@ tasks:
       link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
       image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent 
+    # episodes too; in the end if I like it I will move it in the main list.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: tvevaluate
 
-  #################
-  # QUEUED MOVIES:
-  ###############
+  # The IMDB app is the only practical way to send titles to my movie queue 
+  # from a mobile.
+  imdb2trakt:
+    priority: 10
+    interval: 1 hours
+    seen: local
+    imdb_list:
+      username: '{{ secrets.imdb.usr }}'
+      password: '{{ secrets.imdb.pwd }}'
+      list: watchlist
+    crossmatch:
+      # Avoid titles already seen or in my trakt watchlist/collection.
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: watchlist
+      fields:
+        - imdb_id
+      action: reject
+    accept_all: yes
+    # My real watchlist is the trakt.tv one, easier to manipulate from flexget 
+    # than all the others - even the flexget one.
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
 
-  movies:
-    priority: 20
+  # This is a very simple upcoming movies evaluating task, based on IMDB and 
+  # Rotten Tomatoes public votes.
+  rott2trakt:
+    priority: 11
+    interval: 12 hours
+    template:
+      - noseen
+      - mvinfo
+    plugin_priority:
+      crossmatch: 0
+    rottentomatoes_list:
+      dvds:
+        - top_rentals
+        - current_releases
+        - new_releases
+        - upcoming
+      movies:
+        - box_office
+        - in_theaters
+        - opening
+        - upcoming
+    require_field:
+      - imdb_id
+      - imdb_name
+      - imdb_year
+      - imdb_url
+    regexp:
+      reject:
+        - animation: {from: imdb_genres}
+        - documentary: {from: imdb_genres}
+        - family: {from: imdb_genres}
+        - horror: {from: imdb_genres}
+        - music: {from: imdb_genres}
+        - musical: {from: imdb_genres}
+        - romance: {from: imdb_genres}
+        - sport: {from: imdb_genres}
+    if:
+      # I usually don't like italian movies and I prefer English among all the 
+      # foreign languages, so...
+      - not imdb_languages or not 'english' in imdb_languages: reject
+      # We only evaluate recent movies.
+      - rt_releases|theater > now - timedelta(months=1): reject
+      # Here we have some very simple criterias to try to get only good stuff.
+      - rt_critics_consensus is None: reject
+      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
+      - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
+    crossmatch:
+      # Avoid titles already seen or in my trakt watchlist/collection.
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: watchlist
+      fields:
+        - imdb_id
+        - tmdb_id
+      action: reject
+    # Again we add the accepted entries to the trakt.tv watchlist.
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Da Rotten Tomatoes:'
+      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
+
+  # In the end we transfer the trakt watchlist content to the flexget movie 
+  # queue.
+  watchlist:
+    priority: 12
+    interval: 1 hours
+    seen: local
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      api_key: '{{ secrets.trakt.api }}'
+      movies: watchlist
+    accept_all: yes
+    queue_movies:
+      quality: any
+
+  # This is the real search & download task for movies.
+  get_movies:
+    priority: 15
     interval: 4 hours
     template:
       - mvfltr
@@ -498,12 +514,9 @@ tasks:
         - torrentz: verified
       interval: 0 hour
 
-  ########################################
-  # DOWNLOAD EVERYTHING I PUT IN DROPBOX:
-  ######################################
-
+  # sometimes, mostly for old stuff, I have to look for episodes in the old way.
   dropbox_series:
-    priority: 25
+    priority: 30
     template:
       - noseen
       - nosumm
@@ -520,8 +533,9 @@ tasks:
       on_output:
         for_accepted: del "{{location}}"
 
+  # (movies too)
   dropbox_movies:
-    priority: 26
+    priority: 31
     template:
       - noseen
       - nosumm
@@ -538,10 +552,8 @@ tasks:
       on_output:
         for_accepted: del "{{location}}"
 
-  #########################################
-  # MOVE DOWNLOADED STUFF TO STAGE FOLDER:
-  #######################################
-
+  # Move downloaded movies/episodes to the stage folder: we'll look for 
+  # subtitles for a while, then we move them to the incoming folder.
   move_stage:
     priority: 50
     template:
@@ -558,8 +570,14 @@ tasks:
       enabled: yes
       onlycomplete: yes
     accept_all: yes
+    # Plugin from_transmission add the location field to entries about torrents 
+    # with a big file within (at least 90% of total size), and I really need 
+    # just it - along any subtitles file as defined in the movsrt template.
     require_field: location
     move:
+      # The transmission destination path tells us if we are dealing with a 
+      # movie or an episode and we need to move them in the appropriate folders 
+      # for all subsequent operations.
       to: "D:\\Media\\{% if 'series' in location %}Stage\\series{% elif 'movies' in location %}Stage\\movies{% else %}Media\\Incoming\\varie{% endif %}\\"
       filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
       clean_source: 50
@@ -569,11 +587,8 @@ tasks:
       port: 9092
       finished_for: 4 hours
 
-  #######################################
-  # SUBTITLES FOR STUFF IN STAGING AREA:
-  #####################################
-
-  subs:
+  # Download italian and english subtitles for videos in the stage folder.
+  subtitles:
     priority: 60
     template:
       - noseen
@@ -591,10 +606,7 @@ tasks:
       alternatives:
         - eng
 
-  ##############################################
-  # MOVE READY-TO-WATCH STUFF IN INCOMING AREA:
-  ############################################
-
+  # Move ready-to-watch episodes from stage to incoming folder.
   move_series:
     priority: 70
     template:
@@ -613,16 +625,25 @@ tasks:
       recursive: yes
     check_subtitles: yes
     if:
+      # I've never found any subs for MythBusters, but it's not a good reason 
+      # to deprive a man of the pleasure of watching it.
       - series_name and series_name.lower() == 'mythbusters': accept
+      # Obviously italian subtitles are the best solution.
       - subtitles and 'ita' in subtitles: accept
+      # Usually it's unlikely to find italian subs for pilots...
       - subtitles and series_id == 'S01E01': accept
+      # ...Cosmos (documentary)...
       - subtitles and tvdb_id == 260586: accept
+      # ...and old series.
       - subtitles and tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=730): accept
+      # 3 days after airdate I'm probably ok with just english subs.
       - subtitles and timestamp < now - timedelta(days=3): accept
+      # 7 days after airdate still can't find any subs? will do a manual search.
       - timestamp < now - timedelta(days=7): accept
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       clean_source: 50
+    # Add them to my trakt collection, notify me and update the index page.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -638,6 +659,7 @@ tasks:
       task: poster_series
       when: accepted
 
+  # Move ready-to-watch movies from stage to incoming folder.
   move_movies:
     priority: 80
     template:
@@ -657,12 +679,19 @@ tasks:
       - imdb_year
       - timestamp
     if:
+      # Obviously italian subtitles are the best solution.
       - subtitles and 'ita' in subtitles: accept
+      # If we can't find italian subs for old movies pronto they probably don't 
+      # exists, so we better go with the english ones.
       - subtitles and imdb_year < now.year and timestamp < now - timedelta(days=1): accept
-      - imdb_year == now.year and timestamp < now - timedelta(days=30): accept
+      # If a movie was in stage for 30 days or more and no subs has been found 
+      # it's better to try a manual search.
+      - timestamp < now - timedelta(days=30): accept
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 50
+    # Move them from my trakt watchlist to the collection, notify me and update
+    # the index page.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -683,10 +712,7 @@ tasks:
       task: poster_movies
       when: accepted
 
-  ####################
-  # PURGE SEEN STUFF:
-  ##################
-
+  # Move watched movies out of the incoming folder and update the index page.
   purge_movies:
     priority: 100
     template:
@@ -718,6 +744,7 @@ tasks:
       task: poster_movies
       when: accepted
 
+  # Move watched episodes out of the incoming folder and update the index page.
   purge_series:
     priority: 101
     template:
@@ -744,13 +771,11 @@ tasks:
       task: poster_series
       when: accepted
 
-  #################
-  # SERVER EVENTS:
-  ###############
-
+  # Sometimes there are AC power issues at my place: this task look for APC 
+  # notification in Windows registry and xmpp'em to me.
   events:
     priority: 200
-    interval: 50 minutes
+    # interval: 50 minutes
     seen: local
     winevents:
       filename: c:\windows\sysnative\winevt\logs\Application.evtx
