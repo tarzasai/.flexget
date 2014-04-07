@@ -497,7 +497,7 @@ tasks:
   # This is the real search & download task for movies.
   get_movies:
     priority: 15
-    interval: 4 hours
+    interval: 2 hours
     template:
       - mvfltr
       - mvtran
@@ -587,59 +587,21 @@ tasks:
       port: 9092
       finished_for: 4 hours
 
-  # Download italian and english subtitles for videos in the stage folder.
-  subtitles:
-    priority: 60
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    find:
-      path:
-        - D:\Media\Stage
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    accept_all: yes
-    subliminal:
-      languages:
-        - ita
-      alternatives:
-        - eng
-
-  # Move ready-to-watch episodes from stage to incoming folder.
+  # Move episodes to incoming folder.
   move_series:
-    priority: 70
+    priority: 55
     template:
       - noseen
       - nosumm
       - mkdirs
       - tvinfo
       - movsrt
-      - retr10
-    plugin_priority:
-      if: -255
     find:
       path: 
         - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    check_subtitles: yes
-    if:
-      # I've never found any subs for MythBusters, but it's not a good reason 
-      # to deprive a man of the pleasure of watching it.
-      - series_name and series_name.lower() == 'mythbusters': accept
-      # Obviously italian subtitles are the best solution.
-      - subtitles and 'ita' in subtitles: accept
-      # Usually it's unlikely to find italian subs for pilots...
-      - subtitles and series_id == 'S01E01': accept
-      # ...Cosmos (documentary)...
-      - subtitles and tvdb_id == 260586: accept
-      # ...and old series.
-      - subtitles and tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=730): accept
-      # 3 days after airdate I'm probably ok with just english subs.
-      - subtitles and timestamp < now - timedelta(days=3): accept
-      # 7 days after airdate still can't find any subs? will do a manual search.
-      - timestamp < now - timedelta(days=7): accept
+    accept_all: yes
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       clean_source: 50
@@ -655,13 +617,10 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi episodi:'
       text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %}'
-    run_task:
-      task: poster_series
-      when: accepted
 
-  # Move ready-to-watch movies from stage to incoming folder.
+  # Move movies to incoming folder.
   move_movies:
-    priority: 80
+    priority: 56
     template:
       - noseen
       - nosumm
@@ -674,19 +633,9 @@ tasks:
         - D:\Media\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    check_subtitles: yes
+    accept_all: yes
     require_field:
       - imdb_year
-      - timestamp
-    if:
-      # Obviously italian subtitles are the best solution.
-      - subtitles and 'ita' in subtitles: accept
-      # If we can't find italian subs for old movies pronto they probably don't 
-      # exists, so we better go with the english ones.
-      - subtitles and imdb_year < now.year and timestamp < now - timedelta(days=1): accept
-      # If a movie was in stage for 30 days or more and no subs has been found 
-      # it's better to try a manual search.
-      - timestamp < now - timedelta(days=30): accept
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 50
@@ -708,13 +657,96 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }})'
+
+  # Download italian and english subtitles for videos in the stage folder.
+  subtitles:
+    priority: 60
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    find:
+      path:
+        - D:\Media\Incoming
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    accept_all: yes
+    subliminal:
+      languages:
+        - ita
+      alternatives:
+        - eng
+
+  poster_series:
+    priority: 64
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
+      - nofail
+    sleep: 5
+    find:
+      path:
+        - D:\Media\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: series.template
+      file: 'D:\Media\Incoming\series.html'
+
+  poster_movies:
+    priority: 65
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - mvinfo
+      - nofail
+    sleep: 5
+    find:
+      path:
+        - D:\Media\Incoming\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: movies.template
+      file: 'D:\Media\Incoming\movies.html'
+
+  # Move watched episodes out of the incoming folder and update the index page.
+  purge_series:
+    priority: 100
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
+      - movsrt
+    find:
+      path:
+        - D:\Media\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    trakt_watched_lookup:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+    if:
+      - trakt_watched: accept
+    move:
+      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
+      clean_source: 10
     run_task:
-      task: poster_movies
+      task: poster_series
       when: accepted
 
   # Move watched movies out of the incoming folder and update the index page.
   purge_movies:
-    priority: 100
+    priority: 101
     template:
       - no_global
       - noseen
@@ -742,33 +774,6 @@ tasks:
       clean_source: 10
     run_task:
       task: poster_movies
-      when: accepted
-
-  # Move watched episodes out of the incoming folder and update the index page.
-  purge_series:
-    priority: 101
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - tvinfo
-      - movsrt
-    find:
-      path:
-        - D:\Media\Incoming\series
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    trakt_watched_lookup:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-    if:
-      - trakt_watched: accept
-    move:
-      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
-      clean_source: 10
-    run_task:
-      task: poster_series
       when: accepted
 
   # Sometimes there are AC power issues at my place: this task look for APC 
@@ -908,43 +913,3 @@ tasks:
       list: tvall
     accept_all: yes
     set_series_begin: yes
-
-  poster_series:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - tvinfo
-      - nofail
-    sleep: 5
-    find:
-      path:
-        - D:\Media\Incoming\series
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: series.template
-      file: 'D:\Media\Incoming\series.html'
-
-  poster_movies:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - mvinfo
-      - nofail
-    sleep: 5
-    find:
-      path:
-        - D:\Media\Incoming\movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: movies.template
-      file: 'D:\Media\Incoming\movies.html'
