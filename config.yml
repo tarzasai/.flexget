@@ -31,8 +31,8 @@ templates:
       bt-chat.com: 1 seconds
       torrentz.eu: 1 seconds
       torrenticity.com: 1 seconds
+    # clean titles from heading urls (someone add garbage like "[ www.whatever.com ]" to torrents names).
     manipulate:
-      # clean titles from heading urls (garbage).
       - title:
           replace:
             regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
@@ -69,7 +69,7 @@ templates:
     metainfo_series: yes
     thetvdb_lookup: yes
     trakt_lookup: yes
-    # Some torrents  titles 
+    # Some titles need little corrections in order to be found on metainfo sites.
     manipulate:
       - title:
           replace:
@@ -85,26 +85,24 @@ templates:
             format: 'marvels_agents_of_shield.'
       - title:
           replace:
-            regexp: '.*resurrection.us[\b-.]*'
-            format: 'resurrection.'
-      - title:
-          replace:
-            regexp: '.*resurrection.2014[\b-.]*'
+            regexp: '.*resurrection.(us|2014)[\b-.]*'
             format: 'resurrection.'
 
+  # Global filters for series.
   tvfltr:
     content_size:
       min: 100
       max: 3000
     set:
-      specials: no
       allow_teasers: no
       propers: 12 hours
 
+  # Destination path for series in Transmission.
   tvtran:
     transmission:
       path: D:\Temp\series
 
+  # All the metainfo plugins used by movies related tasks.
   mvinfo:
     plugin_priority:
       tmdb_lookup: 128
@@ -113,17 +111,20 @@ templates:
     tmdb_lookup: yes
     rottentomatoes_lookup: yes
 
+  # Global filters for movies.
   mvfltr:
     content_size:
       min: 800
       max: 10000
-    quality: 1080p hdtv+
-  
-  mvtran:
     movie_queue: yes
+    quality: 1080p hdtv+
+
+  # Destination path for movies in Transmission.
+  mvtran:
     transmission:
       path: D:\Temp\movies
-  
+
+  # Transmission settings.
   transm:
     transmission:
       enabled: yes
@@ -136,6 +137,7 @@ templates:
       title: 'Sto scaricando:'
       text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
 
+  # 
   mkdirs:
     exec:
       allow_background: yes
@@ -173,6 +175,7 @@ templates:
         - en.srt
         - eng.srt
 
+  # Common notification settings for news/podcasts.
   xfeeds:
     seen: local
     accept_all: yes
@@ -185,8 +188,8 @@ templates:
 
 tasks:
 
-  # This task check out for ended/cancelled series, to remove them from the 
-  # main trakt list used to create the series config file.
+  # This task check out for ended/cancelled series, to remove them from the main trakt list used to create the series 
+  # config file.
   chk_series:
     priority: 1
     interval: 1 days
@@ -203,13 +206,13 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       custom: tvall
-    # We need the tvdb_status field here, but we can't use the tvinfo template 
-    # because it needs different manipulate priorities...
+    # We need the tvdb_status field here, but we can't use the tvinfo template because it needs different manipulate 
+    # priorities...
     thetvdb_lookup: yes
     if:
       - tvdb_status == 'Ended': accept
-    # Plugin trakt_list sets the title fields, but we need its value in the 
-    # series_name field as required by trakt_remove/add plugins.
+    # Plugin trakt_list sets the title fields, but we need its value in the series_name field as required by 
+    # trakt_remove/add plugins.
     manipulate:
       - series_name:
           from: title
@@ -230,9 +233,8 @@ tasks:
       title: 'Serie terminate/cancellate:'
       text: '{{ tvdb_series_name|default(series_name) }}'
 
-  # This task creates a yaml file with series configuration using two trakt.tv 
-  # list content (favorites and temporary). Some options (quality, specials) 
-  # depends on the show and/or the network and/or my trakt.tv ratings and so.
+  # This task creates a yaml file with series configuration using two trakt.tv list content (favorites and temporary). 
+  # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
   set_series:
     priority: 2
     # interval: 50 minutes
@@ -351,8 +353,8 @@ tasks:
       min_seeds: 40
     if:
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
-    # I need to remove season/episode numbers otherwise trakt_add plugin will 
-    # handle it as a single episode, but I need it to handle as a series.
+    # I need to remove season/episode numbers otherwise trakt_add plugin will handle it as a single episode, but I need 
+    # it to handle as a series.
     manipulate:
       - series_season:
           remove: yes
@@ -367,16 +369,15 @@ tasks:
       link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
       image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
-    # Add the show to the temporary list on trakt.tv so we'll get subsequent 
-    # episodes too; in the end if I like it I will move it in the main list.
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too; in the end if I like it I 
+    # will move it in the main list.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: tvevaluate
 
-  # The IMDB app is the only practical way to send titles to my movie queue 
-  # from a mobile.
+  # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
   imdb2trakt:
     priority: 10
     interval: 1 hours
@@ -402,16 +403,14 @@ tasks:
         - imdb_id
       action: reject
     accept_all: yes
-    # My real watchlist is the trakt.tv one, easier to manipulate from flexget 
-    # than all the others - even the flexget one.
+    # My real movies watchlist is on trakt.tv.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: watchlist
 
-  # This is a very simple upcoming movies evaluating task, based on IMDB and 
-  # Rotten Tomatoes public votes.
+  # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
   rott2trakt:
     priority: 11
     interval: 12 hours
@@ -447,8 +446,7 @@ tasks:
         - romance: {from: imdb_genres}
         - sport: {from: imdb_genres}
     if:
-      # I usually don't like italian movies and I prefer English among all the 
-      # foreign languages, so...
+      # I usually don't like italian movies and I prefer English among all the foreign languages, so...
       - not imdb_languages or not 'english' in imdb_languages: reject
       # We only evaluate recent movies.
       - rt_releases|theater > now - timedelta(months=1): reject
@@ -486,8 +484,7 @@ tasks:
       title: 'Da Rotten Tomatoes:'
       text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
 
-  # In the end we transfer the trakt watchlist content to the flexget movie 
-  # queue.
+  # In the end we transfer the trakt watchlist content to the flexget movie queue.
   watchlist:
     priority: 12
     interval: 1 hours
@@ -558,44 +555,9 @@ tasks:
       on_output:
         for_accepted: del "{{location}}"
 
-  # Move downloaded movies/episodes to the stage folder: we'll look for 
-  # subtitles for a while, then we move them to the incoming folder.
-  move_stage:
-    priority: 50
-    template:
-      - noseen
-      - nosumm
-      - mkdirs
-      - movsrt
-    plugin_priority:
-      accept_all: 31
-      move: 0
-    from_transmission:
-      host: 192.168.1.200
-      port: 9092
-      enabled: yes
-      onlycomplete: yes
-    accept_all: yes
-    # Plugin from_transmission add the location field to entries about torrents 
-    # with a big file within (at least 90% of total size), and I really need 
-    # just it - along any subtitles file as defined in the movsrt template.
-    require_field: location
-    move:
-      # The transmission destination path tells us if we are dealing with a 
-      # movie or an episode and we need to move them in the appropriate folders 
-      # for all subsequent operations.
-      to: "D:\\Media\\{% if 'series' in location %}Stage\\series{% elif 'movies' in location %}Stage\\movies{% else %}Media\\Incoming\\varie{% endif %}\\"
-      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-      clean_source: 50
-    clean_transmission:
-      enabled: yes
-      host: 192.168.1.200
-      port: 9092
-      finished_for: 4 hours
-
   # Move episodes to incoming folder.
   move_series:
-    priority: 55
+    priority: 40
     template:
       - noseen
       - nosumm
@@ -603,11 +565,20 @@ tasks:
       - tvinfo
       - movsrt
     find:
-      path: 
-        - D:\Media\Stage\series
+      path:
+        - D:\Temp\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    accept_all: yes
+    crossmatch:
+      from:
+        - from_transmission:
+            host: 192.168.1.200
+            port: 9092
+            enabled: yes
+            onlycomplete: yes
+      fields:
+        - location
+      action: accept
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       clean_source: 50
@@ -626,20 +597,28 @@ tasks:
 
   # Move movies to incoming folder.
   move_movies:
-    priority: 56
+    priority: 41
     template:
       - noseen
       - nosumm
       - mkdirs
       - mvinfo
       - movsrt
-      - retr10
     find:
-      path: 
-        - D:\Media\Stage\movies
+      path:
+        - D:\Temp\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    accept_all: yes
+    crossmatch:
+      from:
+        - from_transmission:
+            host: 192.168.1.200
+            port: 9092
+            enabled: yes
+            onlycomplete: yes
+      fields:
+        - location
+      action: accept
     require_field:
       - imdb_year
     move:
@@ -662,6 +641,19 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }})'
+
+  # Clean Transmission of completed torrents.
+  cleantran:
+    priority: 45
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    clean_transmission:
+      enabled: yes
+      host: 192.168.1.200
+      port: 9092
+      finished_for: 4 hours
 
   # Download italian and english subtitles for all the videos.
   subtitles:
