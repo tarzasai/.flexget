@@ -1,5 +1,5 @@
-# My passwords and other private stuff (see https://github.com/tarzasai/.flexget/tree/master/plugins and 
-# https://github.com/Flexget/Flexget/pull/249)
+# My passwords and other private stuff - see https://github.com/tarzasai/.flexget/tree/master/plugins and 
+# https://github.com/Flexget/Flexget/pull/249
 secrets: secrets.yml
 
 templates:
@@ -32,13 +32,13 @@ templates:
       bt-chat.com: 1 seconds
       torrentz.eu: 1 seconds
       torrenticity.com: 1 seconds
-    # clean titles from heading urls (someone add garbage like "[ www.whatever.com ]" to torrents names).
+    # Remove heading urls from titles (someone add garbage like "[ www.whatever.com ]" to torrents names).
     manipulate:
       - title:
           replace:
             regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
             format: ''
-    # A plugin to prevent some messages to be logged (see https://github.com/tarzasai/.flexget/tree/master/plugins).
+    # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
       entry:
         - subtitles for now
@@ -62,10 +62,12 @@ templates:
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
 
-  # All the metainfo plugins used by series related tasks.
+  # All the metainfo plugins used by tasks handling series.
   tvinfo:
     plugin_priority:
+      # We need manipulate to run before metainfo_series.
       manipulate: 255
+      # I needed trakt_lookup to run before thetvdb_lookup, but TBH I don't remember why...
       trakt_lookup: 112
     metainfo_series: yes
     thetvdb_lookup: yes
@@ -102,14 +104,15 @@ templates:
       allow_teasers: no
       propers: 12 hours
 
-  # Destination path for series in Transmission.
+  # Destination path for series in Transmission (requires transm template too).
   tvtran:
     transmission:
       path: D:\Media\Stage\series
 
-  # All the metainfo plugins used by movies related tasks.
+  # All the metainfo plugins used by tasks handling movies.
   mvinfo:
     plugin_priority:
+      # I'm not sure of this priority too, maybe because of https://github.com/Flexget/Flexget/pull/234
       tmdb_lookup: 128
       rottentomatoes_lookup: 127
     imdb_lookup: yes
@@ -124,7 +127,7 @@ templates:
     movie_queue: yes
     quality: 1080p hdtv+
 
-  # Destination path for movies in Transmission.
+  # Destination path for movies in Transmission (requires transm template too).
   mvtran:
     transmission:
       path: D:\Media\Stage\movies
@@ -142,25 +145,7 @@ templates:
       title: 'Sto scaricando:'
       text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
 
-  noseen:
-    disable_builtins:
-      - seen
-      - seen_info_hash
-    disable_plugin:
-      - seen_movies
-
-  nosumm:
-    disable_builtins:
-      - details
-
-  nofail:
-    disable_builtins:
-      - backlog
-      - remember_rejected
-      - retry_failed
-    no_cache: yes
-
-  # Subtitles always follow their videos.
+  # Subtitles should always follow their videos.
   movsrt:
     move:
       along:
@@ -170,7 +155,7 @@ templates:
         - en.srt
         - eng.srt
 
-  # Common notification settings for news/podcasts.
+  # Notification for news/podcasts.
   xfeeds:
     seen: local
     accept_all: yes
@@ -180,6 +165,28 @@ templates:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'News from {{ task.name }}:'
       text: '{{ title }} -- {{ url }}'
+
+  # No messages about no input/output/whatever.
+  nosumm:
+    disable_builtins:
+      - details
+
+  # Several tasks must not mess up with the seen table...
+  noseen:
+    disable_builtins:
+      - seen
+      - seen_info_hash
+    disable_plugin:
+      - seen_movies
+
+  # ...and/or with the backlog.
+  nofail:
+    disable_builtins:
+      - backlog
+      - remember_rejected
+      - retry_failed
+    # The --no-cache CLI option on a single task - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    no_cache: yes
 
 tasks:
 
@@ -257,7 +264,7 @@ tasks:
           position: next
           context: collected
           list: tvevaluate
-    # This will set the trakt_rating/trakt_rating_advanced fields in entries.
+    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
     trakt_ratings_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -346,8 +353,7 @@ tasks:
       min_seeds: 40
     if:
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
-    # I need to remove season/episode numbers otherwise trakt_add plugin will handle it as a single episode, but I need 
-    # it to handle as a series.
+    # I need to remove season/episode numbers otherwise trakt_add plugin will handle it as a single episode.
     manipulate:
       - series_season:
           remove: yes
@@ -438,15 +444,17 @@ tasks:
         - musical: {from: imdb_genres}
         - romance: {from: imdb_genres}
         - sport: {from: imdb_genres}
+        - Faith & Spirituality: {from: rt_genres}
+        - Kids & Family: {from: rt_genres}
     if:
       # I usually don't like italian movies and I prefer English among all the foreign languages, so...
       - not imdb_languages or not 'english' in imdb_languages: reject
-      # We only evaluate recent movies.
-      - rt_releases|theater > now - timedelta(months=1): reject
+      # Max 10 years old movies.
+      - imdb_year < now.year - 10: reject
       # Here we have some very simple criterias to try to get only good stuff.
       - rt_critics_consensus is None: reject
-      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
       - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
+      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
     crossmatch:
       # Avoid titles already seen or in my trakt watchlist/collection.
       from:
