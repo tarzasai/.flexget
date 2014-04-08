@@ -117,7 +117,7 @@ templates:
     content_size:
       min: 800
       max: 10000
-    quality: 1080p
+    quality: 1080p hdtv+
   
   mvtran:
     movie_queue: yes
