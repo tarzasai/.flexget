@@ -1,4 +1,5 @@
-# private stuff (see https://github.com/Flexget/Flexget/pull/249)
+# My passwords and other private stuff (see https://github.com/tarzasai/.flexget/tree/master/plugins and 
+# https://github.com/Flexget/Flexget/pull/249)
 secrets: secrets.yml
 
 templates:
@@ -37,7 +38,7 @@ templates:
           replace:
             regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
             format: ''
-    # prevent some useless (for me) stuff to be logged (see https://github.com/tarzasai/.flexget/tree/master/plugins).
+    # A plugin to prevent some messages to be logged (see https://github.com/tarzasai/.flexget/tree/master/plugins).
     log_filter:
       entry:
         - subtitles for now
@@ -87,6 +88,10 @@ templates:
           replace:
             regexp: '.*resurrection.(us|2014)[\b-.]*'
             format: 'resurrection.'
+      - title:
+          replace:
+            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            format: 'from_dusk_till_dawn.'
 
   # Global filters for series.
   tvfltr:
@@ -100,7 +105,7 @@ templates:
   # Destination path for series in Transmission.
   tvtran:
     transmission:
-      path: D:\Temp\series
+      path: D:\Media\Stage\series
 
   # All the metainfo plugins used by movies related tasks.
   mvinfo:
@@ -122,7 +127,7 @@ templates:
   # Destination path for movies in Transmission.
   mvtran:
     transmission:
-      path: D:\Temp\movies
+      path: D:\Media\Stage\movies
 
   # Transmission settings.
   transm:
@@ -136,17 +141,6 @@ templates:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Sto scaricando:'
       text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
-
-  # 
-  mkdirs:
-    exec:
-      allow_background: yes
-      on_exit:
-        phase: D:\Media\fgprep.bat
-
-  retr10:
-    retry_failed:
-      max_retries: 10
 
   noseen:
     disable_builtins:
@@ -166,6 +160,7 @@ templates:
       - retry_failed
     no_cache: yes
 
+  # Subtitles always follow their videos.
   movsrt:
     move:
       along:
@@ -308,7 +303,6 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-      - retr10
     include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
 
@@ -322,7 +316,6 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-      - retr10
     plugin_priority:
       if: -252
       friendfeed: -253
@@ -505,7 +498,6 @@ tasks:
       - mvfltr
       - mvtran
       - transm
-      - retr10
     seen: local
     discover:
       what:
@@ -561,12 +553,11 @@ tasks:
     template:
       - noseen
       - nosumm
-      - mkdirs
       - tvinfo
       - movsrt
     find:
       path:
-        - D:\Temp\series
+        - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     crossmatch:
@@ -594,6 +585,10 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi episodi:'
       text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %}'
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md D:\Media\Stage\series
 
   # Move movies to incoming folder.
   move_movies:
@@ -601,12 +596,11 @@ tasks:
     template:
       - noseen
       - nosumm
-      - mkdirs
       - mvinfo
       - movsrt
     find:
       path:
-        - D:\Temp\movies
+        - D:\Media\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     crossmatch:
@@ -641,6 +635,10 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }})'
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md D:\Media\Stage\movies
 
   # Clean Transmission of completed torrents.
   cleantran:
@@ -697,6 +695,10 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
       clean_source: 10
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md D:\Media\Incoming\series
 
   # Move watched movies out of the incoming folder.
   purge_movies:
@@ -726,7 +728,12 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
       clean_source: 10
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md D:\Media\Incoming\movies
 
+  # Generate a local html index page for available episodes.
   poster_series:
     priority: 80
     template:
@@ -746,6 +753,7 @@ tasks:
       template: series.template
       file: 'D:\Media\Incoming\series.html'
 
+  # Generate a local html index page for available movies.
   poster_movies:
     priority: 81
     template:
@@ -765,12 +773,12 @@ tasks:
       template: movies.template
       file: 'D:\Media\Incoming\movies.html'
 
-  # Sometimes there are AC power issues at my place: this task look for APC notifications in Windows registry and 
-  # xmpp'em to me.
+  # This task send me a notification for every APC warning logged in Windows registry (power issues at my place).
   events:
     priority: 200
     # interval: 50 minutes
     seen: local
+    # My input plugin for Windows registry (see https://github.com/tarzasai/.flexget/tree/master/plugins)
     winevents:
       filename: c:\windows\sysnative\winevt\logs\Application.evtx
       providers:
@@ -897,7 +905,6 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       position: next
-      # context: collected
       context: watched
       list: tvall
     accept_all: yes
