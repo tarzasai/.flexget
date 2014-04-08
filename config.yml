@@ -40,6 +40,8 @@ templates:
             format: ''
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
+      crossmatch:
+        - Input from_transmission did not return anything
       entry:
         - subtitles for now
         - subtitles found for a second-choice
@@ -655,6 +657,9 @@ tasks:
       - noseen
       - nosumm
       - nofail
+    log_filter:
+      task:
+        - you should add (at least) one!
     clean_transmission:
       enabled: yes
       host: 192.168.1.200
