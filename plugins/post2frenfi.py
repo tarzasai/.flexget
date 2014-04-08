@@ -52,8 +52,11 @@ class Publish2FF(object):
             log.info('Test posting to feed(s): ' + ','.join(rooms))
         else:
             from flexget.plugins.local.friendfeed2 import FriendFeed, fetch_installed_app_access_token
-            access_token = fetch_installed_app_access_token(FF_CONSUMER_TOKEN, config['username'], config['password'])
-            ff = FriendFeed(oauth_consumer_token=FF_CONSUMER_TOKEN, oauth_access_token=access_token)
+            try:
+                access_token = fetch_installed_app_access_token(FF_CONSUMER_TOKEN, config['username'], config['password'])
+                ff = FriendFeed(oauth_consumer_token=FF_CONSUMER_TOKEN, oauth_access_token=access_token)
+            except Exception as err:
+                raise plugin.PluginError('Login failed: %s' % err)
         if config['mode'] == 'posts':
             for entry in task.accepted:
                 try:

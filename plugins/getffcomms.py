@@ -38,8 +38,11 @@ class GetFFComments(object):
     
     def on_task_input(self, task, config):
         from flexget.plugins.local.friendfeed2 import FriendFeed, fetch_installed_app_access_token
-        access_token = fetch_installed_app_access_token(FF_CONSUMER_TOKEN, config['username'], config['password'])
-        ff = FriendFeed(oauth_consumer_token=FF_CONSUMER_TOKEN, oauth_access_token=access_token)
+        try:
+            access_token = fetch_installed_app_access_token(FF_CONSUMER_TOKEN, config['username'], config['password'])
+            ff = FriendFeed(oauth_consumer_token=FF_CONSUMER_TOKEN, oauth_access_token=access_token)
+        except Exception as err:
+            raise plugin.PluginError('Login failed: %s' % err)
         try:
             feed = ff.fetch('/entry', id=','.join(config['posts']), raw=1, maxcomments=10000, maxlikes=0)
         except Exception as err:
