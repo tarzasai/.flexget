@@ -1,3 +1,4 @@
+# private stuff (see https://github.com/Flexget/Flexget/pull/249)
 secrets: secrets.yml
 
 templates:
@@ -31,10 +32,12 @@ templates:
       torrentz.eu: 1 seconds
       torrenticity.com: 1 seconds
     manipulate:
+      # clean titles from heading urls (garbage).
       - title:
           replace:
             regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
             format: ''
+    # prevent some useless (for me) stuff to be logged (see https://github.com/tarzasai/.flexget/tree/master/plugins).
     log_filter:
       entry:
         - subtitles for now
@@ -47,6 +50,7 @@ templates:
       series:
         - releasing quality restriction
 
+  # The sources for series torrents.
   tvfeed:
     inputs:
       - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
@@ -57,6 +61,7 @@ templates:
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
 
+  # All the metainfo plugins used by series related tasks.
   tvinfo:
     plugin_priority:
       manipulate: 255
@@ -64,6 +69,7 @@ templates:
     metainfo_series: yes
     thetvdb_lookup: yes
     trakt_lookup: yes
+    # Some torrents  titles 
     manipulate:
       - title:
           replace:
@@ -605,7 +611,7 @@ tasks:
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       clean_source: 50
-    # Add them to my trakt collection, notify me and update the index page.
+    # Add episodes to my collection on trakt.tv and send me a message.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -639,8 +645,7 @@ tasks:
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 50
-    # Move them from my trakt watchlist to the collection, notify me and update
-    # the index page.
+    # Remove movies from my trakt watchlist, add to the collection and send me a message.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -658,7 +663,7 @@ tasks:
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }})'
 
-  # Download italian and english subtitles for videos in the stage folder.
+  # Download italian and english subtitles for all the videos.
   subtitles:
     priority: 60
     template:
@@ -677,49 +682,9 @@ tasks:
       alternatives:
         - eng
 
-  poster_series:
-    priority: 64
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - tvinfo
-      - nofail
-    sleep: 5
-    find:
-      path:
-        - D:\Media\Incoming\series
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: series.template
-      file: 'D:\Media\Incoming\series.html'
-
-  poster_movies:
-    priority: 65
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - mvinfo
-      - nofail
-    sleep: 5
-    find:
-      path:
-        - D:\Media\Incoming\movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: movies.template
-      file: 'D:\Media\Incoming\movies.html'
-
-  # Move watched episodes out of the incoming folder and update the index page.
+  # Move watched episodes out of the incoming folder.
   purge_series:
-    priority: 100
+    priority: 70
     template:
       - no_global
       - noseen
@@ -740,13 +705,10 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
       clean_source: 10
-    run_task:
-      task: poster_series
-      when: accepted
 
-  # Move watched movies out of the incoming folder and update the index page.
+  # Move watched movies out of the incoming folder.
   purge_movies:
-    priority: 101
+    priority: 71
     template:
       - no_global
       - noseen
@@ -772,12 +734,47 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
       clean_source: 10
-    run_task:
-      task: poster_movies
-      when: accepted
 
-  # Sometimes there are AC power issues at my place: this task look for APC 
-  # notification in Windows registry and xmpp'em to me.
+  poster_series:
+    priority: 80
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
+      - nofail
+    find:
+      path:
+        - D:\Media\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: series.template
+      file: 'D:\Media\Incoming\series.html'
+
+  poster_movies:
+    priority: 81
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - mvinfo
+      - nofail
+    find:
+      path:
+        - D:\Media\Incoming\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    check_subtitles: yes
+    accept_all: yes
+    make_html:
+      template: movies.template
+      file: 'D:\Media\Incoming\movies.html'
+
+  # Sometimes there are AC power issues at my place: this task look for APC notifications in Windows registry and 
+  # xmpp'em to me.
   events:
     priority: 200
     # interval: 50 minutes
