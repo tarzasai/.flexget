@@ -27,6 +27,15 @@ templates:
         - dutch
         - hindi
         - ipod
+    content_filter:
+      require:
+        - '*.avi'
+        - '*.mkv'
+        - '*.mpg'
+        - '*.mp4'
+      reject:
+        - 'password.txt'
+        - '*.wmv'
     verify_ssl_certificates: no
     domain_delay:
       bt-chat.com: 1 seconds
@@ -40,13 +49,9 @@ templates:
             format: ''
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
-      crossmatch:
-        - Input from_transmission did not return anything
       move:
         - left because it exceeds safety value
         - does not exists (anymore)
-      set_series_begin:
-        - First episode for
       series:
         - releasing quality restriction
 
@@ -66,7 +71,7 @@ templates:
     plugin_priority:
       # We need manipulate to run before metainfo_series.
       manipulate: 255
-      # I needed trakt_lookup to run before thetvdb_lookup, but TBH I don't remember why...
+      # I needed trakt_lookup to run before thetvdb_lookup, but now I can't remember why...
       trakt_lookup: 112
     metainfo_series: yes
     thetvdb_lookup: yes
@@ -243,6 +248,9 @@ tasks:
       - noseen
       - nosumm
       - nofail
+    log_filter:
+      set_series_begin:
+        - First episode for
     plugin_priority:
       set: -254
       if: -255
@@ -562,6 +570,9 @@ tasks:
       - nosumm
       - tvinfo
       - movsrt
+    log_filter:
+      crossmatch:
+        - Input from_transmission did not return anything
     find:
       path:
         - D:\Media\Stage\series
@@ -607,6 +618,9 @@ tasks:
       - nosumm
       - mvinfo
       - movsrt
+    log_filter:
+      crossmatch:
+        - Input from_transmission did not return anything
     find:
       path:
         - D:\Media\Stage\movies
