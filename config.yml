@@ -1,5 +1,4 @@
-# My passwords and other private stuff - see https://github.com/tarzasai/.flexget/tree/master/plugins and 
-# https://github.com/Flexget/Flexget/pull/249
+# My passwords and other private stuff.
 secrets: secrets.yml
 
 templates:
@@ -39,8 +38,12 @@ templates:
     verify_ssl_certificates: no
     domain_delay:
       bt-chat.com: 1 seconds
-      torrentz.eu: 1 seconds
+      ezrss.it: 1 seconds
+      showrss.info: 1 seconds
+      torlock.eu: 1 seconds
       torrenticity.com: 1 seconds
+      torrentz.eu: 1 seconds
+      torrentz.me: 1 seconds
     # Remove heading urls from titles (someone add garbage like "[ www.whatever.com ]" to torrents names).
     manipulate:
       - title:
@@ -61,6 +64,7 @@ templates:
       - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
+      # torlock it's broken atm...
       # - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
@@ -69,14 +73,14 @@ templates:
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
     plugin_priority:
-      # We need manipulate to run before metainfo_series.
+      # manipulate must fix the titles before metainfo_series.
       manipulate: 255
-      # I needed trakt_lookup to run before thetvdb_lookup, but now I can't remember why...
+      # trakt_lookup has to run before thetvdb_lookup, but now I can't remember why...
       trakt_lookup: 112
     metainfo_series: yes
     thetvdb_lookup: yes
     trakt_lookup: yes
-    # Some titles need little corrections in order to be found on metainfo sites.
+    # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       - title:
           replace:
@@ -108,7 +112,7 @@ templates:
       allow_teasers: no
       propers: 12 hours
 
-  # Destination path for series in Transmission (requires transm template too).
+  # Destination path for series in Transmission (requires "transm" template too).
   tvtran:
     transmission:
       path: D:\Media\Stage\series
@@ -116,7 +120,8 @@ templates:
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
     plugin_priority:
-      # I'm not sure of this priority too, maybe because of https://github.com/Flexget/Flexget/pull/234
+      # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (that it's 
+      # fixed now btw).
       tmdb_lookup: 128
       rottentomatoes_lookup: 127
     imdb_lookup: yes
@@ -136,7 +141,7 @@ templates:
     transmission:
       path: D:\Media\Stage\movies
 
-  # Transmission settings.
+  # Common Transmission settings.
   transm:
     transmission:
       enabled: yes
@@ -194,8 +199,8 @@ templates:
 
 tasks:
 
-  # This task check out for ended/cancelled series, to remove them from the main trakt list used to create the series 
-  # config file.
+  # This task check out for ended/cancelled series, to remove them from the main trakt.tv list used to create the 
+  # series config file.
   chk_series:
     priority: 1
     interval: 1 days
@@ -212,13 +217,11 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       custom: tvall
-    # We need the tvdb_status field here, but we can't use the tvinfo template because it needs different manipulate 
-    # priorities...
+    # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
     thetvdb_lookup: yes
     if:
       - tvdb_status == 'Ended': accept
-    # Plugin trakt_list sets the title fields, but we need its value in the series_name field as required by 
-    # trakt_remove/add plugins.
+    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list set the title field only.
     manipulate:
       - series_name:
           from: title
@@ -243,7 +246,7 @@ tasks:
   # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
   set_series:
     priority: 2
-    # interval: 50 minutes
+    interval: 50 minutes
     template:
       - noseen
       - nosumm
@@ -255,7 +258,6 @@ tasks:
       set: -254
       if: -255
     inputs:
-      # My favorite TV shows...
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
@@ -263,7 +265,6 @@ tasks:
           position: next
           context: watched
           list: tvall
-      # ...and the "I can't decide yet" ones.
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
@@ -284,8 +285,7 @@ tasks:
       specials: no
     # overrides:
     if:
-      # I just need to rate a show on trakt.tv to switch between hi-res and 
-      # default quality.
+      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
       - trakt_rating == "love":
           set:
             quality: 720p hdtv+
@@ -293,24 +293,23 @@ tasks:
       - trakt_series_network and trakt_series_network == "Netflix":
           set:
             quality: webrip
-      # Doctor Who's specials are a very important part of the show.
+      # Doctor Who's specials are mandatory.
       - tvdb_id == 78804:
           set:
             specials: yes
     accept_all: yes
+    # see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
       set_fields:
         - begin
         - quality
         - specials
       filename: 'C:\\Users\\Administrator\\.flexget\\series.yml'
-    # This is probably useless...
     set_series_begin: yes
 
   # This is the search & download task for series.
   get_series:
     priority: 3
-    # interval: 50 minutes
     template:
       - tvinfo
       - tvfeed
@@ -320,7 +319,7 @@ tasks:
     include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
 
-  # A task to download series pilots.
+  # This task download series pilots.
   premieres:
     priority: 5
     interval: 2 hours
@@ -333,6 +332,7 @@ tasks:
     plugin_priority:
       if: -252
       friendfeed: -253
+      # In this task it's ok to override the priority set by tvinfo.
       manipulate: -254
       trakt_add: -255
     seen: local
@@ -360,7 +360,7 @@ tasks:
       min_seeds: 40
     if:
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
-    # I need to remove season/episode numbers otherwise trakt_add plugin will handle it as a single episode.
+    # We need to remove season and episode numbers, otherwise trakt_add plugin will handle entries as episodes.
     manipulate:
       - series_season:
           remove: yes
@@ -368,6 +368,8 @@ tasks:
           remove: yes
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
       feeds: [me, serietv]
@@ -375,8 +377,8 @@ tasks:
       link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
       image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
-    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too; in the end if I like it I 
-    # will move it in the main list.
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
+    # will move it in the main list).
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -392,8 +394,8 @@ tasks:
       username: '{{ secrets.imdb.usr }}'
       password: '{{ secrets.imdb.pwd }}'
       list: watchlist
+    # Avoid titles already in my trakt.tv watchlist/collection.
     crossmatch:
-      # Avoid titles already seen or in my trakt watchlist/collection.
       from:
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
@@ -505,7 +507,7 @@ tasks:
     queue_movies:
       quality: any
 
-  # This is the real search & download task for movies.
+  # This is the search & download task for movies.
   get_movies:
     priority: 15
     interval: 2 hours
@@ -524,7 +526,8 @@ tasks:
         - torrentz: verified
       interval: 0 hour
 
-  # sometimes, mostly for old stuff, I have to look for episodes in the old way.
+  # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my 
+  # dropbox folder for series and send them directly to Transmission.
   dropbox_series:
     priority: 30
     template:
@@ -543,7 +546,7 @@ tasks:
       on_output:
         for_accepted: del "{{ location }}"
 
-  # (movies too)
+  # Same as the prior task, this time for movies.
   dropbox_movies:
     priority: 31
     template:
@@ -894,6 +897,8 @@ tasks:
     priority: 510
     interval: 1 hours
     getffcomms:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
       posts:
@@ -917,6 +922,8 @@ tasks:
     if:
       - tvrsu_date >= now - timedelta(days=8): accept
     friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
       feeds: [me, serietv]
