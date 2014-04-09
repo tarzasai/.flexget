@@ -251,12 +251,12 @@ tasks:
       - noseen
       - nosumm
       - nofail
-    log_filter:
-      set_series_begin:
-        - First episode for
     plugin_priority:
       set: -254
       if: -255
+    log_filter:
+      set_series_begin:
+        - First episode for
     inputs:
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
@@ -319,7 +319,7 @@ tasks:
     include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
 
-  # This task download series pilots.
+  # This one grabs the pilots.
   premieres:
     priority: 5
     interval: 2 hours
@@ -460,12 +460,12 @@ tasks:
       - not imdb_languages or not 'english' in imdb_languages: reject
       # Max 10 years old movies.
       - imdb_year < now.year - 10: reject
-      # Here we have some very simple criterias to try to get only good stuff.
+      # Here we have some very simple quality filters.
       - rt_critics_consensus is None: reject
       - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
       - rt_critics_score >= 90 and imdb_votes >= 5000: accept
+    # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
-      # Avoid titles already seen or in my trakt watchlist/collection.
       from:
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
@@ -494,7 +494,7 @@ tasks:
       title: 'Da Rotten Tomatoes:'
       text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
 
-  # In the end we transfer the trakt watchlist content to the flexget movie queue.
+  # In the end we append our trakt.tv watchlist content to the flexget movie queue.
   watchlist:
     priority: 12
     interval: 1 hours
@@ -595,7 +595,7 @@ tasks:
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       clean_source: 50
-    # Add episodes to my collection on trakt.tv and send me a message.
+    # Add episodes to the trakt.tv collection.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -645,7 +645,7 @@ tasks:
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 50
-    # Remove movies from my trakt watchlist, add to the collection and send me a message.
+    # (trakt.tv) From watchlist to collection.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
