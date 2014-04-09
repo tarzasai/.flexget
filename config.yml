@@ -811,6 +811,29 @@ tasks:
       template: movies.template
       file: 'D:\Media\Incoming\movies.html'
 
+  # In case of emergency?
+  series_begin:
+    manual: yes
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    trakt_emit:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      position: next
+      context: watched
+      list: tvall
+    accept_all: yes
+    set_series_begin: yes
+
+  ######################################################################################################################
+  # NEWS & PODCASTS
+  # the following tasks have nothing to do with series and movies, it's just me using Flexget as a push notification 
+  # system to get some updates on my phone :P
+  ######################################################################################################################
+
   # This task send me a notification for every warning APC wrote in Windows registry (power issues at my place).
   events:
     priority: 200
@@ -839,16 +862,13 @@ tasks:
       title: 'Eventi di sistema:'
       text: "{{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
-  ###################
-  # NEWS & PODCASTS:
-  #################
-
   Flexget:
     priority: 500
     interval: 2 hours
     template:
       xfeeds
     inputs:
+      # (last Flexget tickets)
       - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
 
   Imogen Heap:
@@ -875,6 +895,7 @@ tasks:
       xfeeds
     inputs:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
+    # This get a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
 
   Zerocalcare:
@@ -931,23 +952,3 @@ tasks:
       text: "TV #rencans: weekly status update"
       link: 'http://www.tvrage.com/status_update.php'
       comment: "{{ tvrsu_date.strftime('%d/%m') }}: {{ tvrsu_lines|join(' -- ') }}"
-
-  ################
-  # MANUAL TASKS:
-  ##############
-  
-  begin_series:
-    manual: yes
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    trakt_emit:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      position: next
-      context: watched
-      list: tvall
-    accept_all: yes
-    set_series_begin: yes
