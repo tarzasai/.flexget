@@ -446,7 +446,7 @@ tasks:
         - Faith & Spirituality: {from: rt_genres}
         - Kids & Family: {from: rt_genres}
     if:
-      # I usually don't like italian movies and I prefer English among all the foreign languages, so...
+      # I usually don't like italian movies and I prefer English among all the foreign languages.
       - not imdb_languages or not 'english' in imdb_languages: reject
       # Max 10 years old movies.
       - imdb_year < now.year - 10: reject
