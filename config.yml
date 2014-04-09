@@ -552,7 +552,7 @@ tasks:
     accept_all: yes
     exec:
       on_output:
-        for_accepted: del "{{location}}"
+        for_accepted: del "{{ location }}"
 
   # Move episodes from Transmission destination folder to the incoming folder.
   move_series:
