@@ -6,11 +6,6 @@ from flexget.event import event
 from flexget.entry import Entry
 
 log = logging.getLogger('getffcomms')
-    
-FF_CONSUMER_TOKEN = {
-    "key":"c914bd31ea024b9bade1365cefa8b989",
-    "secret":"d5d5e78a0ced4a1da49230fe09696353078d9f37b0a841a888e24c064e88212d"
-}
 
 
 class GetFFComments(object):
@@ -20,11 +15,13 @@ class GetFFComments(object):
     schema = {
         'type': 'object',
         'properties': {
+            'app_key': {'type': 'string'},
+            'app_secret': {'type': 'string'},
             'username': {'type': 'string'},
             'password': {'type': 'string'},
             'posts': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1}
         },
-        'required': ['username', 'password', 'posts'],
+        'required': ['app_key', 'app_secret', 'username', 'password', 'posts'],
         'additionalProperties': False
     }
     
@@ -38,11 +35,9 @@ class GetFFComments(object):
     
     def on_task_input(self, task, config):
         from flexget.plugins.local.friendfeed2 import FriendFeed, fetch_installed_app_access_token
-        try:
-            access_token = fetch_installed_app_access_token(FF_CONSUMER_TOKEN, config['username'], config['password'])
-            ff = FriendFeed(oauth_consumer_token=FF_CONSUMER_TOKEN, oauth_access_token=access_token)
-        except Exception as err:
-            raise plugin.PluginError('Login failed: %s' % err)
+        consumer_token = {'key': config['app_key'], 'secret': config['app_secret']}
+        access_token = fetch_installed_app_access_token(consumer_token, config['username'], config['password'])
+        ff = FriendFeed(oauth_consumer_token=consumer_token, oauth_access_token=access_token)
         try:
             feed = ff.fetch('/entry', id=','.join(config['posts']), raw=1, maxcomments=10000, maxlikes=0)
         except Exception as err:
