@@ -533,7 +533,7 @@ tasks:
     accept_all: yes
     exec:
       on_output:
-        for_accepted: del "{{location}}"
+        for_accepted: del "{{ location }}"
 
   # (movies too)
   dropbox_movies:
