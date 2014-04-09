@@ -658,6 +658,7 @@ tasks:
       - noseen
       - nosumm
       - nofail
+    # I know the task has no input/filter/whatever plugin, thank you.
     log_filter:
       task:
         - you should add (at least) one!
@@ -713,6 +714,7 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
       clean_source: 10
+    # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
@@ -746,6 +748,7 @@ tasks:
     move:
       to: "D:\\Media\\Purge\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
       clean_source: 10
+    # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
@@ -791,12 +794,12 @@ tasks:
       template: movies.template
       file: 'D:\Media\Incoming\movies.html'
 
-  # This task send me a notification for every APC warning logged in Windows registry (power issues at my place).
+  # This task send me a notification for every warning APC wrote in Windows registry (power issues at my place).
   events:
     priority: 200
     # interval: 50 minutes
     seen: local
-    # My input plugin for Windows registry (see https://github.com/tarzasai/.flexget/tree/master/plugins)
+    # see https://github.com/tarzasai/.flexget/tree/master/plugins
     winevents:
       filename: c:\windows\sysnative\winevt\logs\Application.evtx
       providers:
@@ -842,7 +845,7 @@ tasks:
 
   Podcasts:
     priority: 502
-    interval: 12 hours
+    interval: 7 days
     template:
       xfeeds
     inputs:
@@ -859,7 +862,7 @@ tasks:
 
   Zerocalcare:
     priority: 504
-    interval: 12 hours
+    interval: 2 days
     template:
       xfeeds
     inputs:
@@ -867,7 +870,7 @@ tasks:
 
   Romantically Apocalyptic:
     priority: 505
-    interval: 12 hours
+    interval: 1 days
     template:
       xfeeds
     inputs:
