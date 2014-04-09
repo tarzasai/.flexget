@@ -42,9 +42,6 @@ templates:
     log_filter:
       crossmatch:
         - Input from_transmission did not return anything
-      entry:
-        - subtitles for now
-        - subtitles found for a second-choice
       move:
         - left because it exceeds safety value
         - does not exists (anymore)
@@ -557,7 +554,7 @@ tasks:
       on_output:
         for_accepted: del "{{location}}"
 
-  # Move episodes to incoming folder.
+  # Move episodes from Transmission destination folder to the incoming folder.
   move_series:
     priority: 40
     template:
@@ -570,6 +567,7 @@ tasks:
         - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
+    # Will only move files from torrents out of seeding.
     crossmatch:
       from:
         - from_transmission:
@@ -595,12 +593,13 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi episodi:'
       text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %}'
+    # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
         phase: md D:\Media\Stage\series
 
-  # Move movies to incoming folder.
+  # Move movies from Transmission destination folder to the incoming folder.
   move_movies:
     priority: 41
     template:
@@ -613,6 +612,7 @@ tasks:
         - D:\Media\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
+    # Will only move files from torrents out of seeding.
     crossmatch:
       from:
         - from_transmission:
@@ -645,6 +645,7 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }})'
+    # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
@@ -673,6 +674,10 @@ tasks:
       - noseen
       - nosumm
       - nofail
+    log_filter:
+      entry:
+        - subtitles for now
+        - subtitles found for a second-choice
     find:
       path:
         - D:\Media\Incoming
