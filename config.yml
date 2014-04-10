@@ -690,7 +690,7 @@ tasks:
     log_filter:
       entry:
         - subtitles for now
-        - subtitles found for a second-choice
+        - found for a second-choice
     find:
       path:
         - D:\Media\Incoming
