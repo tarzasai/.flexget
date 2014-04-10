@@ -9,7 +9,7 @@ templates:
     private_torrents: no
     regexp:
       reject:
-        - (s|d)ub(s|bed)?\b: {from: title}
+        - (s|d)ub(s|bed|lado)?\b: {from: title}
         - \bTS\b: {from: title}
         - \bHS\b: {from: title}
         - \bHDTS\b: {from: title}
