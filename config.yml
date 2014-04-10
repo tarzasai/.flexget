@@ -96,10 +96,6 @@ templates:
             format: 'marvels_agents_of_shield.'
       - title:
           replace:
-            regexp: '.*resurrection.(us|2014)[\b-.]*'
-            format: 'resurrection.'
-      - title:
-          replace:
             regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
             format: 'from_dusk_till_dawn.'
 
@@ -120,8 +116,7 @@ templates:
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
     plugin_priority:
-      # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (that it's 
-      # fixed now btw).
+      # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
       tmdb_lookup: 128
       rottentomatoes_lookup: 127
     imdb_lookup: yes
@@ -298,7 +293,7 @@ tasks:
           set:
             specials: yes
     accept_all: yes
-    # see https://github.com/tarzasai/.flexget/tree/master/plugins
+    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
       set_fields:
         - begin
@@ -331,10 +326,10 @@ tasks:
       - transm
     plugin_priority:
       if: -252
-      friendfeed: -253
       # In this task it's ok to override the priority set by tvinfo.
-      manipulate: -254
-      trakt_add: -255
+      manipulate: -253
+      trakt_add: -254
+      friendfeed: -255
     seen: local
     require_field:
       - tvdb_id
@@ -366,6 +361,13 @@ tasks:
           remove: yes
       - series_episode:
           remove: yes
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
+    # will move it in the main list).
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvevaluate
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
@@ -377,13 +379,6 @@ tasks:
       link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
       image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
-    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
-    # will move it in the main list).
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: tvevaluate
 
   # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
   imdb2trakt:
