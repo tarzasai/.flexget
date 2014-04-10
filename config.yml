@@ -724,7 +724,7 @@ tasks:
     if:
       - trakt_watched: accept
     move:
-      to: "D:\\Media\\Purge\\{{ tvdb_series_name|default(series_name) }}"
+      to: "D:\\Media\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}"
       clean_source: 10
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
@@ -758,7 +758,7 @@ tasks:
         - imdb_id
       action: accept
     move:
-      to: "D:\\Media\\Purge\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
+      to: "D:\\Media\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
       clean_source: 10
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
