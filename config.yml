@@ -806,7 +806,7 @@ tasks:
     check_subtitles: yes
     accept_all: yes
     make_html:
-      template: movies.template
+      template: movies3.template
       file: 'D:\Dropbox\movies.html'
 
   # In case of emergency?
