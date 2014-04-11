@@ -786,8 +786,8 @@ tasks:
     check_subtitles: yes
     accept_all: yes
     make_html:
-      template: series.template
-      file: 'D:\Media\Incoming\series.html'
+      template: series3.template
+      file: 'D:\Dropbox\series.html'
 
   # Generate a local html index page for available movies.
   poster_movies:
@@ -807,7 +807,7 @@ tasks:
     accept_all: yes
     make_html:
       template: movies.template
-      file: 'D:\Media\Incoming\movies.html'
+      file: 'D:\Dropbox\movies.html'
 
   # In case of emergency?
   series_begin:
