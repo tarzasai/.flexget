@@ -691,6 +691,9 @@ tasks:
       entry:
         - subtitles for now
         - found for a second-choice
+      guessit.guess:
+        - duplicate properties
+        - both guesses to be merged
     find:
       path:
         - D:\Media\Incoming
