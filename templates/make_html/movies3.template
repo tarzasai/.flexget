@@ -167,6 +167,8 @@ div.clear {
 						&nbsp;
 						<a href="{{ entry.rt_url }}" target="_blank">Rotten Tomatoes</a>
 						{% endif %}
+						&nbsp;
+						<a href="http://trakt.tv/search?q={{ entry.imdb_id }}" target="_blank">Trakt.TV</a>
 	                </div>
 	            </div>
 	        </div>
