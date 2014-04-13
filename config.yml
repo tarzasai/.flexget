@@ -292,6 +292,10 @@ tasks:
       - tvdb_id == 78804:
           set:
             specials: yes
+      # Correct some titles (for better torrents match).
+      - tvdb_id == 276312:
+          set:
+            series_name: 'From Dusk Till Dawn'
     accept_all: yes
     # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
