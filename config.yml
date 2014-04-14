@@ -423,82 +423,6 @@ tasks:
       api_key: '{{ secrets.trakt.api }}'
       list: watchlist
 
-  # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  rott2trakt:
-    priority: 11
-    interval: 12 hours
-    template:
-      - noseen
-      - mvinfo
-    plugin_priority:
-      crossmatch: 0
-    rottentomatoes_list:
-      dvds:
-        - top_rentals
-        - current_releases
-        - new_releases
-        - upcoming
-      movies:
-        - box_office
-        - in_theaters
-        - opening
-        - upcoming
-    require_field:
-      - imdb_id
-      - imdb_name
-      - imdb_year
-      - imdb_url
-    regexp:
-      reject:
-        - animation: {from: imdb_genres}
-        - documentary: {from: imdb_genres}
-        - family: {from: imdb_genres}
-        - horror: {from: imdb_genres}
-        - music: {from: imdb_genres}
-        - musical: {from: imdb_genres}
-        - romance: {from: imdb_genres}
-        - sport: {from: imdb_genres}
-        - Faith & Spirituality: {from: rt_genres}
-        - Kids & Family: {from: rt_genres}
-    if:
-      # I usually don't like italian movies and I prefer English among all the foreign languages.
-      - not imdb_languages or not 'english' in imdb_languages: reject
-      # Max 10 years old movies.
-      - imdb_year < now.year - 10: reject
-      # Here we have some very simple quality filters.
-      - rt_critics_consensus is None: reject
-      - rt_critics_score >= 50 and imdb_votes >= 50000 and imdb_score >= 7: accept
-      - rt_critics_score >= 90 and imdb_votes >= 5000: accept
-    # Rejects titles already in our trakt.tv watchlist/collection too.
-    crossmatch:
-      from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: all
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: watchlist
-      fields:
-        - imdb_id
-        - tmdb_id
-      action: reject
-    # Again we add the accepted entries to the trakt.tv watchlist.
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: watchlist
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Da Rotten Tomatoes:'
-      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
-
   # In the end we append our trakt.tv watchlist content to the flexget movie queue.
   watchlist:
     priority: 12
@@ -818,6 +742,88 @@ tasks:
     make_html:
       template: movies3.template
       file: 'D:\Dropbox\movies.html'
+
+  # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
+  rott2trakt:
+    priority: 100
+    interval: 12 hours
+    template:
+      - noseen
+      - mvinfo
+    plugin_priority:
+      crossmatch: 0
+    rottentomatoes_list:
+      dvds:
+        - top_rentals
+        - current_releases
+        - new_releases
+        - upcoming
+      movies:
+        - box_office
+        - in_theaters
+        - opening
+        - upcoming
+    require_field:
+      - imdb_id
+      - imdb_name
+      - imdb_year
+      - imdb_url
+    regexp:
+      reject:
+        - animation: {from: imdb_genres}
+        - documentary: {from: imdb_genres}
+        - family: {from: imdb_genres}
+        - horror: {from: imdb_genres}
+        - music: {from: imdb_genres}
+        - musical: {from: imdb_genres}
+        - romance: {from: imdb_genres}
+        - sport: {from: imdb_genres}
+        - Faith & Spirituality: {from: rt_genres}
+        - Kids & Family: {from: rt_genres}
+    if:
+      # I usually don't like italian movies and I prefer English among all the foreign languages.
+      - not imdb_languages or not 'english' in imdb_languages: reject
+      # Max 10 years old movies.
+      - imdb_year < now.year - 10: reject
+      - not rt_releases: reject
+      - imdb_year == now.year and 'theater' in rt_releases and rt_releases['theater'] > now - timedelta(days=30): reject
+      # Here we have some very simple criterias to try to get only good stuff.
+      - rt_critics_score > 0 and rt_critics_score < 20: reject
+      - rt_audience_score < 20: reject
+      - imdb_score < 6: reject
+      - rt_critics_score >= 90: accept
+      - rt_audience_score >= 90: accept
+      - imdb_score >= 8: accept
+      # - rt_critics_score >= 90 and imdb_votes >= 5000: accept
+    # Rejects titles already in our trakt.tv watchlist/collection too.
+    crossmatch:
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: watchlist
+      fields:
+        - imdb_id
+        - tmdb_id
+      action: reject
+    # Again we add the accepted entries to the trakt.tv watchlist.
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: mvcheck
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Da Rotten Tomatoes:'
+      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
 
   # In case of emergency?
   series_begin:
