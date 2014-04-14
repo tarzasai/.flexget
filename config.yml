@@ -64,7 +64,7 @@ templates:
       - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
-      # torlock it's broken atm...
+      # torlock is broken atm...
       # - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
@@ -142,14 +142,14 @@ templates:
       enabled: yes
       host: 192.168.1.200
       port: 9092
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Sto scaricando:'
-      text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
+    # notify_xmpp:
+      # sender: '{{ secrets.xmpp.usr }}'
+      # password: '{{ secrets.xmpp.pwd }}'
+      # recipient: '{{ secrets.xmpp.dst }}'
+      # title: 'Sto scaricando:'
+      # text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
 
-  # Subtitles should always follow their videos.
+  # Subtitles should always follow their video.
   movsrt:
     move:
       along:
@@ -292,7 +292,7 @@ tasks:
       - tvdb_id == 78804:
           set:
             specials: yes
-      # Correct some titles (for better torrents match).
+      # Changes some titles to match torrents names.
       - tvdb_id == 276312:
           set:
             series_name: 'From Dusk Till Dawn'
@@ -372,6 +372,12 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: tvevaluate
+    notify_xmpp:
+      sender: '{{ secrets.xmpp.usr }}'
+      password: '{{ secrets.xmpp.pwd }}'
+      recipient: '{{ secrets.xmpp.dst }}'
+      title: 'Premiere(s):'
+      text: '{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
@@ -393,7 +399,7 @@ tasks:
       username: '{{ secrets.imdb.usr }}'
       password: '{{ secrets.imdb.pwd }}'
       list: watchlist
-    # Avoid titles already in my trakt.tv watchlist/collection.
+    # Rejects titles already in our trakt.tv watchlist/collection.
     crossmatch:
       from:
         - trakt_list:
@@ -605,7 +611,7 @@ tasks:
       password: '{{ secrets.xmpp.pwd }}'
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi episodi:'
-      text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %}'
+      text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %} -- {{ trakt_series_url }}'
     # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -660,7 +666,7 @@ tasks:
       password: '{{ secrets.xmpp.pwd }}'
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
-      text: '{{ imdb_name }} ({{ imdb_year }})'
+      text: '{{ imdb_name }} ({{ imdb_year }}) -- {{ imdb_url }}'
     # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
