@@ -10,30 +10,30 @@ from fileinput import filename
 log = logging.getLogger('fix_subtitles')
 
 
-DEFAULT_EXTS = ['srt', 'it.srt']
-
-class FixSubtitles(object):
+class FixSubs(object):
     """
     """
     
     schema = {
         'oneOf': [
             {'type': 'boolean'},
-            {'type': 'array', 'items': {'type': 'string'}, 'default': DEFAULT_EXTS}
+            {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1}
         ]
     }
-
+    
     def on_task_exit(self, task, config):
-        exts = DEFAULT_EXTS
+        exts = ['.srt', '.it.srt', '.ita.srt']
         if isinstance(config, list):
             exts = config
         elif isinstance(config, bool) and not config:
             return
         for entry in task.accepted:
-            if 'location' in entry:
+            if 'location' in entry and os.path.exists(entry['location']):
                 fn = os.path.splitext(entry['location'])[0]
                 for ext in exts:
-                    self.check_file(os.path.join(fn, ext))
+                    if not ext.startswith('.'):
+                        ext = '.' + ext
+                    self.check_file(fn + ext)
     
     def check_file(self, filename):
         if not os.path.exists(filename):
@@ -51,9 +51,9 @@ class FixSubtitles(object):
                     f.write(res)
                 log.info('Subtitles file fixed: ' + filename)
         except Exception as err:
-            log.error('Error on file %s: %s' % (filename, err))
+            log.error('Error on file %s: %s' % (filename, err.args[0]))
 
 
 @event('plugin.register')
 def register_plugin():
-    plugin.register(FixSubtitles, 'fix_subtitles', api_ver=2)
+    plugin.register(FixSubs, 'fix_subtitles', api_ver=2)
