@@ -216,7 +216,7 @@ tasks:
     thetvdb_lookup: yes
     if:
       - tvdb_status == 'Ended': accept
-    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list set the title field only.
+    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list sets the title field only.
     manipulate:
       - series_name:
           from: title
@@ -641,7 +641,10 @@ tasks:
         - eng
     # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
     # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    fix_subtitles: yes
+    fix_subtitles:
+      - srt
+      - it.srt
+      - ita.srt
 
   # Move watched episodes out of the incoming folder.
   purge_series:
