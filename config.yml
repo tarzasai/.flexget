@@ -639,6 +639,9 @@ tasks:
         - ita
       alternatives:
         - eng
+    # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
+    # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    fix_subtitles: yes
 
   # Move watched episodes out of the incoming folder.
   purge_series:
