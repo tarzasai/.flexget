@@ -76,8 +76,7 @@ class TraktWatched(object):
             info = None
             if entry.get('series_name') and not sernul:
                 if not series:
-                    url = 'http://api.trakt.tv/user/ratings/shows.json/%s/%s' % \
-                        (config['api_key'], config['username'])
+                    url = 'http://api.trakt.tv/user/ratings/shows.json/%s/%s' % (config['api_key'], config['username'])
                     series = self.get_trakt_data(task, config, url, null_data=[])
                     if not series:
                         log.info('No user ratings found for series on trakt.tv')
@@ -93,8 +92,7 @@ class TraktWatched(object):
                     info = series[seridx[entry['series_name']]]
             elif not entry.get('series_name') and not movnul:
                 if not movies:
-                    url = 'http://api.trakt.tv/user/ratings/movies.json/%s/%s' % \
-                        (config['api_key'], config['username'])
+                    url = 'http://api.trakt.tv/user/ratings/movies.json/%s/%s' % (config['api_key'], config['username'])
                     movies = self.get_trakt_data(task, config, url, null_data=[])
                     if not movies:
                         log.info('No user ratings found for movies on trakt.tv')

@@ -13,12 +13,14 @@ class NoInputCache(object):
     
     enable_on_exit = False
 
+    @plugin.priority(255)
     def on_task_start(self, task, config):
         if config:
             self.enable_on_exit = not task.options.nocache
             task.options.nocache = True
             log.verbose('Input cache disabled')
 
+    @plugin.priority(-255)
     def on_task_exit(self, task, config):
         if config and self.enable_on_exit:
             task.options.nocache = False
