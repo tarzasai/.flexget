@@ -5,7 +5,6 @@ import shutil
 
 from flexget import plugin
 from flexget.event import event
-from fileinput import filename
 
 log = logging.getLogger('fix_subtitles')
 
@@ -24,34 +23,31 @@ class FixSubs(object):
     def on_task_exit(self, task, config):
         exts = ['.srt', '.it.srt', '.ita.srt']
         if isinstance(config, list):
-            exts = config
+            exts = [('.' + s).replace('..', '.') for s in config]
         elif isinstance(config, bool) and not config:
             return
         for entry in task.accepted:
-            if 'location' in entry and os.path.exists(entry['location']):
-                fn = os.path.splitext(entry['location'])[0]
-                for ext in exts:
-                    if not ext.startswith('.'):
-                        ext = '.' + ext
-                    self.check_file(fn + ext)
-    
-    def check_file(self, filename):
-        if not os.path.exists(filename):
-            return
-        try:
-            with open(filename, 'r') as f:
-                txt = f.read()
-            if 'ç' in txt:
-                res = txt.replace('ç', 'à').replace('ç', 'è').replace('ç', 'ì').replace('ç', 'ò').replace('ç', 'ù')
-                bak = filename + '.bak'
-                if os.path.exists(bak):
-                    raise plugin.PluginWarning('backup already exists')
-                shutil.copy(filename, bak)
-                with open(filename, 'w') as f:
-                    f.write(res)
-                log.info('Subtitles file fixed: ' + filename)
-        except Exception as err:
-            log.error('Error on file %s: %s' % (filename, err.args[0]))
+            if not ('location' in entry and os.path.exists(entry['location'])):
+                continue
+            fn = os.path.splitext(entry['location'])[0]
+            for ext in exts:
+                sub = fn + ext
+                if not os.path.exists(sub):
+                    continue
+                try:
+                    with open(sub, 'r') as f:
+                        bak = txt = f.read()
+                    txt = txt.replace('ç', 'à').replace('ç', 'è').replace('ç', 'ì').replace('ç', 'ò').replace('ç', 'ù')
+                    if txt != bak:
+                        bak = sub + '.bak'
+                        if os.path.exists(bak):
+                            raise plugin.PluginWarning('backup already exists')
+                        shutil.copy(sub, bak)
+                        with open(sub, 'w') as f:
+                            f.write(txt)
+                        log.info('Subtitles file fixed: ' + sub)
+                except Exception as err:
+                    log.error('Error on file %s: %s' % (sub, err.args[0]))
 
 
 @event('plugin.register')
