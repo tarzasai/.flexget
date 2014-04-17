@@ -21,7 +21,7 @@ class FixSubs(object):
     }
     
     def on_task_exit(self, task, config):
-        exts = ['.srt', '.it.srt', '.ita.srt']
+        exts = ['.it.srt', '.ita.srt']
         if isinstance(config, list):
             exts = [('.' + s).replace('..', '.') for s in config]
         elif isinstance(config, bool) and not config:

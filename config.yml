@@ -377,7 +377,7 @@ tasks:
       password: '{{ secrets.xmpp.pwd }}'
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Premiere(s):'
-      text: '{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
+      text: "{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
