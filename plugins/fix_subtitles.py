@@ -36,9 +36,9 @@ class FixSubs(object):
                     continue
                 try:
                     with open(sub, 'r') as f:
-                        bak = txt = f.read()
-                    txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù')
-                    if txt != bak:
+                        txt = f.read()
+                    if 'č' in txt:
+                        txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù')
                         bak = sub + '.bak'
                         if os.path.exists(bak):
                             raise plugin.PluginWarning('backup already exists')
