@@ -783,6 +783,8 @@ tasks:
         - sport: {from: imdb_genres}
         - Faith & Spirituality: {from: rt_genres}
         - Kids & Family: {from: rt_genres}
+        - Sports & Fitness: {from: rt_genres}
+        - Television: {from: rt_genres}
     if:
       # I usually don't like italian movies and I prefer English among all the foreign languages.
       - not imdb_languages or not 'english' in imdb_languages: reject
@@ -791,13 +793,13 @@ tasks:
       - not rt_releases: reject
       - imdb_year == now.year and 'theater' in rt_releases and rt_releases['theater'] > now - timedelta(days=30): reject
       # Here we have some very simple criterias to try to get only good stuff.
-      - rt_critics_score > 0 and rt_critics_score < 20: reject
-      - rt_audience_score < 20: reject
+      - imdb_votes < 2000: reject
+      - rt_critics_score > 0 and rt_critics_score < 30: reject
+      - rt_audience_score < 30: reject
       - imdb_score < 6: reject
-      - rt_critics_score >= 90: accept
+      - rt_critics_score >= 80: accept
       - rt_audience_score >= 90: accept
       - imdb_score >= 8: accept
-      # - rt_critics_score >= 90 and imdb_votes >= 5000: accept
     # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
       from:

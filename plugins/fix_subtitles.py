@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, division, absolute_import
+ï»¿from __future__ import unicode_literals, division, absolute_import
 import os
 import logging
 import shutil
@@ -41,8 +41,8 @@ class FixSubs(object):
         try:
             with open(filename, 'r') as f:
                 txt = f.read()
-            if 'ç' in txt:
-                res = txt.replace('ç', 'à').replace('ç', 'è').replace('ç', 'ì').replace('ç', 'ò').replace('ç', 'ù')
+            if 'Ã§' in txt:
+                res = txt.replace('Ã§', 'Ã ').replace('Ã§', 'Ã¨').replace('Ã§', 'Ã¬').replace('Ã§', 'Ã²').replace('Ã§', 'Ã¹')
                 bak = filename + '.bak'
                 if os.path.exists(bak):
                     raise plugin.PluginWarning('backup already exists')
