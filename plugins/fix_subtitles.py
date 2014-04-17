@@ -37,7 +37,7 @@ class FixSubs(object):
                 try:
                     with open(sub, 'r') as f:
                         bak = txt = f.read()
-                    txt = txt.replace('ç', 'à').replace('ç', 'è').replace('ç', 'ì').replace('ç', 'ò').replace('ç', 'ù')
+                    txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù')
                     if txt != bak:
                         bak = sub + '.bak'
                         if os.path.exists(bak):
