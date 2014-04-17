@@ -276,14 +276,14 @@ tasks:
     trakt_lookup: yes
     # These are the default values.
     set:
-      quality: <720p hdtv+
+      quality: <720p hdtv
       specials: no
     # overrides:
     if:
       # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
       - trakt_rating == "love":
           set:
-            quality: 720p hdtv+
+            quality: 720p hdtv
       # Netflix' stuff usually is webrip source only.
       - trakt_series_network and trakt_series_network == "Netflix":
           set:
