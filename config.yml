@@ -523,6 +523,7 @@ tasks:
       action: accept
     move:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
+      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
       clean_source: 50
     # Add episodes to the trakt.tv collection.
     trakt_add:
@@ -573,6 +574,7 @@ tasks:
       - imdb_year
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
+      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
       clean_source: 50
     # (trakt.tv) From watchlist to collection.
     trakt_remove:
