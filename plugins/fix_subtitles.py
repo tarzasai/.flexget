@@ -1,5 +1,6 @@
 ﻿from __future__ import unicode_literals, division, absolute_import
 import os
+import chardet
 import logging
 import shutil
 
@@ -37,7 +38,7 @@ class FixSubs(object):
                 try:
                     with open(sub, 'r') as f:
                         txt = f.read()
-                    if 'č' in txt:
+                    if chardet.detect(txt)['encoding'] == 'utf-8' and 'č' in txt:
                         txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù')
                         bak = sub + '.bak'
                         if os.path.exists(bak):
