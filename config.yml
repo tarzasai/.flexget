@@ -575,7 +575,7 @@ tasks:
     move:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-      clean_source: 50
+      clean_source: 80
     # (trakt.tv) From watchlist to collection.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
