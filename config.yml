@@ -614,7 +614,7 @@ tasks:
       enabled: yes
       host: 192.168.1.200
       port: 9092
-      finished_for: 4 hours
+      finished_for: 24 hours
 
   # Download italian and english subtitles for all the videos.
   subtitles:
