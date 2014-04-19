@@ -115,10 +115,10 @@ templates:
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
-    # plugin_priority:
+    plugin_priority:
       # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
-      # tmdb_lookup: 128
-      # rottentomatoes_lookup: 127
+      tmdb_lookup: 128
+      rottentomatoes_lookup: 127
     imdb_lookup: yes
     tmdb_lookup: yes
     rottentomatoes_lookup: yes
@@ -737,6 +737,8 @@ tasks:
       - nosumm
       - mvinfo
       - nofail
+    disable_plugin:
+      - rottentomatoes_lookup
     find:
       path:
         - D:\Media\Incoming\movies
