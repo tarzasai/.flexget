@@ -738,6 +738,7 @@ tasks:
       - mvinfo
       - nofail
     disable_plugin:
+      # Disabled because of http://flexget.com/ticket/2567
       - rottentomatoes_lookup
     find:
       path:
