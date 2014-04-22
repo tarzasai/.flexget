@@ -754,7 +754,7 @@ tasks:
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
   rott2trakt:
     priority: 100
-    interval: 12 hours
+    interval: 2 days
     template:
       - noseen
       - mvinfo
@@ -808,6 +808,11 @@ tasks:
     # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
       from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            custom: mv-check
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
