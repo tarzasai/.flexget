@@ -46,10 +46,11 @@ class BaseFileOps(object):
             
             # check location
             src = entry['location']
+            src_isdir = os.path.isdir(src)
             try:
                 if not os.path.exists(src):
                     raise Exception('does not exists (anymore).')
-                if os.path.isdir(src):
+                if src_isdir:
                     if not config.get('allow_dir'):
                         raise Exception('is a directory.')
                 elif not os.path.isfile(src):
@@ -60,7 +61,7 @@ class BaseFileOps(object):
             
             # search for namesakes
             siblings = []
-            if not os.path.isdir(src) and os.path.isfile(src) and 'along' in config:
+            if not src_isdir and 'along' in config:
                 src_file, src_ext = os.path.splitext(src)
                 for ext in sexts:
                     if ext != src_ext.lower() and os.path.exists(src_file + ext):
