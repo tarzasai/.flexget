@@ -61,10 +61,10 @@ class BaseFileOps(object):
             # search for namesakes
             siblings = []
             if not os.path.isdir(src) and os.path.isfile(src) and 'along' in config:
-                src_name, src_ext = os.path.splitext(src)
+                src_file, src_ext = os.path.splitext(src)
                 for ext in sexts:
-                    if ext != src_ext.lower() and os.path.exists(src_name + ext):
-                        siblings.append(src_name + ext)
+                    if ext != src_ext.lower() and os.path.exists(src_file + ext):
+                        siblings.append(src_file + ext)
             
             # execute action in subclasses
             self.handle_entry(task, config, entry, siblings)
@@ -113,10 +113,10 @@ class DeleteFiles(BaseFileOps):
     
     def handle_entry(self, task, config, entry, siblings):
         src = entry['location']
-        src_is_dir = os.path.isdir(src)
+        src_isdir = os.path.isdir(src)
         
         if task.options.test:
-            if src_is_dir:
+            if src_isdir:
                 self.log.info('Would delete `%s` and all its content.' % src)
             else:
                 self.log.info('Would delete `%s`' % src)
@@ -125,7 +125,7 @@ class DeleteFiles(BaseFileOps):
             return
         
         try:
-            if src_is_dir:
+            if src_isdir:
                 shutil.rmtree(src)
                 self.log.info('`%s` and all its content has been deleted.' % src)
             else:
@@ -143,7 +143,7 @@ class DeleteFiles(BaseFileOps):
                 # the target file has been successfully deleted, we cannot mark the entry as failed anymore. 
                 self.log.warning('Unable to delete `%s`: %s' % (s, err))
         
-        if not src_is_dir:
+        if not src_isdir:
             self.clean_source(task, config, entry)
 
 
@@ -154,23 +154,23 @@ class TransformingOps(BaseFileOps):
     
     def handle_entry(self, task, config, entry, siblings):
         src = entry['location']
-        src_is_dir = os.path.isdir(src)
-        filepath, filename = os.path.split(src)
+        src_isdir = os.path.isdir(src)
+        src_path, src_name = os.path.split(src)
         
         # get proper value in order of: entry, config, above split
-        dst_path = entry.get('path', config.get('to', filepath))
+        dst_path = entry.get('path', config.get('to', src_path))
         dst_path = os.path.expanduser(dst_path)
         
-        if entry.get('filename') and entry['filename'] != filename:
+        if entry.get('filename') and entry['filename'] != src_name:
             # entry specifies different filename than what was split from the path
             # since some inputs fill in filename it must be different in order to be used
-            dst_filename = entry['filename']
+            dst_name = entry['filename']
         elif 'filename' in config:
             # use from configuration if given
-            dst_filename = config['filename']
+            dst_name = config['filename']
         else:
             # just use original filename
-            dst_filename = filename
+            dst_name = src_name
         
         try:
             dst_path = entry.render(dst_path)
@@ -178,16 +178,16 @@ class TransformingOps(BaseFileOps):
             self.log.warning('Path value replacement `%s` failed for %s: %s' % (dst_path, entry['title'], err))
             return
         try:
-            dst_filename = entry.render(dst_filename)
+            dst_name = entry.render(dst_name)
         except RenderError as err:
-            self.log.warning('Filename value replacement `%s` failed for %s: %s' % (dst_filename, entry['title'], err))
+            self.log.warning('Filename value replacement `%s` failed for %s: %s' % (dst_name, entry['title'], err))
             return
         
         # Clean invalid characters with pathscrub plugin
-        dst_path, dst_filename = pathscrub(dst_path), pathscrub(dst_filename, filename=True)
+        dst_path, dst_name = pathscrub(dst_path), pathscrub(dst_name, filename=True)
         
         # Join path and filename
-        dst = os.path.join(dst_path, dst_filename)
+        dst = os.path.join(dst_path, dst_name)
         if dst == entry['location']:
             self.log.warning('Cannot handle %s because source and destination are the same.' % entry['title'])
             return
@@ -202,8 +202,6 @@ class TransformingOps(BaseFileOps):
             self.log.warning('Cannot handle %s because destination `%s` is not a directory' % (entry['title'], dst_path))
             return
         
-        src_name, src_ext = os.path.splitext(src)
-        
         # unpack_safety
         if config.get('unpack_safety', entry.get('unpack_safety', True)):
             count = 0
@@ -216,13 +214,15 @@ class TransformingOps(BaseFileOps):
                 new_size = os.path.getsize(src)
                 if size != new_size:
                     if not count % 10:
-                        self.log.verbose('File `%s` is possibly being unpacked, waiting ...' % filename)
+                        self.log.verbose('File `%s` is possibly being unpacked, waiting ...' % src_name)
                 else:
                     break
                 count += 1
         
+        src_file, src_ext = os.path.splitext(src)
+        dst_file, dst_ext = os.path.splitext(dst)
+        
         # Check dst contains src_ext
-        dst_filename, dst_ext = os.path.splitext(dst)
         if dst_ext != src_ext:
             self.log.verbose('Adding extension `%s` to dst `%s`' % (src_ext, dst))
             dst += src_ext
@@ -235,7 +235,7 @@ class TransformingOps(BaseFileOps):
             self.log.info('Would %s `%s` to `%s`' % (funct_name, src, dst))
             for s in siblings:
                 # we cannot rely on splitext for extensions here (subtitles may have the language code)
-                d = dst_filename + s[len(src_name):]
+                d = dst_file + s[len(src_file):]
                 self.log.info('Would also %s `%s` to `%s`' % (funct_name, s, d))
         else:
             try:
@@ -247,7 +247,7 @@ class TransformingOps(BaseFileOps):
             
             for s in siblings:
                 # we cannot rely on splitext for extensions here (subtitles may have the language code)
-                d = dst_filename + s[len(src_name):]
+                d = dst_file + s[len(src_file):]
                 try:
                     move_or_copy(s, d)
                     self.log.info('`%s` has been %s to `%s` as well.' % (s, funct_done, d))
@@ -257,7 +257,7 @@ class TransformingOps(BaseFileOps):
         
         entry['output'] = dst
         
-        if self.move and not src_is_dir:
+        if self.move and not src_isdir:
             self.clean_source(task, config, entry)
 
 
