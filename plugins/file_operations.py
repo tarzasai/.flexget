@@ -8,7 +8,6 @@ from flexget import plugin
 from flexget.event import event
 from flexget.utils.template import RenderError
 from flexget.utils.pathscrub import pathscrub
-from sqlalchemy.sql.elements import Null
 
 
 def get_directory_size(directory):
@@ -160,18 +159,7 @@ class TransformingOps(BaseFileOps):
         
         # get proper value in order of: entry, config, above split
         dst_path = entry.get('path', config.get('to', src_path))
-        dst_path = os.path.expanduser(dst_path)
-        
-        if entry.get('filename') and entry['filename'] != src_name:
-            # entry specifies different filename than what was split from the path
-            # since some inputs fill in filename it must be different in order to be used
-            dst_name = entry['filename']
-        elif 'filename' in config:
-            # use from configuration if given
-            dst_name = config['filename']
-        else:
-            # just use original filename
-            dst_name = src_name
+        dst_name = entry.get('filename', config.get('filename', src_name))
         
         try:
             dst_path = entry.render(dst_path)
@@ -185,7 +173,8 @@ class TransformingOps(BaseFileOps):
             return
         
         # Clean invalid characters with pathscrub plugin
-        dst_path, dst_name = pathscrub(dst_path), pathscrub(dst_name, filename=True)
+        dst_path = os.path.expanduser(dst_path)
+        dst_name = pathscrub(dst_name, filename=True)
         
         # Join path and filename
         dst = os.path.join(dst_path, dst_name)
@@ -230,7 +219,6 @@ class TransformingOps(BaseFileOps):
         
         funct_name = 'move' if self.move else 'copy'
         funct_done = 'moved' if self.move else 'copied'
-        move_or_copy = getattr(shutil, funct_name)
         
         if task.options.test:
             self.log.info('Would %s `%s` to `%s`' % (funct_name, src, dst))
@@ -240,17 +228,24 @@ class TransformingOps(BaseFileOps):
                 self.log.info('Would also %s `%s` to `%s`' % (funct_name, s, d))
         else:
             try:
-                move_or_copy(src, dst)
+                if self.move:
+                    shutil.move(src, dst)
+                elif src_isdir:
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy(src, dst)
                 self.log.info('`%s` has been %s to `%s`' % (src, funct_done, dst))
             except Exception as err:
                 entry.fail('%s error: %s' % (funct_name, err))
                 return
-            
             for s in siblings:
                 # we cannot rely on splitext for extensions here (subtitles may have the language code)
                 d = dst_file + s[len(src_file):]
                 try:
-                    move_or_copy(s, d)
+                    if self.move:
+                        shutil.move(s, d)
+                    else:
+                        shutil.copy(s, d)
                     self.log.info('`%s` has been %s to `%s` as well.' % (s, funct_done, d))
                 except Exception as err:
                     # the target file has been successfully handled, we cannot mark the entry as failed anymore.
