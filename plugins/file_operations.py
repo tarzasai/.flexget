@@ -40,7 +40,7 @@ class BaseFileOps(object):
         
         for entry in task.accepted:
             if not 'location' in entry:
-                self.log.warning('Cannot handle %s because it does not have the field location.' % entry['title'])
+                self.log.verbose('Cannot handle %s because it does not have the field location.' % entry['title'])
                 continue
             
             # check location
