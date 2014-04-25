@@ -159,6 +159,14 @@ templates:
         - ita.srt
         - en.srt
         - eng.srt
+  focsrt:
+    copy_files:
+      along:
+        - srt
+        - it.srt
+        - ita.srt
+        - en.srt
+        - eng.srt
 
   # Notification for news/podcasts.
   xfeeds:
@@ -502,7 +510,7 @@ tasks:
       - noseen
       - nosumm
       - tvinfo
-      - movsrt
+      - focsrt
     # ------------------------------------------------------------------------------------------------------------------
     # log_filter:
       # crossmatch:
@@ -570,7 +578,7 @@ tasks:
       - noseen
       - nosumm
       - mvinfo
-      - movsrt
+      - focsrt
     # ------------------------------------------------------------------------------------------------------------------
     # log_filter:
       # crossmatch:
