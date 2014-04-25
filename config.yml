@@ -521,23 +521,6 @@ tasks:
         - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    # ------------------------------------------------------------------------------------------------------------------
-    # Will only move files from torrents out of seeding.
-    # crossmatch:
-      # from:
-        # - from_transmission:
-            # host: 192.168.1.200
-            # port: 9092
-            # enabled: yes
-            # onlycomplete: yes
-      # fields:
-        # - location
-      # action: accept
-    # move:
-      # to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
-      # filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-      # clean_source: 50
-    # ------------------------------------------------------------------------------------------------------------------
     accept_all: yes
     require_file: yes
     exists: "D:\\Media\\Incoming\\series"
@@ -550,7 +533,6 @@ tasks:
     copy_files:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-    # ------------------------------------------------------------------------------------------------------------------
     # Add episodes to the trakt.tv collection.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
@@ -563,13 +545,6 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi episodi:'
       text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %} -- {{ trakt_series_url }}'
-    # ------------------------------------------------------------------------------------------------------------------
-    # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
-    # exec:
-      # allow_background: yes
-      # on_exit:
-        # phase: md D:\Media\Stage\series
-    # ------------------------------------------------------------------------------------------------------------------
 
   # Move movies from Transmission destination folder to the incoming folder.
   move_movies:
@@ -591,23 +566,6 @@ tasks:
         - D:\Media\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    # ------------------------------------------------------------------------------------------------------------------
-    # Will only move files from torrents out of seeding.
-    # crossmatch:
-      # from:
-        # - from_transmission:
-            # host: 192.168.1.200
-            # port: 9092
-            # enabled: yes
-            # onlycomplete: yes
-      # fields:
-        # - location
-      # action: accept
-    # move:
-      # to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      # filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-      # clean_source: 80
-    # ------------------------------------------------------------------------------------------------------------------
     accept_all: yes
     require_file: yes
     exists: "D:\\Media\\Incoming\\movies"
@@ -620,7 +578,6 @@ tasks:
     copy_files:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
-    # ------------------------------------------------------------------------------------------------------------------
     # (trakt.tv) From watchlist to collection.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
@@ -638,13 +595,6 @@ tasks:
       recipient: '{{ secrets.xmpp.dst }}'
       title: 'Nuovi film:'
       text: '{{ imdb_name }} ({{ imdb_year }}) -- {{ imdb_url }}'
-    # ------------------------------------------------------------------------------------------------------------------
-    # Eventually restore the Transmission destination folder (otherwise Flexget will not run next time).
-    # exec:
-      # allow_background: yes
-      # on_exit:
-        # phase: md D:\Media\Stage\movies
-    # ------------------------------------------------------------------------------------------------------------------
 
   # Clean Transmission of completed torrents.
   cleantran:
@@ -662,7 +612,7 @@ tasks:
       host: 192.168.1.200
       port: 9092
       finished_for: 96 hours
-      # delete_files: yes
+      delete_files: yes
 
   # Download italian and english subtitles for all the videos.
   subtitles:
