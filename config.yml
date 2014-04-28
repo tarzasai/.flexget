@@ -522,7 +522,6 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    require_file: yes
     exists: "D:\\Media\\Incoming\\series"
     trakt_watched_lookup:
       username: '{{ secrets.trakt.usr }}'
@@ -567,7 +566,6 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    require_file: yes
     exists: "D:\\Media\\Incoming\\movies"
     trakt_watched_lookup:
       username: '{{ secrets.trakt.usr }}'
@@ -611,7 +609,7 @@ tasks:
       enabled: yes
       host: 192.168.1.200
       port: 9092
-      finished_for: 96 hours
+      finished_for: 48 hours
       delete_files: yes
 
   # Download italian and english subtitles for all the videos.
