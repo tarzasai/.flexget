@@ -511,8 +511,8 @@ tasks:
       - nosumm
       - tvinfo
       - focsrt
-    disable_plugin:
-      - manipulate
+    # disable_plugin:
+      # - manipulate
     find:
       path:
         - D:\Media\Stage\series
@@ -528,7 +528,7 @@ tasks:
       - trakt_watched: reject
     copy_files:
       to: "D:\\Media\\Incoming\\series\\{{ series_name }}\\"
-      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
+      filename: "{{ location|pathbase }}"
     # Add episodes to the trakt.tv collection.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
@@ -550,8 +550,8 @@ tasks:
       - nosumm
       - mvinfo
       - focsrt
-    disable_plugin:
-      - manipulate
+    # disable_plugin:
+      # - manipulate
     require_field:
       - imdb_year
     find:
@@ -569,7 +569,7 @@ tasks:
       - trakt_watched: reject
     copy_files:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
+      filename: "{{ location|pathbase }}"
     # (trakt.tv) From watchlist to collection.
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
