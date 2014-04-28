@@ -527,7 +527,7 @@ tasks:
     if:
       - trakt_watched: reject
     copy_files:
-      to: "D:\\Media\\Incoming\\series\\{{ series_name }}\\"
+      to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ location|pathbase }}"
     # Add episodes to the trakt.tv collection.
     trakt_add:
