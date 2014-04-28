@@ -511,11 +511,8 @@ tasks:
       - nosumm
       - tvinfo
       - focsrt
-    # ------------------------------------------------------------------------------------------------------------------
-    # log_filter:
-      # crossmatch:
-        # - Input from_transmission did not return anything
-    # ------------------------------------------------------------------------------------------------------------------
+    disable_plugin:
+      - manipulate
     find:
       path:
         - D:\Media\Stage\series
@@ -553,11 +550,8 @@ tasks:
       - nosumm
       - mvinfo
       - focsrt
-    # ------------------------------------------------------------------------------------------------------------------
-    # log_filter:
-      # crossmatch:
-        # - Input from_transmission did not return anything
-    # ------------------------------------------------------------------------------------------------------------------
+    disable_plugin:
+      - manipulate
     require_field:
       - imdb_year
     find:
