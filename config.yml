@@ -86,6 +86,7 @@ templates:
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       - tvinfo_title:
+          # Backup the original title, we may need it.
           from: title
       - title:
           replace:
@@ -516,22 +517,26 @@ tasks:
       - nosumm
       - tvinfo
       - focsrt
+    # Look for video files in the series destination path: we use a different temporary path in Transmission, so we are 
+    # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
     find:
       path:
         - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    #
+    # Reject episodes we've already added in our trakt.tv collection.
     trakt_collected_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
     if:
       - trakt_in_collection: reject
-    #
+    # Checking on trakt should be enough, this is just redundant but harmless.
     exists: "D:\\Media\\Incoming\\series"
-    #
+    # Copy accepted files in the incoming path: we use the title (actually the original title since manipulate in 
+    # tvinfo might have modified it) because in some multi-file torrents the actual video filename is completely 
+    # different, up to make the lookup on metainfo sites impossible.
     copy_files:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{{ location|pathext }}"
@@ -558,13 +563,15 @@ tasks:
       - focsrt
     require_field:
       - imdb_year
+    # Look for video files in the movies destination path: we use a different temporary path in Transmission, so we are 
+    # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
     find:
       path:
         - D:\Media\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    #
+    # Reject movies we've already added in our trakt.tv collection.
     crossmatch:
       from:
         - trakt_list:
@@ -576,13 +583,13 @@ tasks:
         - imdb_id
         - tmdb_id
       action: reject
-    #
+    # Checking on trakt should be enough, this is just redundant but harmless.
     exists: "D:\\Media\\Incoming\\movies"
-    #
+    # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy_files:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{{ location|pathext }}"
-    # (trakt.tv) From watchlist to collection.
+    # Move from watchlist to collection on trakt.tv
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
