@@ -513,24 +513,24 @@ tasks:
       - nosumm
       - tvinfo
       - focsrt
-    # disable_plugin:
-      # - manipulate
     find:
       path:
         - D:\Media\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    exists: "D:\\Media\\Incoming\\series"
-    trakt_watched_lookup:
+    #
+    trakt_collected_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
     if:
-      - trakt_watched: reject
+      - trakt_in_collection: reject
+    #
+    exists: "D:\\Media\\Incoming\\series"
+    #
     copy_files:
       to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
-      # filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
       filename: "{{ tvinfo_title }}{{ location|pathext }}"
     # Add episodes to the trakt.tv collection.
     trakt_add:
@@ -553,8 +553,6 @@ tasks:
       - nosumm
       - mvinfo
       - focsrt
-    # disable_plugin:
-      # - manipulate
     require_field:
       - imdb_year
     find:
@@ -563,16 +561,23 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
+    #
+    crossmatch:
+      from:
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            movies: all
+      fields:
+        - imdb_id
+        - tmdb_id
+      action: reject
+    #
     exists: "D:\\Media\\Incoming\\movies"
-    trakt_watched_lookup:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-    if:
-      - trakt_watched: reject
+    #
     copy_files:
       to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      # filename: "{{ title|replace('/', '_')|replace(':', ' -') }}{% if not title.endswith(location|pathext) %}{{ location|pathext }}{% endif %}"
       filename: "{{ title }}{{ location|pathext }}"
     # (trakt.tv) From watchlist to collection.
     trakt_remove:
