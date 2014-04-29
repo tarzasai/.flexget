@@ -57,6 +57,9 @@ templates:
         - does not exists (anymore)
       series:
         - releasing quality restriction
+      content_size:
+        - too big, rejecting
+        - too small, rejecting
 
   # The sources for series torrents.
   tvfeed:
