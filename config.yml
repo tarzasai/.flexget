@@ -1038,3 +1038,22 @@ tasks:
       text: "TV #rencans: weekly status update"
       link: 'http://www.tvrage.com/status_update.php'
       comment: "{{ tvrsu_date.strftime('%d/%m') }}: {{ tvrsu_lines|join(' -- ') }}"
+
+  mvstorage:
+    manual: yes
+    template:
+      - noseen
+      - nofail
+      - mvinfo
+      - focsrt
+    find:
+      path:
+        - D:\Movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    require_field:
+      - imdb_id
+      - imdb_year
+    accept_all: yes
+    copy_files:
+      to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
