@@ -52,7 +52,7 @@ class MyLogFilter(object):
             for s in config[k]:
                 f = MyFilter(s)
                 logging.getLogger(k).addFilter(f)
-                log.verbose('Log filter %d added (context "%s", term "%s")' % (id(f), k, s))
+                log.debug('Log filter %d added (context "%s", term "%s")' % (id(f), k, s))
                 self.filters[k].append(f)
     
     @plugin.priority(-255)
@@ -62,7 +62,7 @@ class MyLogFilter(object):
         for k in self.filters.keys():
             for f in self.filters[k]:
                 logging.getLogger(k).removeFilter(f)
-                log.verbose('Log filter %d removed' % (id(f)))
+                log.debug('Log filter %d removed' % (id(f)))
     
     on_task_abort = on_task_exit
 
