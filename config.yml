@@ -806,6 +806,11 @@ tasks:
       - imdb_name
       - imdb_year
       - imdb_url
+      - imdb_votes
+      - imdb_score
+      - rt_releases
+      - rt_critics_score
+      - rt_audience_score
     regexp:
       reject:
         - animation: {from: imdb_genres}
@@ -825,7 +830,7 @@ tasks:
       - not imdb_languages or not 'english' in imdb_languages: reject
       # Max 10 years old movies.
       - imdb_year < now.year - 10: reject
-      - not rt_releases: reject
+      # - not rt_releases: reject
       - imdb_year == now.year and 'theater' in rt_releases and rt_releases['theater'] > now - timedelta(days=30): reject
       # Here we have some very simple criterias to try to get only good stuff.
       - imdb_votes < 2000: reject
