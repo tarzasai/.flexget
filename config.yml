@@ -772,25 +772,35 @@ tasks:
       file: 'D:\Dropbox\movies.html'
 
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  rott2trakt:
+  # rott2trakt:
+  guess_movies:
     priority: 100
-    interval: 2 days
+    interval: 2 hours
     template:
       - noseen
       - mvinfo
+      - mvfltr
+      - mvtran
+      - transm
     plugin_priority:
       crossmatch: 0
-    rottentomatoes_list:
-      dvds:
-        - top_rentals
-        - current_releases
-        - new_releases
-        - upcoming
-      movies:
-        - box_office
-        - in_theaters
-        - opening
-        - upcoming
+    # rottentomatoes_list:
+      # dvds:
+        # - top_rentals
+        # - current_releases
+        # - new_releases
+        # - upcoming
+      # movies:
+        # - box_office
+        # - in_theaters
+        # - opening
+        # - upcoming
+    inputs:
+      - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
+      - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
+    exists_movie:
+      - D:\Media\Incoming\movies
+      - D:\Media\Movies
     require_field:
       - imdb_id
       - imdb_name
@@ -828,11 +838,11 @@ tasks:
     # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
       from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            custom: mv-check
+        # - trakt_list:
+            # username: '{{ secrets.trakt.usr }}'
+            # api_key: '{{ secrets.trakt.api }}'
+            # strip_dates: yes
+            # custom: mv-check
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
@@ -847,17 +857,19 @@ tasks:
         - imdb_id
         - tmdb_id
       action: reject
+    transmission:
+      bandwidthpriority: -1
     # Again we add the accepted entries to the trakt.tv watchlist.
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: mvcheck
+    # trakt_add:
+      # username: '{{ secrets.trakt.usr }}'
+      # password: '{{ secrets.trakt.pwd }}'
+      # api_key: '{{ secrets.trakt.api }}'
+      # list: mvcheck
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
       recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Da Rotten Tomatoes:'
+      # title: 'Da Rotten Tomatoes:'
       text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
 
   # In case of emergency?
