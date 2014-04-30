@@ -118,6 +118,7 @@ templates:
   tvtran:
     transmission:
       path: D:\Media\Stage\series
+      bandwidthpriority: 1
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
@@ -141,6 +142,7 @@ templates:
   mvtran:
     transmission:
       path: D:\Media\Stage\movies
+      bandwidthpriority: 0
 
   # Common Transmission settings.
   transm:
@@ -148,7 +150,7 @@ templates:
       enabled: yes
       host: 192.168.1.200
       port: 9092
-      ratio: 2
+      ratio: -1
     # notify_xmpp:
       # sender: '{{ secrets.xmpp.usr }}'
       # password: '{{ secrets.xmpp.pwd }}'
@@ -380,6 +382,9 @@ tasks:
           remove: yes
       - series_episode:
           remove: yes
+    # Unknown series are less important.
+    transmission:
+      bandwidthpriority: -1
     # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
     # will move it in the main list).
     trakt_add:
