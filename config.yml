@@ -825,6 +825,21 @@ tasks:
         - Kids & Family: {from: rt_genres}
         - Sports & Fitness: {from: rt_genres}
         - Television: {from: rt_genres}
+    imdb:
+      min_votes: 2000
+      min_score: 6
+      accept_languages:
+        - english
+      reject_genres:
+        - animation
+        - documentary
+        - family
+        - horror
+        - music
+        - musical
+        - romance
+        - sport
+      
     if:
       # I usually don't like italian movies and I prefer English among all the foreign languages.
       - not imdb_languages or not 'english' in imdb_languages: reject
