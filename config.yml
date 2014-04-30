@@ -118,7 +118,6 @@ templates:
   tvtran:
     transmission:
       path: D:\Media\Stage\series
-      bandwidthpriority: 1
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
@@ -142,7 +141,6 @@ templates:
   mvtran:
     transmission:
       path: D:\Media\Stage\movies
-      bandwidthpriority: 0
 
   # Common Transmission settings.
   transm:
@@ -332,8 +330,10 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-    include: 'C:\Users\Administrator\.flexget\series.yml'
     seen: local
+    include: 'C:\Users\Administrator\.flexget\series.yml'
+    transmission:
+      bandwidthpriority: 1
 
   # This one grabs the pilots.
   premieres:
@@ -474,6 +474,8 @@ tasks:
             verified: yes
         - torrentz: verified
       interval: 0 hour
+    transmission:
+      bandwidthpriority: 0
 
   # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my 
   # dropbox folder for series and send them directly to Transmission.
@@ -491,6 +493,8 @@ tasks:
         - D:\Dropbox\Torrents\series
       regexp: '.*\.torrent$'
     accept_all: yes
+    transmission:
+      bandwidthpriority: 1
     exec:
       on_output:
         for_accepted: del "{{ location }}"
@@ -510,6 +514,8 @@ tasks:
         - D:\Dropbox\Torrents\movies
       regexp: '.*\.torrent$'
     accept_all: yes
+    transmission:
+      bandwidthpriority: 0
     exec:
       on_output:
         for_accepted: del "{{ location }}"
