@@ -213,6 +213,10 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+*.log
+*.log.*
 secrets.yml
 series.yml
 db-config.sqlite
+received/

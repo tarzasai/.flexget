@@ -71,6 +71,9 @@ templates:
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
+    log_filter:
+      rss:
+        - I have saved the invalid content
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
@@ -145,7 +148,6 @@ templates:
   transm:
     transmission:
       enabled: yes
-      host: 192.168.1.200
       port: 9092
       ratio: -1
     # notify_xmpp:
@@ -674,7 +676,7 @@ tasks:
     # Copy accepted files in the incoming path: we use the title (actually the original title since manipulate in 
     # tvinfo might have modified it) because in some multi-file torrents the actual video filename is completely 
     # different, up to make the lookup on metainfo sites impossible.
-    copy_files:
+    copy:
       to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{{ location|pathext }}"
     # Add episodes to the trakt.tv collection.
@@ -724,7 +726,7 @@ tasks:
     exists:
       - C:\Storage\Videos\Incoming\movies
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
-    copy_files:
+    copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{{ location|pathext }}"
     # Move from watchlist to collection on trakt.tv
@@ -758,7 +760,6 @@ tasks:
         - you should add (at least) one!
     clean_transmission:
       enabled: yes
-      host: 192.168.1.200
       port: 9092
       finished_for: 48 hours
       delete_files: yes
@@ -919,6 +920,11 @@ tasks:
   events:
     priority: 200
     # interval: 50 minutes
+    template:
+      - no_global
+    log_filter:
+      details:
+        - Task didn't produce any entries.
     seen: local
     # see https://github.com/tarzasai/.flexget/tree/master/plugins
     winevents:
@@ -947,7 +953,8 @@ tasks:
     priority: 500
     interval: 2 hours
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       # (last Flexget tickets)
       - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
@@ -956,7 +963,8 @@ tasks:
     priority: 501
     interval: 12 hours
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       - rss: { url: 'http://www.imogenheap.com/feed/', silent: yes, all_entries: no }
       - rss: { url: 'http://blog.imogenheap.com/rss', silent: yes, all_entries: no }
@@ -965,7 +973,8 @@ tasks:
     priority: 502
     interval: 7 days
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Radionation', silent: yes, all_entries: no }
 
@@ -973,7 +982,8 @@ tasks:
     priority: 503
     interval: 12 hours
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
     # This get a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
@@ -983,7 +993,8 @@ tasks:
     priority: 504
     interval: 2 days
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
 
@@ -991,7 +1002,8 @@ tasks:
     priority: 505
     interval: 1 days
     template:
-      xfeeds
+      - no_global
+      - xfeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
 
