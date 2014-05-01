@@ -67,8 +67,7 @@ templates:
       - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
-      # torlock is broken atm...
-      # - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
+      - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
@@ -117,7 +116,7 @@ templates:
   # Destination path for series in Transmission (requires "transm" template too).
   tvtran:
     transmission:
-      path: D:\Media\Stage\series
+      path: C:\Storage\Videos\Stage\series
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
@@ -140,7 +139,7 @@ templates:
   # Destination path for movies in Transmission (requires transm template too).
   mvtran:
     transmission:
-      path: D:\Media\Stage\movies
+      path: C:\Storage\Videos\Stage\movies
 
   # Common Transmission settings.
   transm:
@@ -166,7 +165,18 @@ templates:
         - en.srt
         - eng.srt
   focsrt:
-    copy_files:
+    copy:
+      along:
+        - srt
+        - it.srt
+        - ita.srt
+        - en.srt
+        - eng.srt
+
+  # To delete video files along their subtitles.
+  delvid:
+    delete:
+      clean_source: 50
       along:
         - srt
         - it.srt
@@ -318,7 +328,7 @@ tasks:
         - begin
         - quality
         - specials
-      filename: 'C:\\Users\\Administrator\\.flexget\\series.yml'
+      filename: 'C:\\Users\\giorgio\\.flexget\\series.yml'
     set_series_begin: yes
 
   # This is the search & download task for series.
@@ -331,7 +341,7 @@ tasks:
       - tvtran
       - transm
     seen: local
-    include: 'C:\Users\Administrator\.flexget\series.yml'
+    include: 'C:\Users\giorgio\.flexget\series.yml'
     transmission:
       bandwidthpriority: 1
 
@@ -489,23 +499,12 @@ tasks:
       - transm
     plugin_priority:
       crossmatch: 0
-    # rottentomatoes_list:
-      # dvds:
-        # - top_rentals
-        # - current_releases
-        # - new_releases
-        # - upcoming
-      # movies:
-        # - box_office
-        # - in_theaters
-        # - opening
-        # - upcoming
     inputs:
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
     exists_movie:
-      - D:\Media\Incoming\movies
-      - D:\Media\Movies
+      - C:\Storage\Videos\Incoming\movies
+      - C:\Storage\Videos\Movies
     require_field:
       - imdb_id
       - imdb_name
@@ -616,7 +615,7 @@ tasks:
       - transm
     find:
       path:
-        - D:\Dropbox\Torrents\series
+        - C:\Dropbox\Torrents\series
       regexp: '.*\.torrent$'
     accept_all: yes
     transmission:
@@ -637,7 +636,7 @@ tasks:
       - transm
     find:
       path:
-        - D:\Dropbox\Torrents\movies
+        - C:\Dropbox\Torrents\movies
       regexp: '.*\.torrent$'
     accept_all: yes
     transmission:
@@ -658,7 +657,7 @@ tasks:
     # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
     find:
       path:
-        - D:\Media\Stage\series
+        - C:\Storage\Videos\Stage\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -670,12 +669,13 @@ tasks:
     if:
       - trakt_in_collection: reject
     # Checking on trakt should be enough, this is just redundant but harmless.
-    exists: "D:\\Media\\Incoming\\series"
+    exists:
+      - C:\Storage\Videos\Incoming\series
     # Copy accepted files in the incoming path: we use the title (actually the original title since manipulate in 
     # tvinfo might have modified it) because in some multi-file torrents the actual video filename is completely 
     # different, up to make the lookup on metainfo sites impossible.
     copy_files:
-      to: "D:\\Media\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
+      to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{{ location|pathext }}"
     # Add episodes to the trakt.tv collection.
     trakt_add:
@@ -704,7 +704,7 @@ tasks:
     # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
     find:
       path:
-        - D:\Media\Stage\movies
+        - C:\Storage\Videos\Stage\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -721,10 +721,11 @@ tasks:
         - tmdb_id
       action: reject
     # Checking on trakt should be enough, this is just redundant but harmless.
-    exists: "D:\\Media\\Incoming\\movies"
+    exists:
+      - C:\Storage\Videos\Incoming\movies
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy_files:
-      to: "D:\\Media\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
+      to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{{ location|pathext }}"
     # Move from watchlist to collection on trakt.tv
     trakt_remove:
@@ -778,7 +779,7 @@ tasks:
         - both guesses to be merged
     find:
       path:
-        - D:\Media\Incoming
+        - C:\Storage\Videos\Incoming
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -799,10 +800,10 @@ tasks:
       - noseen
       - nosumm
       - tvinfo
-      - movsrt
+      - delvid
     find:
       path:
-        - D:\Media\Incoming\series
+        - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     trakt_watched_lookup:
@@ -811,14 +812,11 @@ tasks:
       api_key: '{{ secrets.trakt.api }}'
     if:
       - trakt_watched: accept
-    move:
-      to: "D:\\Media\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}"
-      clean_source: 10
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
-        phase: md D:\Media\Incoming\series
+        phase: md C:\Storage\Videos\Incoming\series
 
   # Move watched movies out of the incoming folder.
   purge_movies:
@@ -828,10 +826,10 @@ tasks:
       - noseen
       - nosumm
       - mvinfo
-      - movsrt
+      - delvid
     find:
       path:
-        - D:\Media\Incoming\movies
+        - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     crossmatch:
@@ -845,14 +843,11 @@ tasks:
       fields:
         - imdb_id
       action: accept
-    move:
-      to: "D:\\Media\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})"
-      clean_source: 10
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
-        phase: md D:\Media\Incoming\movies
+        phase: md C:\Storage\Videos\Incoming\movies
 
   # Generate a local html index page for available episodes.
   poster_series:
@@ -865,14 +860,14 @@ tasks:
       - nofail
     find:
       path:
-        - D:\Media\Incoming\series
+        - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     check_subtitles: yes
     accept_all: yes
     make_html:
       template: series3.template
-      file: 'D:\Dropbox\series.html'
+      file: 'C:\Dropbox\series.html'
 
   # Generate a local html index page for available movies.
   poster_movies:
@@ -888,14 +883,14 @@ tasks:
       - rottentomatoes_lookup
     find:
       path:
-        - D:\Media\Incoming\movies
+        - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     check_subtitles: yes
     accept_all: yes
     make_html:
       template: movies3.template
-      file: 'D:\Dropbox\movies.html'
+      file: 'C:\Dropbox\movies.html'
 
   # In case of emergency?
   series_begin:
