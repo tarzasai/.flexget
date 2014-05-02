@@ -90,7 +90,12 @@ class WindowsEvents(object):
         # %SystemRoot%\System32\Winevt\Logs\ path) Flexget will need to run as 
         # Administrator, otherwise open() will raise a "permission denied"
         # error. Exported logs can be accessed without special permissions.
-        with open(config['filename'], 'r') as f:
+        try:
+            f = open(config['filename'], 'r')
+        except Exception as err:
+            log.error(str(err))
+            return
+        try:
             with contextlib.closing(mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)) as buf:
                 fh = FileHeader(buf, 0x0)
                 for xml, record in evtx_file_xml_view(fh):
@@ -132,6 +137,8 @@ class WindowsEvents(object):
                                 entry['event_time'] = datetime.strptime(node.find('TimeCreated').attrib['SystemTime'], '%Y-%m-%d %H:%M:%S')
                                 entries.append(entry)
                             break
+        finally:
+            f.close()
         t2 = datetime.now()
         res = 'Parsed %d events in %d seconds' % (ntot, (t2-t1).seconds)
         if nerr:
