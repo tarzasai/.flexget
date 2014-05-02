@@ -676,7 +676,7 @@ tasks:
       api_key: '{{ secrets.trakt.api }}'
     if:
       #
-      - 'Stage\\series' in location: accept
+      - location and 'Stage\\series' in location: accept
       # Reject episodes we've already added in our trakt.tv collection.
       - trakt_in_collection: reject
     # Checking on trakt should be enough, this is just redundant but harmless.
@@ -727,7 +727,7 @@ tasks:
     require_file: yes
     if:
       #
-      - 'Stage\\movies' in location: accept
+      - location and 'Stage\\movies' in location: accept
     # ------------------------------------------------------------------------------------------------------------------
     # Reject movies we've already added in our trakt.tv collection.
     crossmatch:
