@@ -653,6 +653,7 @@ tasks:
     template:
       - noseen
       - nosumm
+      - nofail
       - tvinfo
       - focsrt
     # ------------------------------------------------------------------------------------------------------------------
@@ -707,6 +708,7 @@ tasks:
     template:
       - noseen
       - nosumm
+      - nofail
       - mvinfo
       - focsrt
     require_field:
