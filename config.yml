@@ -655,20 +655,29 @@ tasks:
       - nosumm
       - tvinfo
       - focsrt
+    # ------------------------------------------------------------------------------------------------------------------
     # Look for video files in the series destination path: we use a different temporary path in Transmission, so we are 
     # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
-    find:
-      path:
-        - C:\Storage\Videos\Stage\series
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    accept_all: yes
-    # Reject episodes we've already added in our trakt.tv collection.
+    # find:
+      # path:
+        # - C:\Storage\Videos\Stage\series
+      # regexp: '.*\.(avi|mkv|mp4)$'
+      # recursive: yes
+    # accept_all: yes
+    # ------------------------------------------------------------------------------------------------------------------
+    from_transmission:
+      enabled: yes
+      port: 9092
+    require_file: yes
+    # ------------------------------------------------------------------------------------------------------------------
     trakt_collected_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
     if:
+      #
+      - 'Stage\\series' in location: accept
+      # Reject episodes we've already added in our trakt.tv collection.
       - trakt_in_collection: reject
     # Checking on trakt should be enough, this is just redundant but harmless.
     exists:
@@ -702,14 +711,24 @@ tasks:
       - focsrt
     require_field:
       - imdb_year
+    # ------------------------------------------------------------------------------------------------------------------
     # Look for video files in the movies destination path: we use a different temporary path in Transmission, so we are 
     # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
-    find:
-      path:
-        - C:\Storage\Videos\Stage\movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    accept_all: yes
+    # find:
+      # path:
+        # - C:\Storage\Videos\Stage\movies
+      # regexp: '.*\.(avi|mkv|mp4)$'
+      # recursive: yes
+    # accept_all: yes
+    # ------------------------------------------------------------------------------------------------------------------
+    from_transmission:
+      enabled: yes
+      port: 9092
+    require_file: yes
+    if:
+      #
+      - 'Stage\\movies' in location: accept
+    # ------------------------------------------------------------------------------------------------------------------
     # Reject movies we've already added in our trakt.tv collection.
     crossmatch:
       from:
