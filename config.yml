@@ -916,7 +916,6 @@ tasks:
   # system to get some updates on my phone :P
   ######################################################################################################################
 
-  # This task send me a notification for every warning APC wrote in Windows registry (power issues at my place).
   events:
     priority: 200
     # interval: 50 minutes
@@ -926,7 +925,8 @@ tasks:
       details:
         - Task didn't produce any entries.
     seen: local
-    # see https://github.com/tarzasai/.flexget/tree/master/plugins
+    # This plugin emits entries about the latest events logged in the specified Windows registry (Application in this 
+    # task) - see https://github.com/tarzasai/.flexget/tree/master/plugins
     winevents:
       filename: c:\windows\sysnative\winevt\logs\Application.evtx
       providers:
@@ -956,7 +956,7 @@ tasks:
       - no_global
       - xfeeds
     inputs:
-      # (last Flexget tickets)
+      # (latest Flexget tickets)
       - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
 
   Imogen Heap:
@@ -986,7 +986,7 @@ tasks:
       - xfeeds
     inputs:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
-    # This get a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
 
   Zerocalcare:
@@ -1010,6 +1010,8 @@ tasks:
   FrenfiComms:
     priority: 510
     interval: 1 hours
+    # This plugin grabs the latest comments in specified threads on FriendFeed - see 
+    # https://github.com/tarzasai/.flexget/tree/master/plugins
     getffcomms:
       app_key: '{{ secrets.ff.key }}'
       app_secret: '{{ secrets.ff.sec }}'
@@ -1031,6 +1033,8 @@ tasks:
     interval: 7 days
     plugin_priority:
       if: -255
+    # This plugin grabs the latest news about series renewal/cancellation on TVRage - see 
+    # https://github.com/tarzasai/.flexget/tree/master/plugins
     tvrage_rencans: 3
     seen: local
     if:
