@@ -651,26 +651,17 @@ tasks:
   move_series:
     priority: 40
     template:
+      - no_global
       - noseen
       - nosumm
       - nofail
       - tvinfo
       - focsrt
-    # ------------------------------------------------------------------------------------------------------------------
-    # Look for video files in the series destination path: we use a different temporary path in Transmission, so we are 
-    # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
-    # find:
-      # path:
-        # - C:\Storage\Videos\Stage\series
-      # regexp: '.*\.(avi|mkv|mp4)$'
-      # recursive: yes
-    # accept_all: yes
-    # ------------------------------------------------------------------------------------------------------------------
     from_transmission:
       enabled: yes
       port: 9092
+      onlycomplete: no
     require_file: yes
-    # ------------------------------------------------------------------------------------------------------------------
     trakt_collected_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -706,6 +697,7 @@ tasks:
   move_movies:
     priority: 41
     template:
+      - no_global
       - noseen
       - nosumm
       - nofail
@@ -713,24 +705,14 @@ tasks:
       - focsrt
     require_field:
       - imdb_year
-    # ------------------------------------------------------------------------------------------------------------------
-    # Look for video files in the movies destination path: we use a different temporary path in Transmission, so we are 
-    # sure to find only complete torrents here - perhaps still seeding, but we just want to copy them.
-    # find:
-      # path:
-        # - C:\Storage\Videos\Stage\movies
-      # regexp: '.*\.(avi|mkv|mp4)$'
-      # recursive: yes
-    # accept_all: yes
-    # ------------------------------------------------------------------------------------------------------------------
     from_transmission:
       enabled: yes
       port: 9092
+      onlycomplete: no
     require_file: yes
     if:
       #
       - location and 'Stage\\movies' in location: accept
-    # ------------------------------------------------------------------------------------------------------------------
     # Reject movies we've already added in our trakt.tv collection.
     crossmatch:
       from:
