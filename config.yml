@@ -60,6 +60,10 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
+      rss:
+        - I have saved the invalid content
+      inputs:
+        - torlock
 
   # The sources for series torrents.
   tvfeed:
@@ -71,9 +75,6 @@ templates:
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
-    log_filter:
-      rss:
-        - I have saved the invalid content
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
