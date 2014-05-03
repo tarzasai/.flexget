@@ -64,6 +64,8 @@ templates:
         - I have saved the invalid content
       inputs:
         - torlock
+      requests.packages.urllib3.connectionpool:
+        - torlock
 
   # The sources for series torrents.
   tvfeed:
