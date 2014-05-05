@@ -58,8 +58,9 @@ class TraktFilter(object):
     
     @plugin.priority(-1)
     def on_task_filter(self, task, config):
-        if not task.accepted:
-            self.log.debug('nothing accepted, aborting.')
+        entries = task.entries if config['accept'] else task.accepted
+        if not entries:
+            self.log.debug('nothing to do, aborting.')
             return
         data = self.get_trakt_data(task, config, 'http://api.trakt.tv/user/library/%s/%s.json/%s/%s' % 
                                    ('movies' if self.movies else 'shows', 'watched' if self.watched else 'collection', 
@@ -72,7 +73,7 @@ class TraktFilter(object):
                 entry.accept('watched' if self.watched else 'collected')
             else:
                 entry.reject('watched' if self.watched else 'collected')
-        for entry in task.accepted:
+        for entry in entries:
             name = entry.get('movie_name', None) if self.movies else entry.get('series_name', None)
             year = entry.get('movie_year', None)
             ssno = entry.get('series_season', None)
