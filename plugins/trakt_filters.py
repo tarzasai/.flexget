@@ -58,7 +58,7 @@ class TraktFilter(object):
     
     @plugin.priority(-1)
     def on_task_filter(self, task, config):
-        entries = task.entries if config['accept'] else task.accepted
+        entries = task.entries if config['action'] == 'accept' else task.accepted
         if not entries:
             self.log.debug('nothing to do, aborting.')
             return
