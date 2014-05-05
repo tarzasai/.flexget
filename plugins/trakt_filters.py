@@ -67,6 +67,11 @@ class TraktFilter(object):
         if data is None:
             self.log.verbose('Nothing found on trakt.tv user profile, aborting.')
             return
+        def do_action(entry):
+            if config['action'] == 'accept':
+                entry.accept('watched' if self.watched else 'collected')
+            else:
+                entry.reject('watched' if self.watched else 'collected')
         for entry in task.accepted:
             name = entry.get('movie_name', None) if self.movies else entry.get('series_name', None)
             year = entry.get('movie_year', None)
@@ -85,16 +90,14 @@ class TraktFilter(object):
                 if self.movies:
                     if (imdb and imdb == item['imdb_id']) or (tmdb and tmdb == item['tmdb_id']) or \
                         (name.lower() == item['title'].lower() and year == item['year']):
-                        # movie matches, reject entry
-                        entry.reject('watched' if self.watched else 'collected')
+                        do_action(entry)
                         break
                 elif (imdb and imdb == item['imdb_id']) or (tvdb and tvdb == item['tvdb_id']):
-                    # series matches, check the episode
+                    # series matches, check season/episode
                     for season in item['seasons']:
                         if ssno == season['season']:
                             if epno in season['episodes']:
-                                # episode matches, reject entry
-                                entry.reject('watched' if self.watched else 'collected')
+                                do_action(entry)
                             break
                         elif ssno > season['season']:  # seasons are in descending order
                             break
