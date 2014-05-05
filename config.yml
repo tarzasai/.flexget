@@ -820,12 +820,12 @@ tasks:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    trakt_watched_lookup:
+    # see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_watched_series:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
-    if:
-      - trakt_watched: accept
+      action: accept
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -846,16 +846,11 @@ tasks:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    crossmatch:
-      from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            api_key: '{{ secrets.trakt.api }}'
-            movies: watched
-            strip_dates: yes
-      fields:
-        - imdb_id
+    # see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_watched_movies:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
       action: accept
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
