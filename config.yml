@@ -660,26 +660,33 @@ tasks:
       - nofail
       - tvinfo
       - focsrt
+    # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the 
+    # actual video filename is completely different, up to make the lookup on metainfo sites impossible.
     from_transmission:
       enabled: yes
       port: 9092
       onlycomplete: no
-    require_file: yes
-    trakt_collected_lookup:
+    # Accept only files in series' Transmission destination path (tasks get_series, premieres, dropox_series).
+    crossmatch:
+      from:
+        - find:
+            path:
+              - C:\Storage\Videos\Stage\series
+            regexp: '.*\.(avi|mkv|mp4)$'
+            recursive: yes
+      fields:
+        - location
+      action: accept
+    # Reject files already copied to the incoming folder.
+    exists:
+      - C:\Storage\Videos\Incoming\series
+    # Reject episodes submitted to trakt.tv user library - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_collected_series:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
-    if:
-      #
-      - location and 'Stage\\series' in location: accept
-      # Reject episodes we've already added in our trakt.tv collection.
-      - trakt_in_collection: reject
-    # Checking on trakt should be enough, this is just redundant but harmless.
-    exists:
-      - C:\Storage\Videos\Incoming\series
-    # Copy accepted files in the incoming path: we use the title (actually the original title since manipulate in 
-    # tvinfo might have modified it) because in some multi-file torrents the actual video filename is completely 
-    # different, up to make the lookup on metainfo sites impossible.
+    # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might 
+    # have modified it).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{{ location|pathext }}"
@@ -706,31 +713,31 @@ tasks:
       - nofail
       - mvinfo
       - focsrt
-    require_field:
-      - imdb_year
+    # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the 
+    # actual video filename is completely different, up to make the lookup on metainfo sites impossible.
     from_transmission:
       enabled: yes
       port: 9092
       onlycomplete: no
-    require_file: yes
-    if:
-      #
-      - location and 'Stage\\movies' in location: accept
-    # Reject movies we've already added in our trakt.tv collection.
+    # Accept only files in movies' Transmission destination path (tasks get_movies, dropox_movies).
     crossmatch:
       from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
-            strip_dates: yes
-            movies: all
+        - find:
+            path:
+              - C:\Storage\Videos\Stage\movies
+            regexp: '.*\.(avi|mkv|mp4)$'
+            recursive: yes
       fields:
-        - imdb_id
-        - tmdb_id
-      action: reject
-    # Checking on trakt should be enough, this is just redundant but harmless.
+        - location
+      action: accept
+    # Reject files already copied to the incoming folder.
     exists:
       - C:\Storage\Videos\Incoming\movies
+    # Reject movies submitted to trakt.tv user library - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_collected_movies:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
