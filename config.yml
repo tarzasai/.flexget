@@ -67,6 +67,8 @@ templates:
         - torlock
       requests.packages.urllib3.connectionpool:
         - torlock
+      urlrewriter:
+        - URL rewritten to
 
   # The sources for series torrents.
   tvfeed:
