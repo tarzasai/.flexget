@@ -156,6 +156,11 @@ templates:
       enabled: yes
       port: 9092
       ratio: -1
+    log_filter:
+      transmissionrpc:
+        - Expecting
+        - Request
+        - HTTP data
     # notify_xmpp:
       # sender: '{{ secrets.xmpp.usr }}'
       # password: '{{ secrets.xmpp.pwd }}'
@@ -664,6 +669,10 @@ tasks:
       - tvinfo
       - focsrt
     log_filter:
+      transmissionrpc:
+        - Expecting
+        - Request
+        - HTTP data
       crossmatch:
         - Input find did not return anything
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the 
@@ -720,6 +729,10 @@ tasks:
       - mvinfo
       - focsrt
     log_filter:
+      transmissionrpc:
+        - Expecting
+        - Request
+        - HTTP data
       crossmatch:
         - Input find did not return anything
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the 
@@ -776,8 +789,11 @@ tasks:
       - noseen
       - nosumm
       - nofail
-    # I know the task has no input/filter/whatever plugin, thank you.
     log_filter:
+      transmissionrpc:
+        - Expecting
+        - Request
+        - HTTP data
       task:
         - you should add (at least) one!
     clean_transmission:
