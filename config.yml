@@ -1094,7 +1094,7 @@ tasks:
       app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
-      feeds: [flexgettest]
+      feeds: [me, serietv]
       mode: comments
       text: "TVRage weekly #rencans: serie confermate/rinnovate"
       link: 'http://www.tvrage.com/status_update.php'
@@ -1133,7 +1133,7 @@ tasks:
       app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
-      feeds: [flexgettest]
+      feeds: [me, serietv]
       mode: comments
       text: "TVRage weekly #rencans: serie CANCELLATE"
       link: 'http://www.tvrage.com/status_update.php'
