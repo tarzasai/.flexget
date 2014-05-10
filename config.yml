@@ -1061,24 +1061,80 @@ tasks:
       title: 'Nuovi commenti da frenfi:'
       text: '- {{ comment_body }}  ({{ comment_author }} su "{{ post_title }}")'
 
-  tvrencans:
+  tvrenewed:
     priority: 515
     interval: 7 days
-    plugin_priority:
-      if: -255
+    template:
+      - tvinfo
     # This plugin grabs the latest news about series renewal/cancellation on TVRage - see 
     # https://github.com/tarzasai/.flexget/tree/master/plugins
-    tvrage_rencans: 3
-    seen: local
+    tvrage_rencans:
+      pages: 3
+      context: renewed
     if:
-      - tvrsu_date >= now - timedelta(days=8): accept
+      - tvrage_date >= now - timedelta(days=7): accept
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
       app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
-      feeds: [me, serietv]
+      feeds: [flexgettest]
       mode: comments
-      text: "TV #rencans: weekly status update"
+      text: "TVRage weekly #rencans: serie confermate/rinnovate"
       link: 'http://www.tvrage.com/status_update.php'
-      comment: "{{ tvrsu_date.strftime('%d/%m') }}: {{ tvrsu_lines|join(' -- ') }}"
+      comment: "{{ tvdb_series_name|default(series_name) }}"
+
+  tvcanceled:
+    priority: 516
+    interval: 7 days
+    template:
+      - tvinfo
+    # This plugin grabs the latest news about series renewal/cancellation on TVRage - see 
+    # https://github.com/tarzasai/.flexget/tree/master/plugins
+    tvrage_rencans:
+      pages: 3
+      context: canceled
+    if:
+      - tvrage_date >= now - timedelta(days=7): accept
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
+    friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [flexgettest]
+      mode: comments
+      text: "TVRage weekly #rencans: serie CANCELLATE"
+      link: 'http://www.tvrage.com/status_update.php'
+      comment: "{{ tvdb_series_name|default(series_name) }}"
