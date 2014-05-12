@@ -616,7 +616,7 @@ tasks:
       text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
 
   # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my 
-  # dropbox folder for series and send them directly to Transmission.
+  # g-drive folder for series and send them directly to Transmission.
   dropbox_series:
     priority: 30
     template:
@@ -628,7 +628,7 @@ tasks:
       - transm
     find:
       path:
-        - C:\Dropbox\Torrents\series
+        - C:\Google Drive\torrents\series
       regexp: '.*\.torrent$'
     accept_all: yes
     transmission:
@@ -649,7 +649,7 @@ tasks:
       - transm
     find:
       path:
-        - C:\Dropbox\Torrents\movies
+        - C:\Google Drive\torrents\movies
       regexp: '.*\.torrent$'
     accept_all: yes
     transmission:
@@ -901,7 +901,7 @@ tasks:
     accept_all: yes
     make_html:
       template: series3.template
-      file: 'C:\Dropbox\series.html'
+      file: 'C:\Google Drive\flexget\series.html'
 
   # Generate a local html index page for available movies.
   poster_movies:
@@ -924,7 +924,7 @@ tasks:
     accept_all: yes
     make_html:
       template: movies3.template
-      file: 'C:\Dropbox\movies.html'
+      file: 'C:\Google Drive\flexget\movies.html'
 
   # In case of emergency?
   series_begin:
