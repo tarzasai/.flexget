@@ -704,7 +704,7 @@ tasks:
     # have modified it).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
-      filename: "{{ tvinfo_title }}{{ location|pathext }}"
+      filename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
     # Add episodes to the trakt.tv collection.
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
@@ -763,7 +763,7 @@ tasks:
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      filename: "{{ title }}{{ location|pathext }}"
+      filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
     # Move from watchlist to collection on trakt.tv
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
