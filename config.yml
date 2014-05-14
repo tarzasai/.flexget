@@ -93,8 +93,8 @@ templates:
     trakt_lookup: yes
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
+      # Original title backup
       - tvinfo_title:
-          # Backup the original title, we may need it.
           from: title
       - title:
           replace:
@@ -177,7 +177,7 @@ templates:
         - ita.srt
         - en.srt
         - eng.srt
-  focsrt:
+  copsrt:
     copy:
       along:
         - srt
@@ -185,9 +185,7 @@ templates:
         - ita.srt
         - en.srt
         - eng.srt
-
-  # To delete video files along their subtitles.
-  delvid:
+  delsrt:
     delete:
       clean_source: 50
       along:
@@ -227,8 +225,6 @@ templates:
       - backlog
       - remember_rejected
       - retry_failed
-    # The --no-cache CLI option on a single task - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    no_cache: yes
 
 tasks:
 
@@ -667,7 +663,7 @@ tasks:
       - nosumm
       - nofail
       - tvinfo
-      - focsrt
+      - copsrt
     log_filter:
       transmissionrpc:
         - Expecting
@@ -727,7 +723,7 @@ tasks:
       - nosumm
       - nofail
       - mvinfo
-      - focsrt
+      - copsrt
     log_filter:
       transmissionrpc:
         - Expecting
@@ -839,7 +835,7 @@ tasks:
       - noseen
       - nosumm
       - tvinfo
-      - delvid
+      - delsrt
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -865,7 +861,7 @@ tasks:
       - noseen
       - nosumm
       - mvinfo
-      - delvid
+      - delsrt
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
