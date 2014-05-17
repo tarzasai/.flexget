@@ -1068,7 +1068,7 @@ tasks:
       pages: 3
       context: renewed
     if:
-      - tvrage_date >= now - timedelta(days=7): accept
+      - tvrage_date >= now - timedelta(days=8): accept
     require_field:
       - tvdb_id
       - tvdb_genres
@@ -1107,7 +1107,7 @@ tasks:
       pages: 3
       context: canceled
     if:
-      - tvrage_date >= now - timedelta(days=7): accept
+      - tvrage_date >= now - timedelta(days=8): accept
     require_field:
       - tvdb_id
       - tvdb_genres
