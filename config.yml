@@ -888,6 +888,9 @@ tasks:
       - nosumm
       - tvinfo
       - nofail
+    log_filter:
+      task:
+        - maximum recursion depth exceeded
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -908,6 +911,9 @@ tasks:
       - nosumm
       - mvinfo
       - nofail
+    log_filter:
+      task:
+        - maximum recursion depth exceeded
     disable_plugin:
       # Disabled because of http://flexget.com/ticket/2567
       - rottentomatoes_lookup
