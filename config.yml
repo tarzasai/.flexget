@@ -17,7 +17,7 @@ templates:
         - \b3-?D\b: {from: title}
         - \btrailer\b: {from: title}
         - \bscreener\b: {from: title}
-        - (\b|\bhd)cam\b: {from: title}
+        - \b(hd)?cam\b: {from: title}
         - \bdual\baudio\b: {from: title}
         - r3mnants: {from: title}
         - italian
@@ -143,7 +143,7 @@ templates:
       min: 800
       max: 10000
     movie_queue: yes
-    quality: 1080p hdtv+
+    quality: 1080p
 
   # Destination path for movies in Transmission (requires transm template too).
   mvtran:
@@ -502,6 +502,7 @@ tasks:
     interval: 2 hours
     template:
       - noseen
+      - nofail
       # - mvinfo
       - mvfltr
       - mvtran
@@ -521,6 +522,8 @@ tasks:
       - imdb_year
       - imdb_url
       - imdb_languages
+      - imdb_genres
+      - rt_genres
       # - imdb_votes
       # - imdb_score
       # - rt_releases
@@ -568,11 +571,11 @@ tasks:
     # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
       from:
-        # - trakt_list:
-            # username: '{{ secrets.trakt.usr }}'
-            # api_key: '{{ secrets.trakt.api }}'
-            # strip_dates: yes
-            # custom: mv-check
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            custom: mv-check
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
@@ -590,17 +593,16 @@ tasks:
     transmission:
       bandwidthpriority: -1
     # Again we add the accepted entries to the trakt.tv watchlist.
-    # trakt_add:
-      # username: '{{ secrets.trakt.usr }}'
-      # password: '{{ secrets.trakt.pwd }}'
-      # api_key: '{{ secrets.trakt.api }}'
-      # list: mvcheck
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: mvcheck
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
       recipient: '{{ secrets.xmpp.dst }}'
-      # title: 'Da Rotten Tomatoes:'
-      text: '{{ imdb_name }} ({{ imdb_year }}) - {{ imdb_url }}'
+      text: '{{ imdb_name }} ({{ imdb_year }}) [{{ reason|default(accepted_by }}] - {{ imdb_url }}'
 
   # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my 
   # g-drive folder for series and send them directly to Transmission.
