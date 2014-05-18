@@ -511,6 +511,7 @@ tasks:
     inputs:
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
+    accept_all: yes
     exists_movie:
       - C:\Storage\Videos\Incoming\movies
       - C:\Storage\Videos\Movies
@@ -519,6 +520,7 @@ tasks:
       - imdb_name
       - imdb_year
       - imdb_url
+      - imdb_languages
       # - imdb_votes
       # - imdb_score
       # - rt_releases
@@ -541,8 +543,6 @@ tasks:
     imdb:
       min_votes: 2000
       min_score: 8
-      accept_languages:
-        - english
       reject_genres:
         - animation
         - documentary
@@ -562,18 +562,9 @@ tasks:
         - Television
     if:
       # I usually don't like italian movies and I prefer English among all the foreign languages.
-      # - not imdb_languages or not 'english' in imdb_languages: reject
+      - not imdb_languages or not 'english' in imdb_languages: reject
       # Max 10 years old movies.
       - imdb_year < now.year - 10: reject
-      # - not rt_releases or not ('theater' in rt_releases) or (imdb_year == now.year and rt_releases['theater'] > now - timedelta(days=30)): reject
-      # Here we have some very simple criterias to try to get only good stuff.
-      # - imdb_votes < 2000: reject
-      # - rt_critics_score > 0 and rt_critics_score < 30: reject
-      # - rt_audience_score < 30: reject
-      # - imdb_score < 6: reject
-      # - rt_critics_score >= 80: accept
-      # - rt_audience_score >= 90: accept
-      # - imdb_score >= 8: accept
     # Rejects titles already in our trakt.tv watchlist/collection too.
     crossmatch:
       from:
