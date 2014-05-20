@@ -430,7 +430,8 @@ tasks:
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
 
   # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
-  imdb2trakt:
+  # (disabled because of https://github.com/Flexget/Flexget/pull/171#issuecomment-43516587)
+  _imdb2trakt:
     priority: 10
     interval: 1 hours
     seen: local
