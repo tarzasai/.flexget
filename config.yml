@@ -4,8 +4,10 @@ secrets: secrets.yml
 templates:
 
   global:
-    plugin_priority:
-      notify_xmpp: -255
+    # plugin_priority:
+      # notify_xmpp: -255
+    disable_plugin:
+      - notify_xmpp
     private_torrents: no
     regexp:
       reject:
@@ -945,7 +947,7 @@ tasks:
   # system to get some updates on my phone :P
   ######################################################################################################################
 
-  events:
+  _events:
     priority: 200
     # interval: 50 minutes
     template:
@@ -978,7 +980,7 @@ tasks:
       title: 'Eventi di sistema:'
       text: "{{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
-  Flexget:
+  _Flexget:
     priority: 500
     interval: 2 hours
     template:
@@ -988,7 +990,7 @@ tasks:
       # (latest Flexget tickets)
       - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
 
-  Imogen Heap:
+  _Imogen Heap:
     priority: 501
     interval: 12 hours
     template:
@@ -998,7 +1000,7 @@ tasks:
       - rss: { url: 'http://www.imogenheap.com/feed/', silent: yes, all_entries: no }
       - rss: { url: 'http://blog.imogenheap.com/rss', silent: yes, all_entries: no }
 
-  Podcasts:
+  _Podcasts:
     priority: 502
     interval: 7 days
     template:
@@ -1007,7 +1009,7 @@ tasks:
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Radionation', silent: yes, all_entries: no }
 
-  Dilbert:
+  _Dilbert:
     priority: 503
     interval: 12 hours
     template:
@@ -1018,7 +1020,7 @@ tasks:
     # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
 
-  Zerocalcare:
+  _Zerocalcare:
     priority: 504
     interval: 2 days
     template:
@@ -1027,7 +1029,7 @@ tasks:
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
 
-  Romantically Apocalyptic:
+  _Romantically Apocalyptic:
     priority: 505
     interval: 1 days
     template:
@@ -1036,7 +1038,7 @@ tasks:
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
 
-  FrenfiComms:
+  _FrenfiComms:
     priority: 510
     interval: 1 hours
     # This plugin grabs the latest comments in specified threads on FriendFeed - see 
