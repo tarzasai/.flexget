@@ -19,7 +19,7 @@ templates:
         - \b3-?D\b: {from: title}
         - \btrailer\b: {from: title}
         - \bscreener\b: {from: title}
-        - \b(hd)?cam\b: {from: title}
+        - \b(hd)?cam(rip)?\b: {from: title}
         - \bdual\baudio\b: {from: title}
         - r3mnants: {from: title}
         - italian
