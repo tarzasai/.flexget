@@ -433,13 +433,12 @@ tasks:
 
   # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
   # (disabled because of https://github.com/Flexget/Flexget/pull/171#issuecomment-43516587)
-  _imdb2trakt:
+  imdb2trakt:
     priority: 10
     interval: 1 hours
     seen: local
     imdb_list:
-      username: '{{ secrets.imdb.usr }}'
-      password: '{{ secrets.imdb.pwd }}'
+      user_id: '{{ secrets.imdb.uid }}'
       list: watchlist
     # Rejects titles already in our trakt.tv watchlist/collection.
     crossmatch:
