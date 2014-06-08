@@ -50,7 +50,7 @@ templates:
     manipulate:
       - title:
           replace:
-            regexp: '^([\[ ]*www\.[a-zA-Z\.]*[\] -]*){1,}'
+            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
             format: ''
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
@@ -98,6 +98,10 @@ templates:
       # Original title backup
       - tvinfo_title:
           from: title
+      - title:
+          replace:
+            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
+            format: ''
       - title:
           replace:
             regexp: '.*cosmos.a.space[\b-.]?time.odyssey[\b-.]*'
@@ -659,6 +663,8 @@ tasks:
       - nofail
       - tvinfo
       - copsrt
+    disable_plugin:
+      - notify_xmpp
     log_filter:
       transmissionrpc:
         - Expecting
@@ -719,6 +725,8 @@ tasks:
       - nofail
       - mvinfo
       - copsrt
+    disable_plugin:
+      - notify_xmpp
     log_filter:
       transmissionrpc:
         - Expecting
