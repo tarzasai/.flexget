@@ -96,16 +96,12 @@ templates:
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
-      - tvinfo_title:
-          from: title
       - title:
           replace:
             regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
             format: ''
       - tvinfo_title:
-          replace:
-            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
-            format: ''
+          from: title
       - title:
           replace:
             regexp: '.*cosmos.a.space[\b-.]?time.odyssey[\b-.]*'
