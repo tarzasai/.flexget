@@ -102,6 +102,10 @@ templates:
           replace:
             regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
             format: ''
+      - tvinfo_title:
+          replace:
+            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
+            format: ''
       - title:
           replace:
             regexp: '.*cosmos.a.space[\b-.]?time.odyssey[\b-.]*'
