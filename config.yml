@@ -11,6 +11,7 @@ templates:
     private_torrents: no
     regexp:
       reject:
+        - \bettv\b: {from: title}
         - (s|d)ub(s|bed|lado)?\b: {from: title}
         - \bTS\b: {from: title}
         - \bHS\b: {from: title}
