@@ -506,7 +506,7 @@ tasks:
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
   guess_movies:
     priority: 20
-    interval: 2 hours
+    interval: 4 hours
     template:
       - noseen
       - nofail
@@ -516,6 +516,9 @@ tasks:
       - transm
     plugin_priority:
       crossmatch: 0
+    log_filter:
+      api_rottentomatoes:
+        - 403 Client Error
     inputs:
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
