@@ -842,7 +842,8 @@ tasks:
       - noseen
       - nosumm
       - tvinfo
-      - delsrt
+      # - delsrt
+      - movsrt
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -854,6 +855,8 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       action: accept
+    move:
+      to: "C:\\Storage\\Videos\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
