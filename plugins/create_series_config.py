@@ -49,8 +49,12 @@ class CreateSeriesConfig(object):
                 sroot['begin'] = entry['series_id']
             if 'quality' in config.get('set_fields', []) and entry.get('quality'):
                 sroot['quality'] = entry['quality']
+            '''
             if 'specials' in config.get('set_fields', []) and 'specials' in entry and entry['specials']: 
                 sroot['specials'] = True
+            '''
+            if 'specials' in config.get('set_fields', []):
+                sroot['specials'] = entry.get('specials', False)
             # "set" node
             sset = {}
             if entry.get('tvdb_id'):
