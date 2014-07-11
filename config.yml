@@ -55,21 +55,23 @@ templates:
             format: ''
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
-      move:
-        - left because it exceeds safety value
-        - does not exists (anymore)
-      series:
-        - releasing quality restriction
-        - appears to be an episode pack
       content_size:
         - too big, rejecting
         - too small, rejecting
-      rss:
-        - I have saved the invalid content
       inputs:
         - torlock
+      move:
+        - left because it exceeds safety value
+        - does not exists (anymore)
       requests.packages.urllib3.connectionpool:
         - torlock
+      rss:
+        - I have saved the invalid content
+      series:
+        - releasing quality restriction
+        - appears to be an episode pack
+      torrentz:
+        - Too Many Requests
       urlrewriter:
         - URL rewritten to
 
