@@ -336,6 +336,9 @@ tasks:
           set:
             specials: yes
       # Changes some titles to match torrents names.
+      - tvdb_id == 264085:
+          set:
+            series_name: 'The Bridge US'
       - tvdb_id == 276312:
           set:
             series_name: 'From Dusk Till Dawn'
