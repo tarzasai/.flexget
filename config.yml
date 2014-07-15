@@ -64,6 +64,7 @@ templates:
         - left because it exceeds safety value
         - does not exists (anymore)
       requests.packages.urllib3.connectionpool:
+        - error(10060
         - torlock
       rss:
         - I have saved the invalid content
