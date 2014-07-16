@@ -38,6 +38,8 @@ templates:
       reject:
         - 'password.txt'
         - '*.wmv'
+        # - '*.r01'
+      require_mainfile: yes
     verify_ssl_certificates: no
     domain_delay:
       bt-chat.com: 1 seconds
