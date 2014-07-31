@@ -5,7 +5,6 @@ import re
 
 from flexget import plugin
 from flexget.event import event
-from flexget.utils import json
 
 log = logging.getLogger('create_config')
 
@@ -30,7 +29,7 @@ class CreateSeriesConfig(object):
     schema = {
         'type': 'object',
         'properties': {
-            'set_fields': {'type': 'array', 'items': {'enum': ['begin', 'quality', 'specials']}},
+            'set_fields': {'type': 'array', 'items': {'enum': ['begin', 'quality', 'specials', 'tracking']}},
             'filename': {'type': 'string'}
         },
         'required': ['filename'],
@@ -49,12 +48,10 @@ class CreateSeriesConfig(object):
                 sroot['begin'] = entry['series_id']
             if 'quality' in config.get('set_fields', []) and entry.get('quality'):
                 sroot['quality'] = entry['quality']
-            '''
-            if 'specials' in config.get('set_fields', []) and 'specials' in entry and entry['specials']: 
-                sroot['specials'] = True
-            '''
             if 'specials' in config.get('set_fields', []):
                 sroot['specials'] = entry.get('specials', False)
+            if 'tracking' in config.get('set_fields', []):
+                sroot['tracking'] = entry.get('tracking', True)  # yes|no|backfill
             # "set" node
             sset = {}
             if entry.get('tvdb_id'):
