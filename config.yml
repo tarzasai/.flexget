@@ -80,6 +80,8 @@ templates:
 
   # The sources for series torrents.
   tvfeed:
+    disable_plugin:
+      - log_filter
     inputs:
       - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
