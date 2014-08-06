@@ -126,6 +126,10 @@ templates:
           replace:
             regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
             format: 'from_dusk_till_dawn.'
+      - title:
+          replace:
+            regexp: '.*the.killing*[\b-.]*'
+            format: 'the_killing.us.'
 
   # Global filters for series.
   tvfltr:
