@@ -714,10 +714,10 @@ tasks:
       path: "C:\\Storage\\Videos\\Incoming\\series"
       allow_different_qualities: better
     # Reject episodes submitted to trakt.tv user library - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    # trakt_collected_series:
-      # username: '{{ secrets.trakt.usr }}'
-      # password: '{{ secrets.trakt.pwd }}'
-      # api_key: '{{ secrets.trakt.api }}'
+    trakt_watched_series:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
     # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might 
     # have modified it).
     copy:
