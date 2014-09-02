@@ -76,7 +76,10 @@ templates:
       torrentz:
         - Too Many Requests
       urlrewriter:
-        - URL rewritten to
+        - URL rewritten toheaders:
+    # torrentz' guys banned flexget users?
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 5.1; rv:16.0) Gecko/20100101 Firefox/16.0"
 
   # The sources for series torrents.
   tvfeed:
