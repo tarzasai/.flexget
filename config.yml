@@ -86,7 +86,7 @@ templates:
     disable_plugin:
       - log_filter
     inputs:
-      - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
+      # - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
@@ -512,9 +512,9 @@ tasks:
       what:
         - emit_movie_queue: { year: no }
       from:
-        - kat:
-            category: movies
-            verified: yes
+        # - kat:
+            # category: movies
+            # verified: yes
         - torrentz: verified
       interval: 0 hour
     transmission:
