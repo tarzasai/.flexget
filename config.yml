@@ -107,20 +107,16 @@ templates:
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
+      # - title:
+          # replace:
+            # regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
+            # format: ''
       - title:
           replace:
-            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
+            regexp: '^([\[{ ]*(www\.)?[a-zA-Z\.]*[\]} -]?){1,}'
             format: ''
       - tvinfo_title:
           from: title
-      - title:
-          replace:
-            regexp: '.*cosmos.a.space[\b-.]?time.odyssey[\b-.]*'
-            format: "cosmos_a_spacetime_odyssey."
-      - title:
-          replace:
-            regexp: '.*intelligence.us[\b-.]*'
-            format: 'intelligence_2014.'
       - title:
           replace:
             regexp: '.*(marvel|marvels|marvel.s)?.agents.of.(s.h.i.e.l.d.|shield)[\b-.]*'
@@ -131,8 +127,8 @@ templates:
             format: 'from_dusk_till_dawn.'
       - title:
           replace:
-            regexp: '.*the.killing*[\b-.]*'
-            format: 'the_killing.us.'
+            regexp: '^[^a-z0-9]*legends.(2014)?[^a-z0-9]*'
+            format: 'Legends.2014.'
 
   # Global filters for series.
   tvfltr:
