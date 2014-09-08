@@ -49,12 +49,6 @@ templates:
       torrenticity.com: 1 seconds
       torrentz.eu: 1 seconds
       torrentz.me: 1 seconds
-    # Remove heading urls from titles (someone add garbage like "[ www.whatever.com ]" to torrents names).
-    manipulate:
-      - title:
-          replace:
-            regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
-            format: ''
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
       content_size:
@@ -107,13 +101,17 @@ templates:
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
-      # - title:
-          # replace:
-            # regexp: '^([\[{ ]*www\.[a-zA-Z\.]*[\]} -]*){1,}'
-            # format: ''
       - title:
           replace:
-            regexp: '^([\[{ ]*(www\.)?[a-zA-Z\.]*[\]} -]?){1,}'
+            regexp: '^\[[^\]]*\][^a-z0-9]*'
+            format: ''
+      - title:
+          replace:
+            regexp: '^{[^\]]*}[^a-z0-9]*'
+            format: ''
+      - title:
+          replace:
+            regexp: '^\([^\]]*\)[^a-z0-9]*'
             format: ''
       - tvinfo_title:
           from: title
