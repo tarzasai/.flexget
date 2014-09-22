@@ -630,6 +630,7 @@ tasks:
   dropbox_series:
     priority: 30
     template:
+      - no_global
       - noseen
       - nosumm
       - nofail
@@ -651,6 +652,7 @@ tasks:
   dropbox_movies:
     priority: 31
     template:
+      - no_global
       - noseen
       - nosumm
       - nofail
