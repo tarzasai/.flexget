@@ -359,6 +359,7 @@ tasks:
         - begin
         - quality
         - specials
+        - tracking
       filename: 'C:\\Users\\giorgio\\.flexget\\series.yml'
     set_series_begin: yes
 
