@@ -48,6 +48,8 @@ class CreateSeriesConfig(object):
                 sroot['begin'] = entry['series_id']
             if 'quality' in config.get('set_fields', []) and entry.get('quality'):
                 sroot['quality'] = entry['quality']
+            if 'tracking' in config.get('set_fields', []) and entry.get('tracking'):
+                sroot['tracking'] = entry['tracking']
             if 'specials' in config.get('set_fields', []):
                 sroot['specials'] = entry.get('specials', False)
             if 'tracking' in config.get('set_fields', []):

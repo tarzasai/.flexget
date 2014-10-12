@@ -348,6 +348,10 @@ tasks:
       - tvdb_id == 276312:
           set:
             series_name: 'From Dusk Till Dawn'
+      # Collect Sons of Anarchy
+      - tvdb_id == 82696:
+          set:
+            tracking: backfill
     accept_all: yes
     # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
