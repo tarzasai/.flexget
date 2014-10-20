@@ -131,6 +131,7 @@ div.clear {
 							{{ entry.series_season }}:{{ entry.series_episode }}
 						</div>
 						<div class="title">
+							<a href="http://www.subtitleseeker.com/search/TV_EPISODES/{{ entry.title }}">
 							{% if entry.tvdb_ep_name is defined %}
 							{{ entry.tvdb_ep_name }}
 							{% elif entry.trakt_ep_name is defined %}
@@ -138,6 +139,7 @@ div.clear {
 							{% else %}
 							Title unknown.
 							{% endif %}
+							</a>
 							&nbsp;
 							{% if entry.subtitles is defined and entry.subtitles is iterable %}
 							{% if 'ita' in entry.subtitles %}
