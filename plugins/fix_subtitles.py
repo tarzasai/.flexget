@@ -39,7 +39,7 @@ class FixSubs(object):
                     with open(sub, 'r') as f:
                         txt = f.read()
                     if chardet.detect(txt)['encoding'] == 'utf-8' and 'č' in txt:
-                        txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù')
+                        txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù').replace('Č', 'È')
                         bak = sub + '.bak'
                         if os.path.exists(bak):
                             raise plugin.PluginWarning('backup already exists')
