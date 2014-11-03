@@ -1172,3 +1172,16 @@ tasks:
       text: "TVRage weekly #rencans: serie CANCELLATE"
       link: 'http://www.tvrage.com/status_update.php'
       comment: "{{ tvdb_series_name|default(series_name) }}"
+
+  testff:
+    manual: yes
+    template:
+      - no_global
+    mock:
+      - { title: 'prova da python (2)' }
+    accept_all: yes
+    friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
