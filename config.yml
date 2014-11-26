@@ -49,6 +49,7 @@ templates:
       torrenticity.com: 1 seconds
       torrentz.eu: 1 seconds
       torrentz.me: 1 seconds
+      trakt.tv: 1 seconds
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
       content_size:
