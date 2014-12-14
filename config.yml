@@ -62,6 +62,9 @@ templates:
         - error(10060
         - feed
         - torlock
+        - getaddrinfo failed
+        - ReadTimeoutError
+        - after connection broken
       series:
         - releasing quality restriction
         - appears to be an episode pack
