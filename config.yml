@@ -55,16 +55,13 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
-      inputs:
-        - torlock
       move:
         - left because it exceeds safety value
         - does not exists (anymore)
       requests.packages.urllib3.connectionpool:
         - error(10060
+        - feed
         - torlock
-      rss:
-        - I have saved the invalid content
       series:
         - releasing quality restriction
         - appears to be an episode pack
@@ -72,22 +69,25 @@ templates:
         - Too Many Requests
       urlrewriter:
         - URL rewritten to
-    # torrentz' guys banned flexget users?
+    # torrentz' guys banned flexget users
     headers:
       User-Agent: "Mozilla/5.0 (Windows NT 5.1; rv:16.0) Gecko/20100101 Firefox/16.0"
 
   # The sources for series torrents.
   tvfeed:
-    disable_plugin:
-      - log_filter
     inputs:
-      # - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
+      - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
       - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
+    log_filter:
+      inputs:
+        - Unable to download the RSS for task
+      rss:
+        - I have saved the invalid content
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
@@ -142,6 +142,17 @@ templates:
   tvtran:
     transmission:
       path: C:\Storage\Videos\Stage\series
+
+  # The sources for movies torrents.
+  mvfeed:
+    inputs:
+      - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
+      - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
+    log_filter:
+      inputs:
+        - Unable to download the RSS for task
+      rss:
+        - I have saved the invalid content
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
@@ -414,7 +425,7 @@ tasks:
         - talk show: {from: tvdb_genres}
     series_premiere:
       timeframe: 4 hours
-      quality: <720p hdtv+
+      # quality: <720p hdtv+
     torrent_alive:
       min_seeds: 40
     if:
@@ -528,6 +539,7 @@ tasks:
       - noseen
       - nofail
       # - mvinfo
+      - mvfeed
       - mvfltr
       - mvtran
       - transm
@@ -536,9 +548,6 @@ tasks:
     log_filter:
       api_rottentomatoes:
         - 403 Client Error
-    inputs:
-      - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
-      - rss: { url: 'http://torrentz.eu/feed_verified?q=movies', silent: yes }
     accept_all: yes
     exists_movie:
       - C:\Storage\Videos\Incoming\movies
