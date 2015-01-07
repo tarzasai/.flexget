@@ -274,7 +274,7 @@ tasks:
     trakt_list:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      list: tvall
+      list: tv-all
       type: shows
     # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
     thetvdb_lookup: yes
@@ -287,11 +287,11 @@ tasks:
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      list: tvall
+      list: tv-all
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      list: tvended
+      list: tv-ended
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
@@ -320,13 +320,13 @@ tasks:
           password: '{{ secrets.trakt.pwd }}'
           position: next
           context: watched
-          list: tvall
+          list: tv-all
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
           position: next
           context: collected
-          list: tvevaluate
+          list: tv-evaluate
     # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
     trakt_ratings_lookup:
       username: '{{ secrets.trakt.usr }}'
@@ -443,7 +443,7 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      list: tvevaluate
+      list: tv-evaluate
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
@@ -646,7 +646,7 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      list: mvcheck
+      list: mv-check
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
@@ -992,7 +992,7 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       position: next
       context: watched
-      list: tvall
+      list: tv-all
     accept_all: yes
     set_series_begin: yes
 
