@@ -275,7 +275,8 @@ tasks:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
-      custom: tvall
+      list: tvall
+      type: shows
     # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
     thetvdb_lookup: yes
     if:
@@ -483,12 +484,20 @@ tasks:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
             strip_dates: yes
-            movies: all
+            list: watchlist
+            type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
             strip_dates: yes
-            movies: watchlist
+            list: collection
+            type: movies
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            list: watched
+            type: movies
       fields:
         - imdb_id
       action: reject
@@ -508,7 +517,8 @@ tasks:
     trakt_list:
       username: '{{ secrets.trakt.usr }}'
       api_key: '{{ secrets.trakt.api }}'
-      movies: watchlist
+      list: watchlist
+      type: movies
     accept_all: yes
     queue_movies:
       quality: any
@@ -614,17 +624,26 @@ tasks:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
             strip_dates: yes
-            custom: mv-check
+            list: mv-check
+            type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
             strip_dates: yes
-            movies: all
+            list: watchlist
+            type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
             api_key: '{{ secrets.trakt.api }}'
             strip_dates: yes
-            movies: watchlist
+            list: collection
+            type: movies
+        - trakt_list:
+            username: '{{ secrets.trakt.usr }}'
+            api_key: '{{ secrets.trakt.api }}'
+            strip_dates: yes
+            list: watched
+            type: movies
       fields:
         - imdb_id
         - tmdb_id
