@@ -172,7 +172,7 @@ templates:
     content_size:
       min: 800
       max: 10000
-    movie_queue: yes
+    movie_queue: accept
     quality: 1080p
 
   # Destination path for movies in Transmission (requires transm template too).
@@ -274,7 +274,6 @@ tasks:
     trakt_list:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: tvall
       type: shows
     # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
@@ -288,12 +287,10 @@ tasks:
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: tvall
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: tvended
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
@@ -321,14 +318,12 @@ tasks:
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
-          api_key: '{{ secrets.trakt.api }}'
           position: next
           context: watched
           list: tvall
       - trakt_emit:
           username: '{{ secrets.trakt.usr }}'
           password: '{{ secrets.trakt.pwd }}'
-          api_key: '{{ secrets.trakt.api }}'
           position: next
           context: collected
           list: tvevaluate
@@ -448,7 +443,6 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: tvevaluate
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
@@ -482,19 +476,19 @@ tasks:
       from:
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: watchlist
             type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: collection
             type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: watched
             type: movies
@@ -506,7 +500,6 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: watchlist
 
   # In the end we append our trakt.tv watchlist content to the flexget movie queue.
@@ -516,12 +509,11 @@ tasks:
     seen: local
     trakt_list:
       username: '{{ secrets.trakt.usr }}'
-      api_key: '{{ secrets.trakt.api }}'
+      password: '{{ secrets.trakt.pwd }}'
       list: watchlist
       type: movies
     accept_all: yes
-    queue_movies:
-      quality: any
+    movie_queue: add
 
   # This is the search & download task for movies.
   get_movies:
@@ -622,25 +614,25 @@ tasks:
       from:
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: mv-check
             type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: watchlist
             type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: collection
             type: movies
         - trakt_list:
             username: '{{ secrets.trakt.usr }}'
-            api_key: '{{ secrets.trakt.api }}'
+            password: '{{ secrets.trakt.pwd }}'
             strip_dates: yes
             list: watched
             type: movies
@@ -654,7 +646,6 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: mvcheck
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
@@ -763,7 +754,6 @@ tasks:
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: library
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
@@ -824,12 +814,10 @@ tasks:
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: watchlist
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       list: library
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
@@ -859,7 +847,7 @@ tasks:
       delete_files: yes
 
   # Download italian and english subtitles for all the videos.
-  subtitles:
+  _subtitles:
     priority: 60
     template:
       - noseen
@@ -1002,7 +990,6 @@ tasks:
     trakt_emit:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
       position: next
       context: watched
       list: tvall
