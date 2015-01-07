@@ -820,7 +820,7 @@ tasks:
       text: '{{ imdb_name }} ({{ imdb_year }}) -- {{ imdb_url }}'
 
   # Clean Transmission of completed torrents.
-  cleantran:
+  _cleantran:
     priority: 45
     template:
       - noseen
