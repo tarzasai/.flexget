@@ -260,7 +260,7 @@ tasks:
 
   # This task check out for ended/cancelled series, to remove them from the main trakt.tv list used to create the 
   # series config file.
-  chk_series:
+  _chk_series:
     priority: 1
     interval: 1 days
     template:
@@ -301,7 +301,7 @@ tasks:
 
   # This task creates a yaml file with series configuration using two trakt.tv list content (favorites and temporary). 
   # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
-  set_series:
+  _set_series:
     priority: 2
     interval: 50 minutes
     template:
@@ -464,7 +464,7 @@ tasks:
 
   # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
   # (disabled because of https://github.com/Flexget/Flexget/pull/171#issuecomment-43516587)
-  imdb2trakt:
+  _imdb2trakt:
     priority: 10
     interval: 1 hours
     seen: local
@@ -537,7 +537,7 @@ tasks:
       bandwidthpriority: 0
 
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  guess_movies:
+  _guess_movies:
     priority: 20
     interval: 4 hours
     template:
@@ -699,7 +699,7 @@ tasks:
         for_accepted: del "{{ location }}"
 
   # Move episodes from Transmission destination folder to the incoming folder.
-  move_series:
+  _move_series:
     priority: 40
     template:
       - no_global
@@ -763,7 +763,7 @@ tasks:
       text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %} -- {{ trakt_series_url }}'
 
   # Move movies from Transmission destination folder to the incoming folder.
-  move_movies:
+  _move_movies:
     priority: 41
     template:
       - no_global
@@ -876,7 +876,7 @@ tasks:
     fix_subtitles: yes
 
   # Move watched episodes out of the incoming folder.
-  purge_series:
+  _purge_series:
     priority: 70
     template:
       - no_global
@@ -906,7 +906,7 @@ tasks:
         phase: md C:\Storage\Videos\Incoming\series
 
   # Move watched movies out of the incoming folder.
-  purge_movies:
+  _purge_movies:
     priority: 71
     template:
       - no_global
@@ -932,7 +932,7 @@ tasks:
         phase: md C:\Storage\Videos\Incoming\movies
 
   # Generate a local html index page for available episodes.
-  poster_series:
+  _poster_series:
     priority: 80
     template:
       - no_global
@@ -955,7 +955,7 @@ tasks:
       file: 'C:\Google Drive\flexget\series.html'
 
   # Generate a local html index page for available movies.
-  poster_movies:
+  _poster_movies:
     priority: 81
     template:
       - no_global
@@ -1204,3 +1204,11 @@ tasks:
       app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
+
+  test_tvdb:
+    manual: yes
+    template:
+      - tvinfo
+    mock:
+      - { title: 'marvels agent carter', tvdb_id: 281485 }
+    accept_all: yes
