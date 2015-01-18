@@ -440,10 +440,10 @@ tasks:
       bandwidthpriority: -1
     # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
     # will move it in the main list).
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: tv-evaluate
+    # trakt_add:
+      # username: '{{ secrets.trakt.usr }}'
+      # password: '{{ secrets.trakt.pwd }}'
+      # list: tv-evaluate
     notify_xmpp:
       sender: '{{ secrets.xmpp.usr }}'
       password: '{{ secrets.xmpp.pwd }}'
