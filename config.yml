@@ -417,6 +417,7 @@ tasks:
         - family: {from: tvdb_genres}
         - game show: {from: tvdb_genres}
         - home and garden: {from: tvdb_genres}
+        - mini-series: {from: tvdb_genres}
         - musical: {from: tvdb_genres}
         - reality: {from: tvdb_genres}
         - soap: {from: tvdb_genres}
