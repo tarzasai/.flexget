@@ -20,48 +20,48 @@ class UoccinQueue(object):
     
     def on_task_output(self, task, config):
         """Add accepted series and/or movies to uoccin's watchlist"""
-        
-        found = {'movies': {}, 'series': {}}
+        movies = {}
+        series = {}
         for entry in task.accepted:
-            if 'imdb_id' in entry:
-                found['movies'][entry['imdb_id']] = entry['movie_name']
-            elif 'tvdb_id' in entry:
-                found['series'][entry['tvdb_id']] = entry['series_name']
-        
-        if (found['movies']):
-            mj = {}
-            dst = os.path.join(config, 'movies.watchlist.json')
-            if os.path.exists(dst):
-                with open(dst, 'r') as mf:
-                    mj = json.load(mf)
+            if 'imdb_id' in entry and 'movie_name' in entry:
+                movies[entry['imdb_id']] = entry['movie_name']
+            elif 'tvdb_id' in entry and 'series_name' in entry:
+                series[entry['tvdb_id']] = entry['series_name']
+        if movies:
+            dest = os.path.join(config, 'movies.watchlist.json')
+            data = {}
+            if os.path.exists(dest):
+                with open(dest, 'r') as f:
+                    data = json.load(f)
             n = 0
-            for imdb_id in found['movies'].keys():
-                if not imdb_id in mj:
-                    self.log.verbose('adding movie %s (%s) to Uoccin collection' % (imdb_id, ))
-                    mj[imdb_id] = { 'name': found['movies'][imdb_id] }
+            for imdb_id, title in movies.items():
+                if not imdb_id in data:
+                    self.log.verbose('adding movie %s (%s) to Uoccin collection' % (imdb_id, title))
+                    data[imdb_id] = { 'name': title }
                     if 'quality' in config:
-                        mj[imdb_id]['quality'] = config['quality']
+                        data[imdb_id]['quality'] = config['quality']
                     n += 1
             if n > 0:
-                with open(dst, 'w') as mf:
-                    json.dump(mj, mf)
+                with open(dest, 'w') as f:
+                    json.dump(data, f)
             self.log.info('%d movies added to Uoccin watchlist' % n)
-        
-        if (found['series']):
-            mj = {}
-            dst = os.path.join(config, 'series.watchlist.json')
-            if os.path.exists(dst):
-                with open(dst, 'r') as mf:
-                    mj = json.load(mf)
+        if series:
+            dest = os.path.join(config, 'series.watchlist.json')
+            data = {}
+            if os.path.exists(dest):
+                with open(dest, 'r') as f:
+                    data = json.load(f)
             n = 0
-            for tvdb_id in found['series'].keys():
-                if not tvdb_id in mj:
-                    self.log.verbose('adding series %s to Uoccin watchlist' % tvdb_id)
-                    mj[tvdb_id] = config['quality'] if 'quality' in config else None
+            for tvdb_id, title in series.items():
+                if not tvdb_id in data:
+                    self.log.verbose('adding series %s (%s) to Uoccin watchlist' % (tvdb_id, title))
+                    data[tvdb_id] = { 'name': title }
+                    if 'quality' in config:
+                        data[tvdb_id]['quality'] = config['quality']
                     n += 1
             if n > 0:
-                with open(dst, 'w') as mf:
-                    json.dump(mj, mf)
+                with open(dest, 'w') as f:
+                    json.dump(data, f)
             self.log.info('%d series added to Uoccin watchlist' % n)
 
 
