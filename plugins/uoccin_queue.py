@@ -28,7 +28,7 @@ class UoccinQueue(object):
             elif 'tvdb_id' in entry and 'series_name' in entry:
                 series[entry['tvdb_id']] = entry['series_name']
         if movies:
-            dest = os.path.join(config, 'movies.watchlist.json')
+            dest = os.path.join(config['path'], 'movies.watchlist.json')
             data = {}
             if os.path.exists(dest):
                 with open(dest, 'r') as f:
@@ -46,7 +46,7 @@ class UoccinQueue(object):
                     json.dump(data, f)
             self.log.info('%d movies added to Uoccin watchlist' % n)
         if series:
-            dest = os.path.join(config, 'series.watchlist.json')
+            dest = os.path.join(config['path'], 'series.watchlist.json')
             data = {}
             if os.path.exists(dest):
                 with open(dest, 'r') as f:
