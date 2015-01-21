@@ -36,7 +36,7 @@ class UoccinQueue(object):
                     data = json.load(f)
             n = 0
             for imdb_id, title in movies.items():
-                if not imdb_id in data:
+                if not imdb_id in data.keys():
                     self.log.verbose('adding movie %s (%s) to Uoccin collection' % (imdb_id, title))
                     data[imdb_id] = { 'name': title }
                     if 'tags' in config:
@@ -56,7 +56,7 @@ class UoccinQueue(object):
                     data = json.load(f)
             n = 0
             for tvdb_id, title in series.items():
-                if not tvdb_id in data:
+                if not tvdb_id in data.keys():
                     self.log.verbose('adding series %s (%s) to Uoccin watchlist' % (tvdb_id, title))
                     data[tvdb_id] = { 'name': title }
                     if 'tags' in config:
