@@ -12,6 +12,7 @@ class UoccinQueue(object):
         'type': 'object',
         'properties': {
             'path': {'type': 'string', 'format': 'path'},
+            'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
             'quality': {'type': 'string', 'format': 'quality_requirements'},
         },
         'required': ['path'],
@@ -38,9 +39,10 @@ class UoccinQueue(object):
                 if not imdb_id in data:
                     self.log.verbose('adding movie %s (%s) to Uoccin collection' % (imdb_id, title))
                     data[imdb_id] = { 'name': title }
-                    q = entry.get('quality', config.get('quality', None))
-                    if q:
-                        data[imdb_id]['quality'] = q
+                    if 'tags' in config:
+                        data[imdb_id]['tags'] = [tag for tag in config['tags']]
+                    if 'quality' in config:
+                        data[imdb_id]['quality'] = config['quality']
                     n += 1
             if n > 0:
                 with open(dest, 'w') as f:
@@ -57,9 +59,10 @@ class UoccinQueue(object):
                 if not tvdb_id in data:
                     self.log.verbose('adding series %s (%s) to Uoccin watchlist' % (tvdb_id, title))
                     data[tvdb_id] = { 'name': title }
-                    q = entry.get('quality', config.get('quality', None))
-                    if q:
-                        data[tvdb_id]['quality'] = q
+                    if 'tags' in config:
+                        data[tvdb_id]['tags'] = [tag for tag in config['tags']]
+                    if 'quality' in config:
+                        data[tvdb_id]['quality'] = config['quality']
                     n += 1
             if n > 0:
                 with open(dest, 'w') as f:
