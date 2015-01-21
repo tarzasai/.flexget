@@ -1213,3 +1213,18 @@ tasks:
     mock:
       - { title: 'marvels agent carter', tvdb_id: 281485 }
     accept_all: yes
+
+  test_emit:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+    disable_plugin:
+      - quality
+    include: 'C:\Users\giorgio\.flexget\series.yml'
+    emit_series: yes
+    accept_all: yes
+    uoccin_queue:
+      path: 'C:\\Google Drive\\flexget\\uoccin'
+      quality: <720p hdtv
