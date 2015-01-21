@@ -15,7 +15,7 @@ class UoccinEmit(object):
             'path': {'type': 'string', 'format': 'path'},
             'type': {'type': 'string', 'enum': ['series', 'movies']},
             'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
-            'check_tags': {'type': 'string', 'enum': ['any', 'all'], 'default': 'any'},
+            'check_tags': {'type': 'string', 'enum': ['any', 'all', 'none'], 'default': 'any'},
         },
         'required': ['path', 'type'],
         'additionalProperties': False
@@ -36,8 +36,11 @@ class UoccinEmit(object):
                     self.log.debug('No tags in watchlist item, skipping %s' % itm['name'])
                     continue
                 n = len(set(config['tags']) & set(itm['tags']))
-                if n <= 0 or (config['check_tags'] == 'all' and n != len(config['tags'])):
-                    self.log.debug('Tags in watchlist item does not match filter, skipping %s' % itm['name'])
+                if config['check_tags'] == 'any' and n <= 0:
+                    continue
+                if config['check_tags'] == 'all' and n != len(config['tags']):
+                    continue
+                if config['check_tags'] == 'none' and n > 0:
                     continue
             entry = Entry()
             entry['title'] = itm['name']
