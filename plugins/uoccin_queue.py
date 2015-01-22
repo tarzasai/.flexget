@@ -27,7 +27,7 @@ class UoccinQueue(object):
             if 'imdb_id' in entry and 'movie_name' in entry:
                 movies[entry['imdb_id']] = entry['movie_name']
             elif 'tvdb_id' in entry and 'series_name' in entry:
-                series[entry['tvdb_id']] = entry['series_name']
+                series[str(entry['tvdb_id'])] = entry['series_name']
         if movies:
             dest = os.path.join(config['path'], 'movies.watchlist.json')
             data = {}

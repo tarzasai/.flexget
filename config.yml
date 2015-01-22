@@ -6,7 +6,7 @@ templates:
   global:
     # plugin_priority:
       # notify_xmpp: -255
-    disable_plugin:
+    disable:
       - notify_xmpp
     private_torrents: no
     regexp:
@@ -238,20 +238,19 @@ templates:
 
   # No messages about no input/output/whatever.
   nosumm:
-    disable_builtins:
+    disable:
       - details
 
   # Several tasks must not mess up with the seen table...
   noseen:
-    disable_builtins:
+    disable:
       - seen
       - seen_info_hash
-    disable_plugin:
       - seen_movies
 
   # ...and/or with the backlog.
   nofail:
-    disable_builtins:
+    disable:
       - backlog
       - remember_rejected
       - retry_failed
@@ -402,7 +401,6 @@ tasks:
       if: -252
       # In this task it's ok to override the priority set by tvinfo.
       manipulate: -253
-      trakt_add: -254
       friendfeed: -255
     seen: local
     require_field:
@@ -430,27 +428,18 @@ tasks:
       min_seeds: 40
     if:
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
-    # We need to remove season and episode numbers, otherwise trakt_add plugin will handle entries as episodes.
-    manipulate:
-      - series_season:
-          remove: yes
-      - series_episode:
-          remove: yes
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
-    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
-    # will move it in the main list).
-    # trakt_add:
-      # username: '{{ secrets.trakt.usr }}'
-      # password: '{{ secrets.trakt.pwd }}'
-      # list: tv-evaluate
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Premiere(s):'
-      text: "{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
+    uoccin_queue:
+      path: '{{ secrets.uoccin }}'
+      tags: [ 'evaluate' ]
+    # notify_xmpp:
+      # sender: '{{ secrets.xmpp.usr }}'
+      # password: '{{ secrets.xmpp.pwd }}'
+      # recipient: '{{ secrets.xmpp.dst }}'
+      # title: 'Premiere(s):'
+      # text: "{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
@@ -709,7 +698,7 @@ tasks:
       - nofail
       - tvinfo
       - copsrt
-    disable_plugin:
+    disable:
       - notify_xmpp
     log_filter:
       transmissionrpc:
@@ -773,7 +762,7 @@ tasks:
       - nofail
       - mvinfo
       - copsrt
-    disable_plugin:
+    disable:
       - notify_xmpp
     log_filter:
       transmissionrpc:
@@ -967,7 +956,7 @@ tasks:
     log_filter:
       task:
         - maximum recursion depth exceeded
-    disable_plugin:
+    disable:
       # Disabled because of http://flexget.com/ticket/2567
       - rottentomatoes_lookup
     find:
@@ -1214,13 +1203,27 @@ tasks:
       - { title: 'marvels agent carter', tvdb_id: 281485 }
     accept_all: yes
 
+  test_tags1:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+      - tvinfo
+    mock:
+      - { title: 'the man in the high castle s01e01' }
+    accept_all: yes
+    uoccin_queue:
+      path: '{{ secrets.uoccin }}'
+      tags: [ 'evaluate' ]
+
   test_emit:
     manual: yes
     template:
       - no_global
       - noseen
       - nofail
-    disable_plugin:
+    disable:
       - quality
     include: 'C:\Users\giorgio\.flexget\series.yml'
     emit_series: yes
