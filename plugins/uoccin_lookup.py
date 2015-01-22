@@ -34,8 +34,8 @@ class UoccinLookup(object):
     def get_json(self, config, filename):
         fn = os.path.join(config, filename)
         if os.path.exists(fn):
-            with open(fn, 'r') as fo:
-                return json.load(fo)
+            with open(fn, 'r') as f:
+                return json.load(f)
         return {}
 
 
