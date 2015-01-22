@@ -434,12 +434,6 @@ tasks:
     uoccin_queue:
       path: '{{ secrets.uoccin }}'
       tags: [ 'evaluate' ]
-    # notify_xmpp:
-      # sender: '{{ secrets.xmpp.usr }}'
-      # password: '{{ secrets.xmpp.pwd }}'
-      # recipient: '{{ secrets.xmpp.dst }}'
-      # title: 'Premiere(s):'
-      # text: "{{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
     # Send a description to a series-fan channel in a forgotten social network.
     friendfeed:
       app_key: '{{ secrets.ff.key }}'
@@ -452,55 +446,42 @@ tasks:
       image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
 
-  # The IMDB app is the only practical way to send titles to my movie queue from a mobile.
-  # (disabled because of https://github.com/Flexget/Flexget/pull/171#issuecomment-43516587)
-  _imdb2trakt:
+  # Import IMDB movies watchlist in Uoccin.
+  imdb2uoccin:
     priority: 10
-    interval: 1 hours
+    interval: 4 hours
+    template:
+      - mvinfo
     seen: local
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'
       list: watchlist
-    # Rejects titles already in our trakt.tv watchlist/collection.
+    require_field:
+      - imdb_id
+      - movie_name
+    uoccin_lookup: '{{ secrets.uoccin }}'
+    if:
+      - uoccin_collected or uoccin_watched: reject
     crossmatch:
       from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: watchlist
-            type: movies
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: collection
-            type: movies
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: watched
+        - uoccin_emit:
+            path: '{{ secrets.uoccin }}'
             type: movies
       fields:
         - imdb_id
       action: reject
     accept_all: yes
-    # My real movies watchlist is on trakt.tv.
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: watchlist
+    uoccin_queue:
+      path: '{{ secrets.uoccin }}'
+      tags: [ 'IMDB' ]
 
-  # In the end we append our trakt.tv watchlist content to the flexget movie queue.
+  # Import Uoccin watchlist in flexget movie queue.
   watchlist:
     priority: 12
     interval: 1 hours
     seen: local
-    trakt_list:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: watchlist
+    uoccin_emit:
+      path: '{{ secrets.uoccin }}'
       type: movies
     accept_all: yes
     movie_queue: add
@@ -689,7 +670,7 @@ tasks:
         for_accepted: del "{{ location }}"
 
   # Move episodes from Transmission destination folder to the incoming folder.
-  _move_series:
+  move_series:
     priority: 40
     template:
       - no_global
@@ -698,8 +679,6 @@ tasks:
       - nofail
       - tvinfo
       - copsrt
-    disable:
-      - notify_xmpp
     log_filter:
       transmissionrpc:
         - Expecting
@@ -724,36 +703,22 @@ tasks:
       fields:
         - location
       action: accept
-    # Reject files already copied to the incoming folder.
-    # exists:
-      # - C:\Storage\Videos\Incoming\series
     exists_series:
       path: "C:\\Storage\\Videos\\Incoming\\series"
       allow_different_qualities: better
-    # Reject episodes submitted to trakt.tv user library - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_watched_series:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
+    uoccin_lookup: '{{ secrets.uoccin }}'
+    if:
+      - uoccin_collected or uoccin_watched: reject
     # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might 
     # have modified it).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
-    # Add episodes to the trakt.tv collection.
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: library
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Nuovi episodi:'
-      text: '{{ tvdb_series_name|default(series_name) }} {{ tvdb_ep_id|default(series_id) }}{% if tvdb_ep_name|default(False) %}: {{ tvdb_ep_name }}{% endif %} -- {{ trakt_series_url }}'
+    # Add to Uoccin episodes collection.
+    uoccin_acquire: '{{ secrets.uoccin }}'
 
   # Move movies from Transmission destination folder to the incoming folder.
-  _move_movies:
+  move_movies:
     priority: 41
     template:
       - no_global
@@ -762,8 +727,6 @@ tasks:
       - nofail
       - mvinfo
       - copsrt
-    disable:
-      - notify_xmpp
     log_filter:
       transmissionrpc:
         - Expecting
@@ -788,33 +751,15 @@ tasks:
       fields:
         - location
       action: accept
-    # Reject files already copied to the incoming folder.
-    exists:
-      - C:\Storage\Videos\Incoming\movies
-    # Reject movies submitted to trakt.tv user library - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_collected_movies:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
+    uoccin_lookup: '{{ secrets.uoccin }}'
+    if:
+      - uoccin_collected or uoccin_watched: reject
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
-    # Move from watchlist to collection on trakt.tv
-    trakt_remove:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: watchlist
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: library
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Nuovi film:'
-      text: '{{ imdb_name }} ({{ imdb_year }}) -- {{ imdb_url }}'
+    # Add to Uoccin movies collection.
+    uoccin_acquire: '{{ secrets.uoccin }}'
 
   # Clean Transmission of completed torrents.
   _cleantran:
@@ -866,7 +811,7 @@ tasks:
     fix_subtitles: yes
 
   # Move watched episodes out of the incoming folder.
-  _purge_series:
+  purge_series:
     priority: 70
     template:
       - no_global
@@ -880,15 +825,13 @@ tasks:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    # see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_watched_series:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      action: accept
+    uoccin_lookup: '{{ secrets.uoccin }}'
+    if:
+      - uoccin_watched: accept
     move:
       to: "C:\\Storage\\Videos\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
       clean_source: 10
+    uoccin_forget: '{{ secrets.uoccin }}'
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -909,82 +852,15 @@ tasks:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    # see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_watched_movies:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      action: accept
+    uoccin_lookup: '{{ secrets.uoccin }}'
+    if:
+      - uoccin_watched: accept
+    uoccin_forget: '{{ secrets.uoccin }}'
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
       on_exit:
         phase: md C:\Storage\Videos\Incoming\movies
-
-  # Generate a local html index page for available episodes.
-  _poster_series:
-    priority: 80
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - tvinfo
-      - nofail
-    log_filter:
-      task:
-        - maximum recursion depth exceeded
-    find:
-      path:
-        - C:\Storage\Videos\Incoming\series
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: series3.template
-      file: 'C:\Google Drive\flexget\series.html'
-
-  # Generate a local html index page for available movies.
-  _poster_movies:
-    priority: 81
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - mvinfo
-      - nofail
-    log_filter:
-      task:
-        - maximum recursion depth exceeded
-    disable:
-      # Disabled because of http://flexget.com/ticket/2567
-      - rottentomatoes_lookup
-    find:
-      path:
-        - C:\Storage\Videos\Incoming\movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    check_subtitles: yes
-    accept_all: yes
-    make_html:
-      template: movies3.template
-      file: 'C:\Google Drive\flexget\movies.html'
-
-  # In case of emergency?
-  series_begin:
-    manual: yes
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    trakt_emit:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      position: next
-      context: watched
-      list: tv-all
-    accept_all: yes
-    set_series_begin: yes
 
   ######################################################################################################################
   # NEWS & PODCASTS
