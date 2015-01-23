@@ -136,6 +136,8 @@ templates:
     set:
       allow_teasers: no
       propers: 12 hours
+      specials: no
+      tracking: backfill
 
   # Destination path for series in Transmission (requires "transm" template too).
   tvtran:
@@ -329,7 +331,7 @@ tasks:
     set_series_begin: yes
 
   # This is the search & download task for series.
-  get_series:
+  _get_series_old:
     priority: 3
     template:
       - tvinfo
@@ -339,6 +341,45 @@ tasks:
       - transm
     seen: local
     include: 'C:\Users\giorgio\.flexget\series.yml'
+    transmission:
+      bandwidthpriority: 1
+
+  # This is the download task for series.
+  get_series:
+    priority: 3
+    template:
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - tvtran
+      - transm
+    seen: local
+    sequence:
+      - configure_series:
+          settings:
+            quality: 720p hdtv+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin }}'
+              type: series
+              tags: [ 'hires' ]
+      - configure_series:
+          settings:
+            quality: 480p hdtv+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin }}'
+              type: series
+              tags: [ 'hires', 'netflix' ]
+              check_tags: none
+      - configure_series:
+          settings:
+            quality: 480p+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin }}'
+              type: series
+              tags: [ 'netflix' ]
     transmission:
       bandwidthpriority: 1
 
