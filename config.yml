@@ -717,7 +717,7 @@ tasks:
     uoccin_unqueue: '{{ secrets.uoccin }}'
 
   # Clean Transmission of completed torrents.
-  _cleantran:
+  cleantran:
     priority: 45
     template:
       - noseen
