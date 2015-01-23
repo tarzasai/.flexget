@@ -451,8 +451,11 @@ tasks:
     priority: 10
     interval: 4 hours
     template:
+      - no_global
+      - noseen
+      - nofail
       - mvinfo
-    seen: local
+    # seen: local
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'
       list: watchlist
@@ -479,6 +482,10 @@ tasks:
   watchlist:
     priority: 12
     interval: 1 hours
+    # template:
+      # - no_global
+      # - noseen
+      # - nofail
     seen: local
     uoccin_emit:
       path: '{{ secrets.uoccin }}'
@@ -1079,31 +1086,49 @@ tasks:
       - { title: 'marvels agent carter', tvdb_id: 281485 }
     accept_all: yes
 
-  test_tags1:
+  d2uc:
     manual: yes
     template:
       - no_global
       - noseen
       - nofail
-      - tvinfo
-    mock:
-      - { title: 'the man in the high castle s01e01' }
-    accept_all: yes
-    uoccin_queue:
-      path: '{{ secrets.uoccin }}'
-      tags: [ 'evaluate' ]
-
-  test_emit:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nofail
+      - mvinfo
     disable:
-      - quality
-    include: 'C:\Users\giorgio\.flexget\series.yml'
-    emit_series: yes
+      - urlrewriter
+      - urlrewrite_redirect
+      - tmdb_lookup
+      - rottentomatoes_lookup
+    log_filter:
+      urlrewriter:
+        - URL rewritten to
+    find:
+      path:
+        - C:\Storage\Videos\Incoming\movies
+        - C:\Storage\Videos\Movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
     accept_all: yes
-    uoccin_queue:
-      path: 'C:\\Google Drive\\flexget\\uoccin'
-      quality: <720p hdtv
+    uoccin_acquire: '{{ secrets.uoccin }}'
+
+  t2um:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+      - mvinfo
+    disable:
+      - urlrewriter
+      - urlrewrite_redirect
+      - tmdb_lookup
+      - rottentomatoes_lookup
+    log_filter:
+      urlrewriter:
+        - URL rewritten to
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: watched
+      type: movies
+    accept_all: yes
+    uoccin_watched: '{{ secrets.uoccin }}'
