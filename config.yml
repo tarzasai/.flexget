@@ -765,8 +765,9 @@ tasks:
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
-    # Add to Uoccin movies collection.
+    # Update Uoccin movies collection/watchlist.
     uoccin_acquire: '{{ secrets.uoccin }}'
+    uoccin_unqueue: '{{ secrets.uoccin }}'
 
   # Clean Transmission of completed torrents.
   _cleantran:
