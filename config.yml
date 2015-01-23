@@ -464,15 +464,7 @@ tasks:
       - movie_name
     uoccin_lookup: '{{ secrets.uoccin }}'
     if:
-      - uoccin_collected or uoccin_watched: reject
-    crossmatch:
-      from:
-        - uoccin_emit:
-            path: '{{ secrets.uoccin }}'
-            type: movies
-      fields:
-        - imdb_id
-      action: reject
+      - uoccin_queued or uoccin_watched or uoccin_collected: reject
     accept_all: yes
     uoccin_queue:
       path: '{{ secrets.uoccin }}'
@@ -515,7 +507,7 @@ tasks:
       bandwidthpriority: 0
 
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  _guess_movies:
+  guess_movies:
     priority: 20
     interval: 4 hours
     template:
@@ -526,12 +518,10 @@ tasks:
       - mvfltr
       - mvtran
       - transm
-    plugin_priority:
-      crossmatch: 0
-    log_filter:
-      api_rottentomatoes:
-        - 403 Client Error
-    accept_all: yes
+    # log_filter:
+      # api_rottentomatoes:
+        # - 403 Client Error
+    uoccin_lookup: '{{ secrets.uoccin }}'
     exists_movie:
       - C:\Storage\Videos\Incoming\movies
       - C:\Storage\Videos\Movies
@@ -562,6 +552,12 @@ tasks:
         # - Kids & Family: {from: rt_genres}
         # - Sports & Fitness: {from: rt_genres}
         # - Television: {from: rt_genres}
+    if:
+      - uoccin_queued or uoccin_watched or uoccin_collected: reject
+      # I usually don't like italian movies and I prefer English among all the foreign languages.
+      - not imdb_languages or not 'english' in imdb_languages: reject
+      # Max 10 years old movies.
+      - imdb_year < now.year - 10: reject
     imdb:
       min_votes: 2000
       min_score: 8
@@ -582,54 +578,9 @@ tasks:
         - Kids & Family
         - Sports & Fitness
         - Television
-    if:
-      # I usually don't like italian movies and I prefer English among all the foreign languages.
-      - not imdb_languages or not 'english' in imdb_languages: reject
-      # Max 10 years old movies.
-      - imdb_year < now.year - 10: reject
-    # Rejects titles already in our trakt.tv watchlist/collection too.
-    crossmatch:
-      from:
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: mv-check
-            type: movies
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: watchlist
-            type: movies
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: collection
-            type: movies
-        - trakt_list:
-            username: '{{ secrets.trakt.usr }}'
-            password: '{{ secrets.trakt.pwd }}'
-            strip_dates: yes
-            list: watched
-            type: movies
-      fields:
-        - imdb_id
-        - tmdb_id
-      action: reject
+    accept_all: yes
     transmission:
       bandwidthpriority: -1
-    # Again we add the accepted entries to the trakt.tv watchlist.
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: mv-check
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      text: '{{ imdb_name }} ({{ imdb_year }}) [{{ reason|default(accepted_by }}] - {{ imdb_url }}'
 
   # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my 
   # g-drive folder for series and send them directly to Transmission.
@@ -760,7 +711,7 @@ tasks:
       action: accept
     uoccin_lookup: '{{ secrets.uoccin }}'
     if:
-      - uoccin_collected or uoccin_watched: reject
+      - uoccin_watched or uoccin_collected: reject
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
@@ -847,14 +798,15 @@ tasks:
         phase: md C:\Storage\Videos\Incoming\series
 
   # Move watched movies out of the incoming folder.
-  _purge_movies:
+  purge_movies:
     priority: 71
     template:
       - no_global
       - noseen
       - nosumm
       - mvinfo
-      - delsrt
+      # - delsrt
+      - movsrt
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
@@ -863,6 +815,9 @@ tasks:
     uoccin_lookup: '{{ secrets.uoccin }}'
     if:
       - uoccin_watched: accept
+    move:
+      to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
+      clean_source: 10
     uoccin_forget: '{{ secrets.uoccin }}'
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
