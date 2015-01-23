@@ -49,7 +49,6 @@ templates:
       torrenticity.com: 1 seconds
       torrentz.eu: 1 seconds
       torrentz.me: 1 seconds
-      trakt.tv: 1 seconds
     # Prevent some messages to be logged - see https://github.com/tarzasai/.flexget/tree/master/plugins
     log_filter:
       content_size:
@@ -97,11 +96,8 @@ templates:
     plugin_priority:
       # manipulate must fix the titles before metainfo_series.
       manipulate: 255
-      # trakt_lookup has to run before thetvdb_lookup, but now I can't remember why...
-      trakt_lookup: 112
     metainfo_series: yes
     thetvdb_lookup: yes
-    trakt_lookup: yes
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
@@ -257,47 +253,6 @@ templates:
 
 tasks:
 
-  # This task check out for ended/cancelled series, to remove them from the main trakt.tv list used to create the 
-  # series config file.
-  _chk_series:
-    priority: 1
-    interval: 1 days
-    template:
-      - noseen
-      - nofail
-    plugin_priority:
-      if: -250
-      manipulate: -251
-      trakt_remove: -252
-      trakt_add: -253
-    trakt_list:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: tv-all
-      type: shows
-    # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
-    thetvdb_lookup: yes
-    if:
-      - tvdb_status == 'Ended': accept
-    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list sets the title field only.
-    manipulate:
-      - series_name:
-          from: title
-    trakt_remove:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: tv-all
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      list: tv-ended
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Serie terminate/cancellate:'
-      text: '{{ tvdb_series_name|default(series_name) }}'
-
   # This task creates a yaml file with series configuration using two trakt.tv list content (favorites and temporary). 
   # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
   _set_series:
@@ -442,8 +397,8 @@ tasks:
       password: '{{ secrets.ff.pwd }}'
       feeds: [me, serietv]
       text: "{% if tvdb_network|default(False) %}{{ tvdb_network }} {% endif %}#premiere: {{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}){% if tvdb_ep_name|default(False) %} - {{ tvdb_ep_name }}{% endif %}"
-      link: '{% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}'
-      image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% elif trakt_series_banner_url|default(False) %}{{ trakt_series_banner_url }}{% endif %}'
+      link: 'http://thetvdb.com/?tab=series&id={{ tvdb_id }}'
+      image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% endif %}'
       comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
 
   # Import IMDB movies watchlist in Uoccin.
