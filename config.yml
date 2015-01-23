@@ -255,95 +255,6 @@ templates:
 
 tasks:
 
-  # This task creates a yaml file with series configuration using two trakt.tv list content (favorites and temporary). 
-  # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
-  _set_series:
-    priority: 2
-    interval: 50 minutes
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    plugin_priority:
-      set: -254
-      if: -255
-    log_filter:
-      set_series_begin:
-        - First episode for
-    inputs:
-      - trakt_emit:
-          username: '{{ secrets.trakt.usr }}'
-          password: '{{ secrets.trakt.pwd }}'
-          position: next
-          context: watched
-          list: tv-all
-      - trakt_emit:
-          username: '{{ secrets.trakt.usr }}'
-          password: '{{ secrets.trakt.pwd }}'
-          position: next
-          context: collected
-          list: tv-evaluate
-    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_ratings_lookup:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-    # We need this for the trakt_series_network field.
-    trakt_lookup: yes
-    # These are the default values.
-    set:
-      quality: <720p hdtv
-      specials: no
-    # overrides:
-    if:
-      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
-      - trakt_rating == "love":
-          set:
-            quality: 720p hdtv
-      # Netflix' stuff usually is webrip source only.
-      - trakt_series_network and trakt_series_network == "Netflix":
-          set:
-            quality: webrip
-      # Doctor Who's specials are mandatory.
-      - tvdb_id == 78804:
-          set:
-            specials: yes
-      # Changes some titles to match torrents names.
-      - tvdb_id == 264085:
-          set:
-            series_name: 'The Bridge US'
-      - tvdb_id == 276312:
-          set:
-            series_name: 'From Dusk Till Dawn'
-      # Collect Sons of Anarchy
-      - tvdb_id == 82696:
-          set:
-            tracking: backfill
-    accept_all: yes
-    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    create_series_config:
-      set_fields:
-        - begin
-        - quality
-        - specials
-        - tracking
-      filename: 'C:\\Users\\giorgio\\.flexget\\series.yml'
-    set_series_begin: yes
-
-  # This is the search & download task for series.
-  _get_series_old:
-    priority: 3
-    template:
-      - tvinfo
-      - tvfeed
-      - tvfltr
-      - tvtran
-      - transm
-    seen: local
-    include: 'C:\Users\giorgio\.flexget\series.yml'
-    transmission:
-      bandwidthpriority: 1
-
   # This is the download task for series.
   get_series:
     priority: 3
@@ -399,6 +310,7 @@ tasks:
       manipulate: -253
       friendfeed: -255
     seen: local
+    uoccin_lookup: '{{ secrets.uoccin }}'
     require_field:
       - tvdb_id
       - tvdb_genres
@@ -423,6 +335,7 @@ tasks:
     torrent_alive:
       min_seeds: 40
     if:
+      - uoccin_queued or uoccin_watched or uoccin_collected: reject
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
     # Unknown series are less important.
     transmission:
@@ -737,8 +650,9 @@ tasks:
       delete_files: yes
 
   # Download italian and english subtitles for all the videos.
-  _subtitles:
-    priority: 60
+  subtitles:
+    # priority: 60
+    manual: yes
     template:
       - noseen
       - nosumm
@@ -753,6 +667,7 @@ tasks:
     find:
       path:
         - C:\Storage\Videos\Incoming
+        # - C:\Storage\Videos\Incoming\series\New Girl
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -764,6 +679,26 @@ tasks:
     # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
     # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
     fix_subtitles: yes
+
+  updu4subs:
+    # priority: 62
+    manual: yes
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    metainfo_series: yes
+    thetvdb_lookup: yes
+    imdb_lookup: yes
+    check_subtitles: yes
+    find:
+      path:
+        - C:\Storage\Videos\Incoming
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    if:
+      - subtitles: accept
+    uoccin_acquire: '{{ secrets.uoccin }}'
 
   # Move watched episodes out of the incoming folder.
   purge_series:
