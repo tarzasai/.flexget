@@ -304,11 +304,10 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-    plugin_priority:
-      if: -252
-      # In this task it's ok to override the priority set by tvinfo.
-      manipulate: -253
-      friendfeed: -255
+    # plugin_priority:
+      # if: -252
+      # manipulate: -253
+      # friendfeed: -255
     seen: local
     uoccin_lookup: '{{ secrets.uoccin }}'
     require_field:
@@ -340,6 +339,7 @@ tasks:
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
+    # set_series_begin: yes
     uoccin_queue:
       path: '{{ secrets.uoccin }}'
       tags: [ 'evaluate' ]
@@ -965,13 +965,17 @@ tasks:
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
 
-  test_tvdb:
+  test_psb:
     manual: yes
     template:
+      - no_global
+      - noseen
+      - nofail
       - tvinfo
     mock:
-      - { title: 'marvels agent carter', tvdb_id: 281485 }
+      - { title: 'Backstrom S01E02', tvdb_id: '277093', series_name: 'Backstrom', series_id: 'S01E02' }
     accept_all: yes
+    set_series_begin: yes
 
   d2uc:
     manual: yes
