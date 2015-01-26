@@ -65,4 +65,4 @@ class ForgetEpisodes(object):
 
 @event('plugin.register')
 def register_plugin():
-    plugin.register(ForgetEpisodes, 'forget_episodes', api_ver=2)
+    plugin.register(ForgetEpisodes, 'episodes_forget', api_ver=2)
