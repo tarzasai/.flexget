@@ -25,14 +25,10 @@ class ForgetEpisodes(object):
             return
         for entry in task.accepted:
             if entry.get('series_name') and entry.get('series_id'):
-                fshow = task.session.query(Series).filter(Series.name == entry['series_name']).first()
-                if not fshow:
-                    self.log.info('Series "%s" not found, skipping' % (entry['series_name']))
-                    continue
                 try:
-                    forget_series_episode(fshow, entry['series_id'])
+                    forget_series_episode(entry['series_name'], entry['series_id'])
                 except ValueError as e:
-                    self.log.error('An error occurred trying to set forget for %s: %s' % (entry['series_name'], e))
+                    self.log.error('An error occurred trying to forget for %s: %s' % (entry['series_name'], e))
                 self.log.info('Removed %s episode references from "%s"' % (entry['series_id'], entry['series_name']))
 
 
