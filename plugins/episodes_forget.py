@@ -34,6 +34,7 @@ class ForgetEpisodes(object):
                 self.log.info('Removed %s episode references from "%s"' % (entry['series_id'], entry['series_name']))
             else:
                 fshow = task.session.query(Series).filter(Series.name == entry['series_name']).first()
+                '''
                 if not fshow:
                     self.log.info('Series %s not found, skipping' % entry['series_name'])
                     continue
@@ -59,6 +60,7 @@ class ForgetEpisodes(object):
                 
                 
                 fepid = 'S%02dE%02d' % (known.season, known.episode)
+                '''
 
 
 @event('plugin.register')
