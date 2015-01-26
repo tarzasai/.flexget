@@ -276,7 +276,7 @@ tasks:
               tags: [ 'hires' ]
       - configure_series:
           settings:
-            quality: 480p hdtv+
+            quality: <720p hdtv+
           from:
             uoccin_emit:
               path: '{{ secrets.uoccin }}'
@@ -285,7 +285,7 @@ tasks:
               check_tags: none
       - configure_series:
           settings:
-            quality: 480p+
+            quality: <720p
           from:
             uoccin_emit:
               path: '{{ secrets.uoccin }}'
@@ -1023,3 +1023,47 @@ tasks:
       type: movies
     accept_all: yes
     uoccin_watched: '{{ secrets.uoccin }}'
+
+  cweps:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+      - tvinfo
+    mock:
+      - { title: '12 Monkeys S01E03', tvdb_id: 272644, series_id: 'S01E03' }
+      - { title: '12 Monkeys S01E04', tvdb_id: 272644, series_id: 'S01E04' }
+      - { title: '12 Monkeys S01E05', tvdb_id: 272644, series_id: 'S01E05' }
+      - { title: '12 Monkeys S01E06', tvdb_id: 272644, series_id: 'S01E06' }
+      - { title: '12 Monkeys S01E07', tvdb_id: 272644, series_id: 'S01E07' }
+      - { title: '12 Monkeys S01E08', tvdb_id: 272644, series_id: 'S01E08' }
+      - { title: '12 Monkeys S01E09', tvdb_id: 272644, series_id: 'S01E09' }
+      - { title: '12 Monkeys S01E10', tvdb_id: 272644, series_id: 'S01E10' }
+      - { title: '12 Monkeys S01E11', tvdb_id: 272644, series_id: 'S01E11' }
+      - { title: '12 Monkeys S01E12', tvdb_id: 272644, series_id: 'S01E12' }
+      - { title: '12 Monkeys S01E13', tvdb_id: 272644, series_id: 'S01E13' }
+      - { title: 'Broadchurch S02E04', tvdb_id: 266398, series_id: 'S02E04' }
+      - { title: 'Broadchurch S02E05', tvdb_id: 266398, series_id: 'S02E05' }
+      - { title: 'Broadchurch S02E06', tvdb_id: 266398, series_id: 'S02E06' }
+      - { title: 'Broadchurch S02E07', tvdb_id: 266398, series_id: 'S02E07' }
+      - { title: 'Broadchurch S02E08', tvdb_id: 266398, series_id: 'S02E08' }
+      - { title: 'Broadchurch S02E09', tvdb_id: 266398, series_id: 'S02E09' }
+      - { title: 'Broadchurch S02E10', tvdb_id: 266398, series_id: 'S02E10' }
+      - { title: 'Broadchurch S02E11', tvdb_id: 266398, series_id: 'S02E11' }
+      - { title: 'Broadchurch S02E12', tvdb_id: 266398, series_id: 'S02E12' }
+      - { title: 'Broadchurch S02E13', tvdb_id: 266398, series_id: 'S02E13' }
+      - { title: 'MythBusters S15E03', tvdb_id: 73388, series_id: 'S15E03' }
+      - { title: 'MythBusters S15E04', tvdb_id: 73388, series_id: 'S15E04' }
+      - { title: 'MythBusters S15E05', tvdb_id: 73388, series_id: 'S15E05' }
+      - { title: 'MythBusters S15E06', tvdb_id: 73388, series_id: 'S15E06' }
+      - { title: 'MythBusters S15E07', tvdb_id: 73388, series_id: 'S15E07' }
+      - { title: 'MythBusters S15E08', tvdb_id: 73388, series_id: 'S15E08' }
+      - { title: 'MythBusters S15E09', tvdb_id: 73388, series_id: 'S15E09' }
+      - { title: 'MythBusters S15E10', tvdb_id: 73388, series_id: 'S15E10' }
+      - { title: 'MythBusters S15E11', tvdb_id: 73388, series_id: 'S15E11' }
+      - { title: 'MythBusters S15E12', tvdb_id: 73388, series_id: 'S15E12' }
+      - { title: 'MythBusters S15E13', tvdb_id: 73388, series_id: 'S15E13' }
+    accept_all: yes
+    forget_episodes: yes
+    
