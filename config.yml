@@ -970,6 +970,7 @@ tasks:
       - tvinfo
     episodes_list: yes
     if:
+      - series_season == 1 and series_episode == 1: reject
       - not tvdb_id: accept
       - not tvdb_ep_air_date or tvdb_ep_air_date > now - timedelta(days=1): accept
     forget_episodes: yes
