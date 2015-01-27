@@ -98,6 +98,9 @@ templates:
       manipulate: 255
     metainfo_series: yes
     thetvdb_lookup: yes
+    log_filter:
+      manipulate:
+        - tvinfo_title
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
@@ -969,6 +972,7 @@ tasks:
       - nofail
       - tvinfo
     episodes_list: yes
+    # episodes_list: 'dreadful'
     if:
       - series_season == 1 and series_episode == 1: reject
       - not tvdb_id: accept

@@ -24,7 +24,9 @@ class GetEpisodesList(object):
             name = normalize_series_name(config)
             slist = slist.filter(Series._name_normalized.contains(name))
         slist = (slist.outerjoin(Series.episodes).outerjoin(Episode.releases).outerjoin(Series.in_tasks).
-                 group_by(Series.id).having(func.count(SeriesTask.id) < 1).order_by(Series.name).all())
+                 # group_by(Series.id).having(func.count(SeriesTask.id) < 1).order_by(Series.name).all())
+                 # group_by(Series.id).having(func.count(SeriesTask.id) >= 1).order_by(Series.name).all())
+                 order_by(Series.name).all())
         entries = []
         for series in slist:
             elist = (task.session.query(Episode).filter(Episode.series_id == series.id).

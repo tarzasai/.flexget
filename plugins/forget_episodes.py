@@ -28,7 +28,7 @@ class ForgetEpisodes(object):
                 snm = entry['series_name']
                 sid = entry['series_id']
                 try:
-                    self.log.info('Removing episode %s references from "%s"...' % (sid, snm))
+                    self.log.info('Removing episode %s references from "%s"' % (sid, snm))
                     forget_series_episode(snm, sid)
                 except ValueError as e:
                     self.log.error('An error occurred: %s' % e)
