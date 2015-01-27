@@ -1083,4 +1083,4 @@ tasks:
     episodes_list: yes
     if:
       - not tvdb_id: accept
-      - not tvdb_first_air_date or tvdb_first_air_date > now - timedelta(days=1): accept    
+      - not tvdb_first_air_date or tvdb_first_air_date > now - timedelta(days=1): accept

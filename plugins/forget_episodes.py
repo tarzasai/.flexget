@@ -25,11 +25,13 @@ class ForgetEpisodes(object):
             return
         for entry in task.accepted:
             if entry.get('series_name') and entry.get('series_id'):
+                snm = entry['series_name']
+                sid = entry['series_id']
                 try:
-                    forget_series_episode(entry['series_name'], entry['series_id'])
+                    self.log.info('Removing episode %s references from "%s"...' % (sid, snm))
+                    forget_series_episode(snm, sid)
                 except ValueError as e:
-                    self.log.error('An error occurred trying to forget for %s: %s' % (entry['series_name'], e))
-                self.log.info('Removed %s episode references from "%s"' % (entry['series_id'], entry['series_name']))
+                    self.log.error('An error occurred: %s' % e)
 
 
 @event('plugin.register')
