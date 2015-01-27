@@ -960,6 +960,20 @@ tasks:
       link: 'http://www.tvrage.com/status_update.php'
       comment: "{{ tvdb_series_name|default(series_name) }}"
 
+  fix_episodes:
+    priority: 600
+    interval: 7 days
+    template:
+      - no_global
+      - noseen
+      - nofail
+      - tvinfo
+    episodes_list: yes
+    if:
+      - not tvdb_id: accept
+      - not tvdb_ep_air_date or tvdb_ep_air_date > now - timedelta(days=1): accept
+    forget_episodes: yes
+
   testff:
     manual: yes
     template:
@@ -972,18 +986,6 @@ tasks:
       app_secret: '{{ secrets.ff.sec }}'
       username: '{{ secrets.ff.usr }}'
       password: '{{ secrets.ff.pwd }}'
-
-  test_psb:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nofail
-      - tvinfo
-    mock:
-      - { title: 'Backstrom S01E02', tvdb_id: '277093', series_name: 'Backstrom', series_id: 'S01E02' }
-    accept_all: yes
-    set_series_begin: yes
 
   d2uc:
     manual: yes
@@ -1031,56 +1033,3 @@ tasks:
       type: movies
     accept_all: yes
     uoccin_watched: '{{ secrets.uoccin }}'
-
-  cweps:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nofail
-      - tvinfo
-    mock:
-      - { title: '12 Monkeys S01E03', tvdb_id: 272644, series_id: 'S01E03' }
-      - { title: '12 Monkeys S01E04', tvdb_id: 272644, series_id: 'S01E04' }
-      - { title: '12 Monkeys S01E05', tvdb_id: 272644, series_id: 'S01E05' }
-      - { title: '12 Monkeys S01E06', tvdb_id: 272644, series_id: 'S01E06' }
-      - { title: '12 Monkeys S01E07', tvdb_id: 272644, series_id: 'S01E07' }
-      - { title: '12 Monkeys S01E08', tvdb_id: 272644, series_id: 'S01E08' }
-      - { title: '12 Monkeys S01E09', tvdb_id: 272644, series_id: 'S01E09' }
-      - { title: '12 Monkeys S01E10', tvdb_id: 272644, series_id: 'S01E10' }
-      - { title: '12 Monkeys S01E11', tvdb_id: 272644, series_id: 'S01E11' }
-      - { title: '12 Monkeys S01E12', tvdb_id: 272644, series_id: 'S01E12' }
-      - { title: '12 Monkeys S01E13', tvdb_id: 272644, series_id: 'S01E13' }
-      - { title: 'Broadchurch S02E04', tvdb_id: 266398, series_id: 'S02E04' }
-      - { title: 'Broadchurch S02E05', tvdb_id: 266398, series_id: 'S02E05' }
-      - { title: 'Broadchurch S02E06', tvdb_id: 266398, series_id: 'S02E06' }
-      - { title: 'Broadchurch S02E07', tvdb_id: 266398, series_id: 'S02E07' }
-      - { title: 'Broadchurch S02E08', tvdb_id: 266398, series_id: 'S02E08' }
-      - { title: 'Broadchurch S02E09', tvdb_id: 266398, series_id: 'S02E09' }
-      - { title: 'Broadchurch S02E10', tvdb_id: 266398, series_id: 'S02E10' }
-      - { title: 'Broadchurch S02E11', tvdb_id: 266398, series_id: 'S02E11' }
-      - { title: 'Broadchurch S02E12', tvdb_id: 266398, series_id: 'S02E12' }
-      - { title: 'Broadchurch S02E13', tvdb_id: 266398, series_id: 'S02E13' }
-      - { title: 'MythBusters S15E03', tvdb_id: 73388, series_id: 'S15E03' }
-      - { title: 'MythBusters S15E04', tvdb_id: 73388, series_id: 'S15E04' }
-      - { title: 'MythBusters S15E05', tvdb_id: 73388, series_id: 'S15E05' }
-      - { title: 'MythBusters S15E06', tvdb_id: 73388, series_id: 'S15E06' }
-      - { title: 'MythBusters S15E07', tvdb_id: 73388, series_id: 'S15E07' }
-      - { title: 'MythBusters S15E08', tvdb_id: 73388, series_id: 'S15E08' }
-      - { title: 'MythBusters S15E09', tvdb_id: 73388, series_id: 'S15E09' }
-      - { title: 'MythBusters S15E10', tvdb_id: 73388, series_id: 'S15E10' }
-      - { title: 'MythBusters S15E11', tvdb_id: 73388, series_id: 'S15E11' }
-      - { title: 'MythBusters S15E12', tvdb_id: 73388, series_id: 'S15E12' }
-      - { title: 'MythBusters S15E13', tvdb_id: 73388, series_id: 'S15E13' }
-    accept_all: yes
-    forget_episodes: yes
-
-  test_el:
-    manual: yes
-    template:
-      - no_global
-      - tvinfo
-    episodes_list: yes
-    if:
-      - not tvdb_id: accept
-      - not tvdb_first_air_date or tvdb_first_air_date > now - timedelta(days=1): accept
