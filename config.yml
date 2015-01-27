@@ -1074,4 +1074,13 @@ tasks:
       - { title: 'MythBusters S15E13', tvdb_id: 73388, series_id: 'S15E13' }
     accept_all: yes
     forget_episodes: yes
-    
+
+  test_el:
+    manual: yes
+    template:
+      - no_global
+      - tvinfo
+    episodes_list: yes
+    if:
+      - not tvdb_id: accept
+      - not tvdb_first_air_date or tvdb_first_air_date > now - timedelta(days=1): accept    
