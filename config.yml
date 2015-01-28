@@ -267,6 +267,11 @@ tasks:
       - tvfltr
       - tvtran
       - transm
+    log_filter:
+      remember_rej:
+        - Remembering rejection of
+      remember_rejected:
+        - Remembering rejection of
     seen: local
     sequence:
       - configure_series:
