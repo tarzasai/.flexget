@@ -220,3 +220,5 @@ secrets.yml
 series.yml
 db-config.sqlite
 received/
+.copy_from_flexget.bat
+.copy_to_flexget.bat
