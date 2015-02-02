@@ -35,11 +35,17 @@ class UoccinLookup(object):
                 else:
                     entry['uoccin_watched'] = False
                     entry['uoccin_collected'] = False
+                entry['uoccin_rating'] = -1  # ???
             elif 'imdb_id' in entry:
                 eid = entry['imdb_id']
                 entry['uoccin_queued'] = eid in mqueu
-                entry['uoccin_watched'] = eid in mseen
                 entry['uoccin_collected'] = eid in mcoll
+                if eid in mseen:
+                    entry['uoccin_watched'] = True
+                    entry['uoccin_rating'] = mseen[eid].get('rating', -1)
+                else:
+                    entry['uoccin_watched'] = False
+                    entry['uoccin_rating'] = -1
     
     def get_json(self, config, filename):
         fn = os.path.join(config, filename)
