@@ -9,7 +9,7 @@ from flexget.utils import json
 class UoccinWatchlist(object):
     
     # Defined by subclasses
-    append = None
+    remove = None
     
     def on_task_output(self, task, config):
         """Add accepted series and/or movies to uoccin's watchlist"""
@@ -28,7 +28,7 @@ class UoccinWatchlist(object):
                     data = json.load(f)
             n = 0
             for tvdb_id, title in series.items():
-                if self.append:
+                if self.remove:
                     try:
                         data.pop(tvdb_id)
                         n += 1
@@ -47,7 +47,7 @@ class UoccinWatchlist(object):
                 text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
                 with open(dest, 'w') as f:
                     f.write(text)
-            self.log.info('Uoccin watchlist updated (%d series %s)' % (n, 'added' if self.append else 'removed'))
+            self.log.info('Uoccin watchlist updated (%d series %s)' % (n, 'removed' if self.remove else 'added'))
         if movies:
             dest = os.path.join(config['path'], 'movies.watchlist.json')
             data = {}
@@ -56,7 +56,7 @@ class UoccinWatchlist(object):
                     data = json.load(f)
             n = 0
             for imdb_id, title in movies.items():
-                if self.append:
+                if self.remove:
                     try:
                         data.pop(imdb_id)
                         n += 1
@@ -75,7 +75,7 @@ class UoccinWatchlist(object):
                 text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
                 with open(dest, 'w') as f:
                     f.write(text)
-            self.log.info('Uoccin watchlist updated (%d movies %s)' % (n, 'added' if self.append else 'removed'))
+            self.log.info('Uoccin watchlist updated (%d movies %s)' % (n, 'removed' if self.remove else 'added'))
 
 
 class UoccinQueue(UoccinWatchlist):
@@ -90,13 +90,13 @@ class UoccinQueue(UoccinWatchlist):
         'required': ['path'],
         'additionalProperties': False
     }
-    append = True
+    remove = False
 
 
 class UoccinUnqueue(UoccinWatchlist):
     """Remove all accepted elements from Uoccin watchlist."""
     schema = { 'type': 'string', 'format': 'path' }
-    append = False
+    remove = True
 
 
 @event('plugin.register')
