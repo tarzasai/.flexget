@@ -98,6 +98,7 @@ templates:
       manipulate: 255
     metainfo_series: yes
     thetvdb_lookup: yes
+    uoccin_lookup: '{{ secrets.uoccin }}'
     log_filter:
       manipulate:
         - tvinfo_title
@@ -166,6 +167,7 @@ templates:
       rottentomatoes_lookup: 127
     imdb_lookup: yes
     tmdb_lookup: yes
+    uoccin_lookup: '{{ secrets.uoccin }}'
     rottentomatoes_lookup: yes
 
   # Global filters for movies.
@@ -317,7 +319,6 @@ tasks:
       # manipulate: -253
       # friendfeed: -255
     seen: local
-    uoccin_lookup: '{{ secrets.uoccin }}'
     require_field:
       - tvdb_id
       - tvdb_genres
@@ -585,7 +586,6 @@ tasks:
     exists_series:
       path: "C:\\Storage\\Videos\\Incoming\\series"
       allow_different_qualities: better
-    uoccin_lookup: '{{ secrets.uoccin }}'
     if:
       - uoccin_collected or uoccin_watched: reject
     # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might 
@@ -634,7 +634,6 @@ tasks:
       fields:
         - location
       action: accept
-    uoccin_lookup: '{{ secrets.uoccin }}'
     if:
       - uoccin_watched or uoccin_collected: reject
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
@@ -731,7 +730,6 @@ tasks:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    uoccin_lookup: '{{ secrets.uoccin }}'
     if:
       - uoccin_watched: accept
     move:
@@ -744,7 +742,7 @@ tasks:
       on_exit:
         phase: md C:\Storage\Videos\Incoming\series
 
-  # Move watched movies out of the incoming folder.
+  # Delete watched movies.
   purge_movies:
     priority: 71
     template:
@@ -752,16 +750,37 @@ tasks:
       - noseen
       - nosumm
       - mvinfo
-      # - delsrt
+      - delsrt
+    find:
+      path:
+        - C:\Storage\Videos\Incoming\movies
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    if:
+      - uoccin_watched and uoccin_rating < 8: accept
+    uoccin_forget: '{{ secrets.uoccin }}'
+    # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md C:\Storage\Videos\Incoming\movies
+
+  # Save watched movies (the very good ones).
+  save_movies:
+    priority: 72
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - mvinfo
       - movsrt
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    uoccin_lookup: '{{ secrets.uoccin }}'
     if:
-      - uoccin_watched: accept
+      - uoccin_watched and uoccin_rating >= 8: accept
     move:
       to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 10
