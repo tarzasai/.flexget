@@ -100,6 +100,8 @@ templates:
     thetvdb_lookup: yes
     uoccin_lookup: '{{ secrets.uoccin }}'
     log_filter:
+      api_tvdb:
+        - using cached data
       manipulate:
         - tvinfo_title
     # Some titles need little corrections to find matches on metainfo sites.
