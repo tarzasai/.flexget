@@ -272,6 +272,8 @@ tasks:
       - tvtran
       - transm
     log_filter:
+      series:
+        - identified_by has locked
       remember_rej:
         - Remembering rejection of
       remember_rejected:
