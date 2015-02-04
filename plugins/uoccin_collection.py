@@ -1,9 +1,12 @@
 from __future__ import unicode_literals, division, absolute_import
+import logging
 import os
 
 from flexget import plugin
 from flexget.event import event
 from flexget.utils import json
+
+log = logging.getLogger('uoccin_colle')
 
 
 class UoccinCollection(object):
@@ -40,15 +43,15 @@ class UoccinCollection(object):
                     data = json.load(f)
             for eid in series:
                 if self.acquire:
-                    self.log.verbose('adding/updating episode %s to Uoccin collection' % eid)
+                    log.info('adding/updating episode %s to Uoccin collection' % eid)
                     data[eid] = series[eid]
                 else:
-                    self.log.verbose('removing episode %s from Uoccin collection' % eid)
+                    log.info('removing episode %s from Uoccin collection' % eid)
                     data.pop(eid)
             text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
             with open(dest, 'w') as f:
                 f.write(text)
-            self.log.info('Uoccin episodes collection updated')
+            log.debug('Uoccin episodes collection updated')
         if movies:
             dest = os.path.join(config, 'movies.collected.json')
             data = {}
@@ -57,15 +60,15 @@ class UoccinCollection(object):
                     data = json.load(f)
             for eid in movies:
                 if self.acquire:
-                    self.log.verbose('adding/updating movie %s to Uoccin collection' % eid)
+                    log.info('adding/updating movie %s to Uoccin collection' % eid)
                     data[eid] = movies[eid]
                 else:
-                    self.log.verbose('removing movie %s from Uoccin collection' % eid)
+                    log.info('removing movie %s from Uoccin collection' % eid)
                     data.pop(eid)
             text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
             with open(dest, 'w') as f:
                 f.write(text)
-            self.log.info('Uoccin movies collection updated')
+            log.debug('Uoccin movies collection updated')
 
 
 class UoccinAcquire(UoccinCollection):
