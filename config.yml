@@ -104,6 +104,9 @@ templates:
         - using cached data
       manipulate:
         - tvinfo_title
+      parser_internal:
+        - cannot find a(n) `ep` style identifier
+        - cannot find any series numbering
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
       # Original title backup
