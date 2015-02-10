@@ -55,6 +55,8 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
+      manager:
+        - Writing crash report to
       move:
         - left because it exceeds safety value
         - does not exists (anymore)
@@ -68,6 +70,9 @@ templates:
       series:
         - releasing quality restriction
         - appears to be an episode pack
+      task:
+        - Unhandled error in plugin from_transmission
+        - Unhandled error in plugin clean_transmission
       torrentz:
         - Too Many Requests
       urlrewriter:
