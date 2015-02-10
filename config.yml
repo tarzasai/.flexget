@@ -326,6 +326,13 @@ tasks:
       # if: -252
       # manipulate: -253
       # friendfeed: -255
+    log_filter:
+      series:
+        - identified_by has locked
+      remember_rej:
+        - Remembering rejection of
+      remember_rejected:
+        - Remembering rejection of
     seen: local
     require_field:
       - tvdb_id
