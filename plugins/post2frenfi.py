@@ -72,8 +72,10 @@ class Publish2FF(object):
                         log.info('- Comment would be: ' + ffcomm)
                 else:
                     try:
-                        res = ff.post_entry(fftext, link=fflink, comment=ffcomm, 
-                                            to=','.join(rooms), image_url=ffpict)
+                        if ffcomm:
+                            res = ff.post_entry(fftext, link=fflink, comment=ffcomm, to=','.join(rooms), image_url=ffpict)
+                        else:
+                            res = ff.post_entry(fftext, link=fflink, to=','.join(rooms), image_url=ffpict)
                         log.info('Published id: %s' % res['id'])
                     except Exception as err:
                         log.info('post_entry() failed with %s' % str(err))

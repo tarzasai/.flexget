@@ -240,15 +240,17 @@ templates:
         - eng.srt
 
   # Notification for news/podcasts.
-  xfeeds:
+  ffeeds:
     seen: local
     accept_all: yes
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'News from {{ task.name }}:'
-      text: '{{ title }} -- {{ url }}'
+    friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [esorfeeds]
+      text: '[{{ task }}] {{ title }}'
+      link: '{{ url }}'
 
   # No messages about no input/output/whatever.
   nosumm:
@@ -822,7 +824,7 @@ tasks:
   # system to get some updates on my phone :P
   ######################################################################################################################
 
-  _events:
+  events:
     priority: 200
     # interval: 50 minutes
     template:
@@ -848,91 +850,61 @@ tasks:
               - 61465: PowerChute comunica di nuovo con la batteria di backup
               - 176: PowerChute ha spento il sistema
     accept_all: yes
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Eventi di sistema:'
-      text: "{{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
+    friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [esorfeeds]
+      text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
-  _Flexget:
-    priority: 500
-    interval: 2 hours
-    template:
-      - no_global
-      - xfeeds
-    inputs:
-      # (latest Flexget tickets)
-      - rss: { url: 'http://flexget.com/report/1?sort=created&asc=0&page=1&format=rss', silent: yes, all_entries: no }
-
-  _Imogen Heap:
+  Imogen Heap:
     priority: 501
     interval: 12 hours
     template:
       - no_global
-      - xfeeds
+      - ffeeds
     inputs:
       - rss: { url: 'http://www.imogenheap.com/feed/', silent: yes, all_entries: no }
       - rss: { url: 'http://blog.imogenheap.com/rss', silent: yes, all_entries: no }
 
-  _Podcasts:
+  Podcasts:
     priority: 502
     interval: 7 days
     template:
       - no_global
-      - xfeeds
+      - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Radionation', silent: yes, all_entries: no }
 
-  _Dilbert:
+  Dilbert:
     priority: 503
     interval: 12 hours
     template:
       - no_global
-      - xfeeds
+      - ffeeds
     inputs:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
     # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
 
-  _Zerocalcare:
+  Zerocalcare:
     priority: 504
     interval: 2 days
     template:
       - no_global
-      - xfeeds
+      - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
 
-  _Romantically Apocalyptic:
+  Romantically Apocalyptic:
     priority: 505
     interval: 1 days
     template:
       - no_global
-      - xfeeds
+      - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
-
-  _FrenfiComms:
-    priority: 510
-    interval: 1 hours
-    # This plugin grabs the latest comments in specified threads on FriendFeed - see 
-    # https://github.com/tarzasai/.flexget/tree/master/plugins
-    getffcomms:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      posts:
-        - e-f1e550600ce349cc90271b3284bb22c3
-    seen: local
-    accept_all: yes
-    notify_xmpp:
-      sender: '{{ secrets.xmpp.usr }}'
-      password: '{{ secrets.xmpp.pwd }}'
-      recipient: '{{ secrets.xmpp.dst }}'
-      title: 'Nuovi commenti da frenfi:'
-      text: '- {{ comment_body }}  ({{ comment_author }} su "{{ post_title }}")'
 
   tvrenewed:
     priority: 515
@@ -1013,8 +985,7 @@ tasks:
       comment: "{{ tvdb_series_name|default(series_name) }}"
 
   fix_episodes:
-    priority: 600
-    interval: 7 days
+    manual: yes
     template:
       - no_global
       - noseen
@@ -1032,14 +1003,15 @@ tasks:
     manual: yes
     template:
       - no_global
+      - ffeeds
     mock:
-      - { title: 'prova da python (2)' }
+      - { title: 'prova da python (6)' }
     accept_all: yes
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
+    # friendfeed:
+      # app_key: '{{ secrets.ff.key }}'
+      # app_secret: '{{ secrets.ff.sec }}'
+      # username: '{{ secrets.ff.usr }}'
+      # password: '{{ secrets.ff.pwd }}'
 
   d2uc:
     manual: yes
