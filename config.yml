@@ -241,6 +241,7 @@ templates:
 
   # Notification for news/podcasts.
   ffeeds:
+    verify_ssl_certificates: no
     seen: local
     accept_all: yes
     friendfeed:
@@ -865,8 +866,7 @@ tasks:
       - no_global
       - ffeeds
     inputs:
-      - rss: { url: 'http://www.imogenheap.com/feed/', silent: yes, all_entries: no }
-      - rss: { url: 'http://blog.imogenheap.com/rss', silent: yes, all_entries: no }
+      - rss: { url: 'https://twitrss.me/twitter_user_to_rss/?user=imogenheap', silent: yes, all_entries: no }
 
   Podcasts:
     priority: 502
