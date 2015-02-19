@@ -352,6 +352,7 @@ tasks:
         - children: {from: tvdb_genres}
         - documentary: {from: tvdb_genres}
         - family: {from: tvdb_genres}
+        - food: {from: tvdb_genres}
         - game show: {from: tvdb_genres}
         - home and garden: {from: tvdb_genres}
         - mini-series: {from: tvdb_genres}
