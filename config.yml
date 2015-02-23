@@ -891,7 +891,7 @@ tasks:
 
   Zerocalcare:
     priority: 504
-    interval: 2 days
+    interval: 12 hours
     template:
       - no_global
       - ffeeds
