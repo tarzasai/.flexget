@@ -871,12 +871,12 @@ tasks:
 
   Podcasts:
     priority: 502
-    interval: 7 days
+    # interval: 2 days
     template:
       - no_global
       - ffeeds
     inputs:
-      - rss: { url: 'http://feeds.feedburner.com/Radionation', silent: yes, all_entries: no }
+      - rss: { url: 'http://www.macchianera.net/podcast.xml', silent: yes, all_entries: no }
 
   Dilbert:
     priority: 503
