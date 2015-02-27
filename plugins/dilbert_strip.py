@@ -28,7 +28,8 @@ class DilbertStrip(object):
                 continue
             soup = get_soup(page.text)
             try:
-                node = soup.find('div', attrs={'class': 'STR_Image'}).find_all('img')[0]
+                # /html/body/div[2]/div[3]/section/div[1]/a/img
+                node = soup.find('div', attrs={'class': 'img-comic-container'}).find_all('img')[0]
             except Exception as err:
                 log.error('Unable to get image node: %s' % err)
                 continue
