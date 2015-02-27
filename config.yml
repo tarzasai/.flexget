@@ -883,11 +883,19 @@ tasks:
     interval: 12 hours
     template:
       - no_global
-      - ffeeds
     inputs:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
     # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
+    friendfeed:
+      app_key: '{{ secrets.ff.key }}'
+      app_secret: '{{ secrets.ff.sec }}'
+      username: '{{ secrets.ff.usr }}'
+      password: '{{ secrets.ff.pwd }}'
+      feeds: [esorfeeds]
+      link: "{{ url }}"
+      text: "{{ strip_title }}"
+      image: "{{ strip_url }}"
 
   Zerocalcare:
     priority: 504

@@ -34,8 +34,8 @@ class DilbertStrip(object):
                 log.error('Unable to get image node: %s' % err)
                 continue
             if node and node.get('src'):
-                entry['original_url'] = entry['url']
-                entry['url'] = 'http://dilbert.com' + node.get('src')
+                entry['strip_url'] = node.get('src')
+                entry['strip_title'] = node.get('alt', "no title")
             else:
                 log.error('Unable to get image node for "%s"' % entry['title'])
 
