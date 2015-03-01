@@ -860,8 +860,17 @@ tasks:
       feeds: [esorfeeds]
       text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
+  Podcasts:
+    priority: 300
+    interval: 12 hours
+    template:
+      - no_global
+      - ffeeds
+    inputs:
+      - rss: { url: 'http://www.macchianera.net/podcast.xml', silent: yes, all_entries: no }
+
   Imogen Heap:
-    priority: 501
+    priority: 301
     interval: 12 hours
     template:
       - no_global
@@ -869,17 +878,17 @@ tasks:
     inputs:
       - rss: { url: 'https://twitrss.me/twitter_user_to_rss/?user=imogenheap', silent: yes, all_entries: no }
 
-  Podcasts:
-    priority: 502
-    # interval: 2 days
+  Macchianera:
+    priority: 302
+    interval: 12 hours
     template:
       - no_global
       - ffeeds
     inputs:
-      - rss: { url: 'http://www.macchianera.net/podcast.xml', silent: yes, all_entries: no }
+      - rss: { url: 'http://feeds.feedburner.com/Macchianera', silent: yes, all_entries: no }
 
   Dilbert:
-    priority: 503
+    priority: 303
     interval: 12 hours
     template:
       - no_global
@@ -898,7 +907,7 @@ tasks:
       image: "{{ strip_url }}"
 
   Zerocalcare:
-    priority: 504
+    priority: 304
     interval: 12 hours
     template:
       - no_global
@@ -907,7 +916,7 @@ tasks:
       - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
 
   Romantically Apocalyptic:
-    priority: 505
+    priority: 305
     interval: 1 days
     template:
       - no_global
@@ -916,7 +925,7 @@ tasks:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
 
   tvrenewed:
-    priority: 515
+    priority: 400
     interval: 7 days
     template:
       - tvinfo
@@ -955,7 +964,7 @@ tasks:
       comment: "{{ tvdb_series_name|default(series_name) }}"
 
   tvcanceled:
-    priority: 516
+    priority: 401
     interval: 7 days
     template:
       - tvinfo
