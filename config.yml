@@ -311,7 +311,7 @@ tasks:
               check_tags: none
       - configure_series:
           settings:
-            quality: <720p
+            quality: webrip
           from:
             uoccin_emit:
               path: '{{ secrets.uoccin }}'
