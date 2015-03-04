@@ -21,7 +21,7 @@ class UoccinWatchlist(object):
             elif all(field in entry for field in ['imdb_id', 'movie_name']):
                 movies[entry['imdb_id']] = entry['movie_name']
         if series:
-            dest = os.path.join(config['path'], 'series.watchlist.json')
+            dest = os.path.join(config if self.remove else config['path'], 'series.watchlist.json')
             data = {}
             if os.path.exists(dest):
                 with open(dest, 'r') as f:
@@ -49,7 +49,7 @@ class UoccinWatchlist(object):
                     f.write(text)
             self.log.info('Uoccin watchlist updated (%d series %s)' % (n, 'removed' if self.remove else 'added'))
         if movies:
-            dest = os.path.join(config['path'], 'movies.watchlist.json')
+            dest = os.path.join(config if self.remove else config['path'], 'movies.watchlist.json')
             data = {}
             if os.path.exists(dest):
                 with open(dest, 'r') as f:
