@@ -28,7 +28,7 @@ class UoccinWatched(object):
                 movies[entry['imdb_id']] = entry['movie_name']
         if series:
             for eid, show in series.items():
-                dest = os.path.join(config, 'series.collected.%s.json' % eid)
+                dest = os.path.join(config, 'series.watched.%s.json' % eid)
                 data = {'name': show['name'], 'rating': 5}
                 if os.path.exists(dest):
                     with open(dest, 'r') as f:

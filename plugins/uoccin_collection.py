@@ -24,10 +24,10 @@ class UoccinCollection(object):
             if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
                 eid = '%s.S%02dE%02d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
                 if not eid in series: # we can have more than one (different release/quality)
-                    series[eid] = {'name': entry.get('tvdb_series_name', entry['series_name'])}
+                    series[eid] = []
                 if self.acquire and 'subtitles' in entry:
-                    subs = series[eid]['subtitles'] if 'subtitles' in series[eid] else []
-                    series[eid]['subtitles'] = list(set(subs + entry['subtitles']))
+                    subs = series[eid]
+                    series[eid] = list(set(subs + entry['subtitles']))
             elif all(field in entry for field in ['imdb_id', 'movie_name']):
                 eid = entry['imdb_id']
                 if not eid in movies: # we can have more than one (different release/quality)
