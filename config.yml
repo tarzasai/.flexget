@@ -695,8 +695,8 @@ tasks:
 
   # Download italian and english subtitles for all the videos.
   subtitles:
-    # priority: 60
-    manual: yes
+    priority: 60
+    # manual: yes
     template:
       - noseen
       - nosumm
