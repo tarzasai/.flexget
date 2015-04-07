@@ -144,6 +144,10 @@ templates:
           replace:
             regexp: '^[^a-z0-9]*legends.(2014)?[^a-z0-9]*'
             format: 'Legends.2014.'
+      - title:
+          replace:
+            regexp: 'house.of.cards'
+            format: 'House_of_Cards_US'
 
   # Global filters for series.
   tvfltr:
