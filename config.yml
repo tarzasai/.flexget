@@ -94,8 +94,10 @@ templates:
     log_filter:
       inputs:
         - Unable to download the RSS for task
+        - ezrss.it
       rss:
         - I have saved the invalid content
+        - login page
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
