@@ -245,20 +245,6 @@ templates:
         - en.srt
         - eng.srt
 
-  # Notification for news/podcasts.
-  ffeeds:
-    verify_ssl_certificates: no
-    seen: local
-    accept_all: yes
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [esorfeeds]
-      text: '[{{ task }}] {{ title }}'
-      link: '{{ url }}'
-
   # No messages about no input/output/whatever.
   nosumm:
     disable:
@@ -868,30 +854,30 @@ tasks:
       feeds: [esorfeeds]
       text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
-  Podcasts:
+  _Podcasts:
     priority: 300
     interval: 12 hours
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     inputs:
       - rss: { url: 'http://www.macchianera.net/podcast.xml', silent: yes, all_entries: no }
 
-  Imogen Heap:
+  _Imogen Heap:
     priority: 301
     interval: 12 hours
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     inputs:
       - rss: { url: 'https://twitrss.me/twitter_user_to_rss/?user=imogenheap', silent: yes, all_entries: no }
 
-  Macchianera:
+  _Macchianera:
     priority: 302
     interval: 12 hours
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Macchianera', silent: yes, all_entries: no }
 
@@ -914,21 +900,21 @@ tasks:
       text: "{{ strip_title }}"
       image: "{{ strip_url }}"
 
-  Zerocalcare:
+  _Zerocalcare:
     priority: 304
     interval: 12 hours
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
 
-  Romantically Apocalyptic:
+  _Romantically Apocalyptic:
     priority: 305
     interval: 1 days
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
 
@@ -1025,11 +1011,11 @@ tasks:
       - not tvdb_ep_air_date or tvdb_ep_air_date > now - timedelta(days=1): accept
     forget_episodes: yes
 
-  testff:
+  _testff:
     manual: yes
     template:
       - no_global
-      - ffeeds
+      # - ffeeds
     mock:
       - { title: 'prova da python (6)' }
     accept_all: yes
