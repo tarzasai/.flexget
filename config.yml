@@ -881,7 +881,7 @@ tasks:
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/Macchianera', silent: yes, all_entries: no }
 
-  Dilbert:
+  _Dilbert:
     priority: 303
     interval: 12 hours
     template:
