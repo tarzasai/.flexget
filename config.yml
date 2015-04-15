@@ -143,12 +143,12 @@ templates:
             format: 'from_dusk_till_dawn.'
       - title:
           replace:
-            regexp: '^[^a-z0-9]*legends.(2014)?[^a-z0-9]*'
-            format: 'Legends.2014.'
+            regexp: '^[^a-z0-9]*house.of.cards.(us|\(us\))?[^a-z0-9]*'
+            format: 'House.of.Cards.(US)'
       - title:
           replace:
-            regexp: 'house.of.cards'
-            format: 'House_of_Cards_US'
+            regexp: '^[^a-z0-9]*turn.(.washington.s.spies)?[^a-z0-9]*'
+            format: 'Turn'
 
   # Global filters for series.
   tvfltr:
