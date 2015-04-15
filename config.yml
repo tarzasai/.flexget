@@ -95,6 +95,7 @@ templates:
       inputs:
         - Unable to download the RSS for task
         - ezrss.it
+        - kat.torrenticity.com
       rss:
         - I have saved the invalid content
         - login page
