@@ -144,11 +144,11 @@ templates:
       - title:
           replace:
             regexp: '^[^a-z0-9]*house.of.cards.(us|\(us\))?[^a-z0-9]*'
-            format: 'House.of.Cards.(US)'
+            format: 'House.of.Cards.(US).'
       - title:
           replace:
             regexp: '^[^a-z0-9]*turn.(.washington.s.spies)?[^a-z0-9]*'
-            format: 'Turn'
+            format: 'Turn.'
 
   # Global filters for series.
   tvfltr:
