@@ -326,7 +326,6 @@ tasks:
     # plugin_priority:
       # if: -252
       # manipulate: -253
-      # friendfeed: -255
     log_filter:
       series:
         - identified_by has locked
@@ -370,16 +369,6 @@ tasks:
       path: '{{ secrets.uoccin }}'
       tags: [ 'evaluate' ]
     # Send a description to a series-fan channel in a forgotten social network.
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [me, serietv]
-      text: "{% if tvdb_network|default(False) %}{{ tvdb_network }} {% endif %}#premiere: {{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}){% if tvdb_ep_name|default(False) %} - {{ tvdb_ep_name }}{% endif %}"
-      link: 'http://thetvdb.com/?tab=series&id={{ tvdb_id }}'
-      image: '{% if tvdb_poster_url|default(False) %}{{ tvdb_poster_url }}{% elif tvdb_banner_url|default(False) %}{{ tvdb_banner_url }}{% endif %}'
-      comment: '{% if tvdb_overview|default(False) %}{{ tvdb_overview }}{% endif %}'
 
   # Import IMDB movies watchlist in Uoccin.
   imdb2uoccin:
@@ -821,7 +810,7 @@ tasks:
   # system to get some updates on my phone :P
   ######################################################################################################################
 
-  events:
+  _events:
     priority: 200
     # interval: 50 minutes
     template:
@@ -847,13 +836,13 @@ tasks:
               - 61465: PowerChute comunica di nuovo con la batteria di backup
               - 176: PowerChute ha spento il sistema
     accept_all: yes
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [esorfeeds]
-      text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
+    # friendfeed:
+      # app_key: '{{ secrets.ff.key }}'
+      # app_secret: '{{ secrets.ff.sec }}'
+      # username: '{{ secrets.ff.usr }}'
+      # password: '{{ secrets.ff.pwd }}'
+      # feeds: [esorfeeds]
+      # text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
 
   _Podcasts:
     priority: 300
@@ -891,15 +880,15 @@ tasks:
       - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
     # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
     dilbert_strip: yes
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [esorfeeds]
-      link: "{{ url }}"
-      text: "{{ strip_title }}"
-      image: "{{ strip_url }}"
+    # friendfeed:
+      # app_key: '{{ secrets.ff.key }}'
+      # app_secret: '{{ secrets.ff.sec }}'
+      # username: '{{ secrets.ff.usr }}'
+      # password: '{{ secrets.ff.pwd }}'
+      # feeds: [esorfeeds]
+      # link: "{{ url }}"
+      # text: "{{ strip_title }}"
+      # image: "{{ strip_url }}"
 
   _Zerocalcare:
     priority: 304
@@ -919,7 +908,7 @@ tasks:
     inputs:
       - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
 
-  tvrenewed:
+  _tvrenewed:
     priority: 400
     interval: 7 days
     template:
@@ -947,18 +936,18 @@ tasks:
         - soap: {from: tvdb_genres}
         - special interest: {from: tvdb_genres}
         - talk show: {from: tvdb_genres}
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [me, serietv]
-      mode: comments
-      text: "TVRage weekly #rencans: serie confermate/rinnovate"
-      link: 'http://www.tvrage.com/status_update.php'
-      comment: "{{ tvdb_series_name|default(series_name) }}"
+    # friendfeed:
+      # app_key: '{{ secrets.ff.key }}'
+      # app_secret: '{{ secrets.ff.sec }}'
+      # username: '{{ secrets.ff.usr }}'
+      # password: '{{ secrets.ff.pwd }}'
+      # feeds: [me, serietv]
+      # mode: comments
+      # text: "TVRage weekly #rencans: serie confermate/rinnovate"
+      # link: 'http://www.tvrage.com/status_update.php'
+      # comment: "{{ tvdb_series_name|default(series_name) }}"
 
-  tvcanceled:
+  _tvcanceled:
     priority: 401
     interval: 7 days
     template:
@@ -986,16 +975,16 @@ tasks:
         - soap: {from: tvdb_genres}
         - special interest: {from: tvdb_genres}
         - talk show: {from: tvdb_genres}
-    friendfeed:
-      app_key: '{{ secrets.ff.key }}'
-      app_secret: '{{ secrets.ff.sec }}'
-      username: '{{ secrets.ff.usr }}'
-      password: '{{ secrets.ff.pwd }}'
-      feeds: [me, serietv]
-      mode: comments
-      text: "TVRage weekly #rencans: serie CANCELLATE"
-      link: 'http://www.tvrage.com/status_update.php'
-      comment: "{{ tvdb_series_name|default(series_name) }}"
+    # friendfeed:
+      # app_key: '{{ secrets.ff.key }}'
+      # app_secret: '{{ secrets.ff.sec }}'
+      # username: '{{ secrets.ff.usr }}'
+      # password: '{{ secrets.ff.pwd }}'
+      # feeds: [me, serietv]
+      # mode: comments
+      # text: "TVRage weekly #rencans: serie CANCELLATE"
+      # link: 'http://www.tvrage.com/status_update.php'
+      # comment: "{{ tvdb_series_name|default(series_name) }}"
 
   fix_episodes:
     manual: yes
@@ -1011,20 +1000,6 @@ tasks:
       - not tvdb_id: accept
       - not tvdb_ep_air_date or tvdb_ep_air_date > now - timedelta(days=1): accept
     forget_episodes: yes
-
-  _testff:
-    manual: yes
-    template:
-      - no_global
-      # - ffeeds
-    mock:
-      - { title: 'prova da python (6)' }
-    accept_all: yes
-    # friendfeed:
-      # app_key: '{{ secrets.ff.key }}'
-      # app_secret: '{{ secrets.ff.sec }}'
-      # username: '{{ secrets.ff.usr }}'
-      # password: '{{ secrets.ff.pwd }}'
 
   d2uc:
     manual: yes
