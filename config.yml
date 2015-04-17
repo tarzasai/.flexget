@@ -147,8 +147,8 @@ templates:
             format: 'House.of.Cards.(US).'
       - title:
           replace:
-            regexp: '^[^a-z0-9]*turn.(.washington.s.spies)?[^a-z0-9]*'
-            format: 'Turn.'
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: "TURN_Washington_Spies."
 
   # Global filters for series.
   tvfltr:
@@ -284,6 +284,11 @@ tasks:
       remember_rejected:
         - Remembering rejection of
     seen: local
+    manipulate:
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn.'
     sequence:
       - configure_series:
           settings:
@@ -683,6 +688,9 @@ tasks:
       - noseen
       - nosumm
       - nofail
+    plugin_priority:
+      subliminal: -200
+      uoccin_acquire: -201
     log_filter:
       entry:
         - subtitles for now
@@ -704,6 +712,8 @@ tasks:
         - ita
       alternatives:
         - eng
+    # Updates the Uoccin collection with subs data.
+    uoccin_acquire: '{{ secrets.uoccin }}'
     # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
     # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
     fix_subtitles: yes
