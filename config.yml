@@ -288,7 +288,7 @@ tasks:
       - title:
           replace:
             regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: 'Turn.'
+            format: 'Turn '
     sequence:
       - configure_series:
           settings:
