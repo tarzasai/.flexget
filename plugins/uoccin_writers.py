@@ -1,12 +1,10 @@
 from __future__ import unicode_literals, division, absolute_import
 from datetime import datetime
-import logging
-import uuid
 import os
 
 from flexget import plugin
 from flexget.event import event
-from flexget.utils import json
+from flexget.plugins.local.uoccin_reader import UoccinProcess
 
 
 class UoccinWriter(object):
@@ -14,101 +12,165 @@ class UoccinWriter(object):
     uoccin_queue_out = ''
     
     def on_task_start(self, task, config):
-        UoccinWriter.uoccin_queue_out = 'dump.%s.%s' % (datetime.now().strftime('%Y%m%d%H%M%S'), str(uuid.uuid1()))
-    
-    def append_command(self, path, target, title, field, value):
         ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
-        line = '%d|%s|%s|%s|%s' % (ts, target, title, field, value)
-        with open(os.path.join(path, UoccinWriter.uoccin_queue_out), 'a') as f:
-            f.writeline(line)
+        fn = 'diff.%d.%s' % (ts, config['uuid'])
+        UoccinWriter.uoccin_queue_out = os.path.join(config['path'], fn)
 
-
-class UoccinCollection(UoccinWriter):
-
-    schema = { 'type': 'string', 'format': 'path' }
+    def on_task_exit(self, task, config):
+        if os.path.exists(UoccinWriter.uoccin_queue_out):
+            up = UoccinProcess()
+            up.reset(config['path'])
+            up.load(UoccinWriter.uoccin_queue_out)
+            up.process()
     
-    # Defined by subclasses
-    acquire = None
-    
-    def on_task_output(self, task, config):
-        """Add accepted episodes and/or movies to uoccin's collection"""
-        for entry in task.accepted:
-            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
-                eid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
-                self.append_command(config, 'series', eid, 'collected', str(self.acquire).lower())
-                if self.acquire and 'subtitles' in entry:
-                    self.append_command(config, 'series', eid, 'subtitles', entry['subtitles'])
-            elif all(field in entry for field in ['imdb_id', 'movie_name']):
-                self.append_command(config, 'movie', entry['imdb_id'], 'collected', str(self.acquire).lower())
-                if self.acquire and 'subtitles' in entry:
-                    self.append_command(config, 'movie', entry['imdb_id'], 'subtitles', entry['subtitles'])
-
-
-class UoccinAcquire(UoccinCollection):
-    """Add/update all accepted elements in your uoccin collection."""
-    acquire = True
-
-
-class UoccinForget(UoccinCollection):
-    """Remove all accepted elements from your uoccin collection."""
-    acquire = False
-
-
-class UoccinWatched(UoccinWriter):
-
-    schema = { 'type': 'string', 'format': 'path' }
-    
-    def on_task_output(self, task, config):
-        """Add accepted episodes and/or movies to uoccin's watched list"""
-        for entry in task.accepted:
-            if all(field in entry for field in ['tvdb_id', 'series_name', 'series_season', 'series_episode']):
-                eid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
-                self.append_command(config, 'series', eid, 'watched', 'true')
-            elif all(field in entry for field in ['imdb_id', 'movie_name']):
-                self.append_command(config, 'movie', entry['imdb_id'], 'watched', 'true')
+    def append_command(self, target, title, field, value):
+        ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
+        line = '%d|%s|%s|%s|%s\n' % (ts, target, title, field, value)
+        with open(UoccinWriter.uoccin_queue_out, 'a') as f:
+            f.write(line)
 
 
 class UoccinWatchlist(UoccinWriter):
     
     # Defined by subclasses
-    remove = None
+    set_true = None
     
     def on_task_output(self, task, config):
         """Add accepted series and/or movies to uoccin's watchlist"""
         for entry in task.accepted:
-            if all(field in entry for field in ['tvdb_id', 'series_name']):
-                self.append_command(config, 'series', entry['tvdb_id'], 'watchlist', str(not self.remove).lower())
-            elif all(field in entry for field in ['imdb_id', 'movie_name']):
-                self.append_command(config, 'movie', entry['imdb_id'], 'watchlist', str(not self.remove).lower())
-            # tags!
+            tid = None
+            typ = None
+            if entry.get('tvdb_id'):
+                tid = entry['tvdb_id']
+                typ = 'series'
+            elif entry.get('imdb_id'):
+                tid = entry['imdb_id']
+                typ = 'movie'
+            if tid is None:
+                continue
+            self.append_command(typ, tid, 'watchlist', str(self.set_true).lower())
+            if self.set_true:
+                self.append_command(typ, tid, 'tags', ",".join(config['tags']))
 
 
-class UoccinQueue(UoccinWatchlist):
+class UoccinWlstAdd(UoccinWatchlist):
     """Add all accepted series/movies to Uoccin watchlist."""
     schema = {
         'type': 'object',
         'properties': {
+            'uuid': {'type': 'string'},
             'path': {'type': 'string', 'format': 'path'},
             'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
         },
-        'required': ['path'],
+        'required': ['uuid', 'path'],
         'additionalProperties': False
     }
-    remove = False
+    set_true = True
 
 
-class UoccinUnqueue(UoccinWatchlist):
+class UoccinWlstDel(UoccinWatchlist):
     """Remove all accepted elements from Uoccin watchlist."""
-    schema = { 'type': 'string', 'format': 'path' }
-    remove = True
+    schema = {
+        'type': 'object',
+        'properties': {
+            'uuid': {'type': 'string'},
+            'path': {'type': 'string', 'format': 'path'},
+        },
+        'required': ['uuid', 'path'],
+        'additionalProperties': False
+    }
+    set_true = False
 
 
-'''
+class UoccinCollection(UoccinWriter):
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'uuid': {'type': 'string'},
+            'path': {'type': 'string', 'format': 'path'},
+        },
+        'required': ['uuid', 'path'],
+        'additionalProperties': False
+    }
+    
+    # Defined by subclasses
+    set_true = None
+    
+    def on_task_output(self, task, config):
+        """Add accepted episodes and/or movies to uoccin's collection"""
+        for entry in task.accepted:
+            tid = None
+            typ = None
+            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
+                tid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
+                typ = 'series'
+            elif entry.get('imdb_id'):
+                tid = entry['imdb_id']
+                typ = 'movie'
+            if tid is None:
+                continue
+            self.append_command(typ, tid, 'collected', str(self.set_true).lower())
+            if self.set_true and 'subtitles' in entry:
+                self.append_command(typ, tid, 'subtitles', ",".join(config['subtitles']))
+
+
+class UoccinCollAdd(UoccinCollection):
+    """Add/update all accepted elements in uoccin collection."""
+    set_true = True
+
+
+class UoccinCollDel(UoccinCollection):
+    """Remove all accepted elements from uoccin collection."""
+    set_true = False
+
+
+class UoccinWatched(UoccinWriter):
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'uuid': {'type': 'string'},
+            'path': {'type': 'string', 'format': 'path'},
+        },
+        'required': ['uuid', 'path'],
+        'additionalProperties': False
+    }
+    
+    # Defined by subclasses
+    set_true = None
+    
+    def on_task_output(self, task, config):
+        """Add accepted episodes and/or movies to uoccin's watched list"""
+        for entry in task.accepted:
+            tid = None
+            typ = None
+            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
+                tid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
+                typ = 'series'
+            elif entry.get('imdb_id'):
+                tid = entry['imdb_id']
+                typ = 'movie'
+            if tid is None:
+                continue
+            self.append_command(typ, tid, 'watched', str(self.set_true).lower())
+
+
+class UoccinSeenAdd(UoccinWatched):
+    """Set all accepted elements as watched."""
+    set_true = True
+
+
+class UoccinSeenDel(UoccinWatched):
+    """Set all accepted elements as not watched."""
+    set_true = False
+
+
 @event('plugin.register')
 def register_plugin():
-    plugin.register(UoccinQueue, 'uoccin_queue', api_ver=2)
-    plugin.register(UoccinUnqueue, 'uoccin_unqueue', api_ver=2)
-    plugin.register(UoccinAcquire, 'uoccin_acquire', api_ver=2)
-    plugin.register(UoccinForget, 'uoccin_forget', api_ver=2)
-    plugin.register(UoccinWatched, 'uoccin_watched', api_ver=2)
-'''
+    plugin.register(UoccinWlstAdd, 'uoccin_watchlist_add', api_ver=2)
+    plugin.register(UoccinWlstDel, 'uoccin_watchlist_remove', api_ver=2)
+    plugin.register(UoccinCollAdd, 'uoccin_collection_add', api_ver=2)
+    plugin.register(UoccinCollDel, 'uoccin_collection_remove', api_ver=2)
+    plugin.register(UoccinSeenAdd, 'uoccin_watched_true', api_ver=2)
+    plugin.register(UoccinSeenDel, 'uoccin_watched_false', api_ver=2)
