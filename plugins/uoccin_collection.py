@@ -45,7 +45,7 @@ class UoccinCollection(object):
                 if self.acquire:
                     log.info('adding/updating episode %s to Uoccin collection' % eid)
                     data[eid] = series[eid]
-                else:
+                elif eid in data:
                     log.info('removing episode %s from Uoccin collection' % eid)
                     data.pop(eid)
             text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
@@ -62,7 +62,7 @@ class UoccinCollection(object):
                 if self.acquire:
                     log.info('adding/updating movie %s to Uoccin collection' % eid)
                     data[eid] = movies[eid]
-                else:
+                elif eid in data:
                     log.info('removing movie %s from Uoccin collection' % eid)
                     data.pop(eid)
             text = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))

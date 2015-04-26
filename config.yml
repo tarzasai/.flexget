@@ -680,67 +680,9 @@ tasks:
       finished_for: 48 hours
       delete_files: yes
 
-  # Download italian and english subtitles for all the videos.
-  subtitles:
-    priority: 60
-    # manual: yes
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    plugin_priority:
-      subliminal: -200
-      uoccin_acquire: -201
-    log_filter:
-      entry:
-        - subtitles for now
-        - found for a second-choice
-      guessit.guess:
-        - duplicate properties
-        - both guesses to be merged
-      subtitles:
-        - Name computed for
-    find:
-      path:
-        - C:\Storage\Videos\Incoming
-        # - C:\Storage\Videos\Incoming\series\New Girl
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    accept_all: yes
-    subliminal:
-      languages:
-        - ita
-      alternatives:
-        - eng
-    # Updates the Uoccin collection with subs data.
-    uoccin_acquire: '{{ secrets.uoccin }}'
-    # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
-    # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    fix_subtitles: yes
-
-  updu4subs:
-    # priority: 62
-    manual: yes
-    template:
-      - noseen
-      - nosumm
-      - nofail
-    metainfo_series: yes
-    thetvdb_lookup: yes
-    imdb_lookup: yes
-    check_subtitles: yes
-    find:
-      path:
-        - C:\Storage\Videos\Incoming
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    if:
-      - subtitles: accept
-    uoccin_acquire: '{{ secrets.uoccin }}'
-
   # Move watched episodes out of the incoming folder.
   purge_series:
-    priority: 70
+    priority: 50
     template:
       - no_global
       - noseen
@@ -767,7 +709,7 @@ tasks:
 
   # Delete watched movies.
   purge_movies:
-    priority: 71
+    priority: 51
     template:
       - no_global
       - noseen
@@ -790,7 +732,7 @@ tasks:
 
   # Save watched movies (the very good ones).
   save_movies:
-    priority: 72
+    priority: 52
     template:
       - no_global
       - noseen
@@ -813,6 +755,61 @@ tasks:
       allow_background: yes
       on_exit:
         phase: md C:\Storage\Videos\Incoming\movies
+
+  # Download italian and english subtitles for all the videos.
+  subtitles:
+    priority: 60
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    plugin_priority:
+      subliminal: -200
+      uoccin_acquire: -201
+    log_filter:
+      entry:
+        - subtitles for now
+        - found for a second-choice
+      guessit.guess:
+        - duplicate properties
+        - both guesses to be merged
+      subtitles:
+        - Name computed for
+    find:
+      path:
+        - C:\Storage\Videos\Incoming
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    accept_all: yes
+    subliminal:
+      languages:
+        - ita
+      alternatives:
+        - eng
+    # Updates the Uoccin collection with subs data.
+    uoccin_acquire: '{{ secrets.uoccin }}'
+    # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
+    # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    fix_subtitles: yes
+
+  updu4subs:
+    manual: yes
+    template:
+      - noseen
+      - nosumm
+      - nofail
+    metainfo_series: yes
+    thetvdb_lookup: yes
+    imdb_lookup: yes
+    check_subtitles: yes
+    find:
+      path:
+        - C:\Storage\Videos\Incoming
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    if:
+      - subtitles: accept
+    uoccin_acquire: '{{ secrets.uoccin }}'
 
   ######################################################################################################################
   # NEWS & PODCASTS
