@@ -89,7 +89,6 @@ templates:
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
       - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
-      - rss: { url: 'http://ezrss.it/feed/', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
     log_filter:
       inputs:
@@ -107,7 +106,7 @@ templates:
       manipulate: 255
     metainfo_series: yes
     thetvdb_lookup: yes
-    uoccin_lookup: '{{ secrets.uoccin }}'
+    uoccin_lookup: '{{ secrets.uoccin.path }}'
     log_filter:
       api_tvdb:
         - using cached data
@@ -185,7 +184,7 @@ templates:
       rottentomatoes_lookup: 127
     imdb_lookup: yes
     tmdb_lookup: yes
-    uoccin_lookup: '{{ secrets.uoccin }}'
+    uoccin_lookup: '{{ secrets.uoccin.path }}'
     rottentomatoes_lookup: yes
 
   # Global filters for movies.
@@ -295,7 +294,7 @@ tasks:
             quality: 720p hdtv+
           from:
             uoccin_emit:
-              path: '{{ secrets.uoccin }}'
+              path: '{{ secrets.uoccin.path }}'
               type: series
               tags: [ 'hires' ]
       - configure_series:
@@ -303,7 +302,7 @@ tasks:
             quality: <720p hdtv+
           from:
             uoccin_emit:
-              path: '{{ secrets.uoccin }}'
+              path: '{{ secrets.uoccin.path }}'
               type: series
               tags: [ 'hires', 'netflix' ]
               check_tags: none
@@ -312,7 +311,7 @@ tasks:
             quality: webrip
           from:
             uoccin_emit:
-              path: '{{ secrets.uoccin }}'
+              path: '{{ secrets.uoccin.path }}'
               type: series
               tags: [ 'netflix' ]
     transmission:
@@ -371,9 +370,12 @@ tasks:
       bandwidthpriority: -1
     # set_series_begin: yes
     uoccin_queue:
-      path: '{{ secrets.uoccin }}'
+      path: '{{ secrets.uoccin.path }}'
       tags: [ 'evaluate' ]
-    # Send a description to a series-fan channel in a forgotten social network.
+    uoccin_watchlist_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+      tags: [ 'evaluate' ]
 
   # Import IMDB movies watchlist in Uoccin.
   imdb2uoccin:
@@ -391,12 +393,16 @@ tasks:
     require_field:
       - imdb_id
       - movie_name
-    uoccin_lookup: '{{ secrets.uoccin }}'
+    uoccin_lookup: '{{ secrets.uoccin.path }}'
     if:
       - uoccin_queued or uoccin_watched or uoccin_collected: reject
     accept_all: yes
     uoccin_queue:
-      path: '{{ secrets.uoccin }}'
+      path: '{{ secrets.uoccin.path }}'
+      tags: [ 'IMDB' ]
+    uoccin_watchlist_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
       tags: [ 'IMDB' ]
 
   # Import Uoccin watchlist in flexget movie queue.
@@ -409,7 +415,7 @@ tasks:
       # - nofail
     seen: local
     uoccin_emit:
-      path: '{{ secrets.uoccin }}'
+      path: '{{ secrets.uoccin.path }}'
       type: movies
     accept_all: yes
     movie_queue: add
@@ -459,7 +465,7 @@ tasks:
         - lookup failed
       tmdb_lookup:
         - lookup failed
-    uoccin_lookup: '{{ secrets.uoccin }}'
+    uoccin_lookup: '{{ secrets.uoccin.path }}'
     exists_movie:
       - C:\Storage\Videos\Incoming\movies
       - C:\Storage\Videos\Movies
@@ -610,7 +616,10 @@ tasks:
       to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
     # Add to Uoccin episodes collection.
-    uoccin_acquire: '{{ secrets.uoccin }}'
+    uoccin_acquire: '{{ secrets.uoccin.path }}'
+    uoccin_collection_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
 
   # Move movies from Transmission destination folder to the incoming folder.
   move_movies:
@@ -657,8 +666,14 @@ tasks:
       to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
     # Update Uoccin movies collection/watchlist.
-    uoccin_acquire: '{{ secrets.uoccin }}'
-    uoccin_unqueue: '{{ secrets.uoccin }}'
+    uoccin_acquire: '{{ secrets.uoccin.path }}'
+    uoccin_unqueue: '{{ secrets.uoccin.path }}'
+    uoccin_collection_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+    uoccin_watchlist_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
 
   # Clean Transmission of completed torrents.
   cleantran:
@@ -700,7 +715,10 @@ tasks:
     move:
       to: "C:\\Storage\\Videos\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
       clean_source: 10
-    uoccin_forget: '{{ secrets.uoccin }}'
+    uoccin_forget: '{{ secrets.uoccin.path }}'
+    uoccin_collection_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
     # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -723,7 +741,10 @@ tasks:
       recursive: yes
     if:
       - uoccin_watched and uoccin_rating < 8: accept
-    uoccin_forget: '{{ secrets.uoccin }}'
+    uoccin_forget: '{{ secrets.uoccin.path }}'
+    uoccin_collection_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -749,7 +770,6 @@ tasks:
     move:
       to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 10
-    uoccin_forget: '{{ secrets.uoccin }}'
     # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
     exec:
       allow_background: yes
@@ -766,6 +786,7 @@ tasks:
     plugin_priority:
       subliminal: -200
       uoccin_acquire: -201
+      uoccin_collection_add: -202
     log_filter:
       entry:
         - subtitles for now
@@ -787,7 +808,10 @@ tasks:
       alternatives:
         - eng
     # Updates the Uoccin collection with subs data.
-    uoccin_acquire: '{{ secrets.uoccin }}'
+    uoccin_acquire: '{{ secrets.uoccin.path }}'
+    uoccin_collection_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
     # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
     # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
     fix_subtitles: yes
@@ -809,7 +833,10 @@ tasks:
       recursive: yes
     if:
       - subtitles: accept
-    uoccin_acquire: '{{ secrets.uoccin }}'
+    uoccin_acquire: '{{ secrets.uoccin.path }}'
+    uoccin_collection_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
 
   ######################################################################################################################
   # NEWS & PODCASTS
@@ -1030,7 +1057,10 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    uoccin_acquire: '{{ secrets.uoccin }}'
+    uoccin_acquire: '{{ secrets.uoccin.path }}'
+    uoccin_collection_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
 
   t2um:
     manual: yes
@@ -1053,4 +1083,4 @@ tasks:
       list: watched
       type: movies
     accept_all: yes
-    uoccin_watched: '{{ secrets.uoccin }}'
+    uoccin_watched: '{{ secrets.uoccin.path }}'
