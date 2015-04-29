@@ -829,22 +829,27 @@ tasks:
     fix_subtitles: yes
 
   updu4subs:
-    manual: yes
+    # manual: yes
+    priority: 61
     template:
       - noseen
       - nosumm
       - nofail
-    metainfo_series: yes
-    thetvdb_lookup: yes
-    imdb_lookup: yes
+      # - mvinfo
+      - tvinfo
+    # metainfo_series: yes
+    # thetvdb_lookup: yes
+    # imdb_lookup: yes
     check_subtitles: yes
     find:
       path:
-        - C:\Storage\Videos\Incoming
+        # - C:\Storage\Videos\Incoming
+        - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    if:
-      - subtitles: accept
+    # if:
+      # - subtitles: accept
+    accept_all: yes
     uoccin_acquire: '{{ secrets.uoccin.path }}'
     uoccin_collection_add:
       uuid: '{{ secrets.uoccin.uuid }}'
