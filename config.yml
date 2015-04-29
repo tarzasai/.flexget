@@ -266,6 +266,18 @@ templates:
 
 tasks:
 
+  uoccin_sync:
+    priority: 1
+    seen: local
+    find:
+      path:
+        - {{ secrets.uoccin.path }}
+      regexp: 'diff\..*$'
+    accept_all: yes
+    uoccin_reader:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+
   # This is the download task for series.
   get_series:
     priority: 3
