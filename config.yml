@@ -271,7 +271,7 @@ tasks:
     seen: local
     find:
       path:
-        - {{ secrets.uoccin.path }}
+        - '{{ secrets.uoccin.path }}'
       regexp: 'diff\..*$'
     accept_all: yes
     uoccin_reader:
