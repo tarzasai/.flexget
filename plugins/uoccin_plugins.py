@@ -267,7 +267,7 @@ class UoccinCollection(UoccinWriter):
                 continue
             self.append_command(typ, tid, 'collected', str(self.set_true).lower())
             if self.set_true and 'subtitles' in entry:
-                self.append_command(typ, tid, 'subtitles', ",".join(config['subtitles']))
+                self.append_command(typ, tid, 'subtitles', ",".join(entry['subtitles']))
 
 
 class UoccinCollAdd(UoccinCollection):
