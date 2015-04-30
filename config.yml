@@ -6,8 +6,6 @@ templates:
   global:
     # plugin_priority:
       # notify_xmpp: -255
-    disable:
-      - notify_xmpp
     private_torrents: no
     regexp:
       reject:
@@ -268,6 +266,9 @@ tasks:
 
   uoccin_sync:
     priority: 1
+    template:
+      - nosumm
+      - nofail
     seen: local
     find:
       path:
