@@ -829,8 +829,8 @@ tasks:
     fix_subtitles: yes
 
   updu4subs:
-    # manual: yes
-    priority: 61
+    manual: yes
+    # priority: 61
     template:
       - noseen
       - nosumm
