@@ -156,7 +156,7 @@ class UoccinReader(object):
         for entry in task.accepted:
             if entry.get('location'):
                 fn = os.path.basename(entry['location'])
-                if fn.startswith('diff.') and not fn.endswith(config['uuid']):
+                if fn.endswith('.diff') and not (config['uuid'] in fn):
                     UoccinReader.processor.load(entry['location'])
                 else:
                     self.log.debug('skipping %s (not a foreign diff file)' % fn)
@@ -168,7 +168,7 @@ class UoccinWriter(object):
     
     def on_task_start(self, task, config):
         ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
-        fn = 'diff.%d.%s' % (ts, config['uuid'])
+        fn = '%d.%s.diff' % (ts, config['uuid'])
         UoccinWriter.uoccin_queue_out = os.path.join(config['path'], fn)
 
     def on_task_exit(self, task, config):
