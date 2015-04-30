@@ -101,7 +101,7 @@ class UoccinProcess(object):
                         season.pop(eno)
                         if not season:
                             self.log.verbose('deleting unused section: series\%s\collected\%s' % (sid, sno))
-                            ser['collected'].pop(season)
+                            ser['collected'].pop(sno)
                 elif fld == 'subtitles':
                     ser['collected'].setdefault(sno, {})[eno] = re.split(',\s*', val)
                 elif fld == 'watched':
@@ -113,7 +113,7 @@ class UoccinProcess(object):
                     season.sort()
                     if not season:
                         self.log.verbose('deleting unused section: series\%s\watched\%s' % (sid, sno))
-                        ser['watched'].pop(season)
+                        ser['watched'].pop(sno)
                 # cleaning
                 if not (ser['watchlist'] or ser['collected'] or ser['watched']):
                     self.log.verbose('deleting unused section: series\%s' % sid)
