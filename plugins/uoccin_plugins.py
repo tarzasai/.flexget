@@ -5,8 +5,23 @@ import os
 import re
 
 from flexget import plugin
+from flexget.entry import Entry
 from flexget.event import event
 from flexget.utils import json
+
+
+def load_uoccin_data(path):
+    udata = {}
+    ufile = os.path.join(path, 'uoccin.json')
+    if os.path.exists(ufile):
+        try:
+            with open(ufile, 'r') as f:
+                udata = json.load(f)
+        except Exception as err:
+            raise plugin.PluginError('error reading %s: %s' % (ufile, err))
+    udata.setdefault('movies', {})
+    udata.setdefault('series', {})
+    return udata
 
 
 class UoccinProcess(object):
@@ -23,8 +38,6 @@ class UoccinProcess(object):
         with open(filename, 'r') as f:
             lines = f.read().splitlines()
         if lines:
-            lines = [l for l in lines if not l.startswith(';')] # just for debug
-        if lines:
             self.log.info('found %d changes in %s' % (len(lines), filename))
             self.changes.extend(lines)
         else:
@@ -32,20 +45,7 @@ class UoccinProcess(object):
     
     def process(self):
         self.changes.sort()
-        
-        udata = {}
-        ufile = os.path.join(self.folder, 'uoccin.json')
-        if os.path.exists(ufile):
-            try:
-                self.log.verbose('loading file %s' % ufile)
-                with open(ufile, 'r') as f:
-                    udata = json.load(f)
-            except Exception as err:
-                self.log.debug('error reading %s: %s' % (ufile, err))
-                raise plugin.PluginError('error reading %s: %s' % (ufile, err))
-        udata.setdefault('movies', {})
-        udata.setdefault('series', {})
-        
+        udata = load_uoccin_data(self.folder)
         for line in self.changes:
             tmp = line.split('|')
             typ = tmp[1]
@@ -53,7 +53,6 @@ class UoccinProcess(object):
             fld = tmp[3]
             val = tmp[4]
             self.log.verbose('processing: type=%s, target=%s, field=%s, value=%s' % (typ, tid, fld, val))
-            
             if typ == 'movie':
                 # default
                 mov = udata['movies'].setdefault(tid, 
@@ -75,7 +74,6 @@ class UoccinProcess(object):
                 if not (mov['watchlist'] or mov['collected'] or mov['watched']):
                     self.log.verbose('deleting unused section: movies\%s' % tid)
                     udata['movies'].pop(tid)
-                
             elif typ == 'series':
                 tmp = tid.split('.')
                 sid = tmp[0]
@@ -112,18 +110,16 @@ class UoccinProcess(object):
                         season.remove(int(eno))
                     season.sort()
                     if not season:
-                        self.log.verbose('deleting unused section: series\%s\watched\%s' % (sid, sno))
+                        self.log.debug('deleting unused section: series\%s\watched\%s' % (sid, sno))
                         ser['watched'].pop(sno)
                 # cleaning
                 if not (ser['watchlist'] or ser['collected'] or ser['watched']):
-                    self.log.verbose('deleting unused section: series\%s' % sid)
+                    self.log.debug('deleting unused section: series\%s' % sid)
                     udata['series'].pop(sid)
-                
             else:
                 self.log.warning('invalid element type "%s"' % typ)
-        
+        ufile = os.path.join(self.folder, 'uoccin.json')
         try:
-            self.log.verbose('saving file %s' % ufile)
             text = json.dumps(udata, sort_keys=True, indent=4, separators=(',', ': '))
             with open(ufile, 'w') as f:
                 f.write(text)
@@ -321,6 +317,53 @@ class UoccinSeenDel(UoccinWatched):
     set_true = False
 
 
+class UoccinEmit(object):
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'path': {'type': 'string', 'format': 'path'},
+            'type': {'type': 'string', 'enum': ['series', 'movies']},
+            'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
+            'check_tags': {'type': 'string', 'enum': ['any', 'all', 'none'], 'default': 'any'},
+        },
+        'required': ['path', 'type'],
+        'additionalProperties': False
+    }
+    
+    def on_task_input(self, task, config):
+        """asd"""
+        udata = load_uoccin_data(config)
+        section = udata['movies'] if config['type'] == 'movies' else udata['series']
+        entries = []
+        for eid, itm in section.items():
+            if not itm['watchlist']:
+                continue
+            if 'tags' in config:
+                n = len(set(config['tags']) & set(itm['tags']))
+                if config['check_tags'] == 'any' and n <= 0:
+                    continue
+                if config['check_tags'] == 'all' and n != len(config['tags']):
+                    continue
+                if config['check_tags'] == 'none' and n > 0:
+                    continue
+            entry = Entry()
+            entry['title'] = itm['name']
+            if config['type'] == 'movies':
+                entry['url'] = 'http://www.imdb.com/title/' + eid
+                entry['imdb_id'] = eid
+            else:
+                entry['url'] = 'http://thetvdb.com/?tab=series&id=' + eid
+                entry['tvdb_id'] = eid
+            if 'tags' in itm:
+                entry['uoccin_tags'] = itm['tags']
+            if entry.isvalid():
+                entries.append(entry)
+            else:
+                self.log.debug('Invalid entry created? %s' % entry)
+        return entries
+
+
 class UoccinLookup(object):
 
     schema = { 'type': 'string', 'format': 'path' }
@@ -330,20 +373,9 @@ class UoccinLookup(object):
     def on_task_metainfo(self, task, config):
         if not task.entries:
             return
-        udata = {}
-        ufile = os.path.join(config, 'uoccin.json')
-        if os.path.exists(ufile):
-            try:
-                self.log.verbose('loading file %s' % ufile)
-                with open(ufile, 'r') as f:
-                    udata = json.load(f)
-            except Exception as err:
-                self.log.debug('error reading %s: %s' % (ufile, err))
-                raise plugin.PluginError('error reading %s: %s' % (ufile, err))
-        movies = udata.setdefault('movies', {})
-        series = udata.setdefault('series', {})
-        if not (movies or series):
-            return
+        udata = load_uoccin_data(config)
+        movies = udata['movies']
+        series = udata['series']
         for entry in task.entries:
             entry['uoccin_watchlist'] = False
             entry['uoccin_collected'] = False
@@ -351,8 +383,10 @@ class UoccinLookup(object):
             entry['uoccin_rating'] = None
             entry['uoccin_tags'] = []
             entry['uoccin_subtitles'] = []
-            if 'tvdb_id' in entry and series:
-                ser = series.setdefault(str(entry['tvdb_id']), {})
+            if 'tvdb_id' in entry:
+                ser = series.get(str(entry['tvdb_id']))
+                if ser is None:
+                    continue
                 entry['uoccin_watchlist'] = ser.get('watchlist', False)
                 entry['uoccin_rating'] = ser.get('rating')
                 entry['uoccin_tags'] = ser.get('tags', [])
@@ -363,8 +397,10 @@ class UoccinLookup(object):
                     entry['uoccin_collected'] = isinstance(edata, list)
                     entry['uoccin_subtitles'] = edata if entry['uoccin_collected'] else []
                     entry['uoccin_watched'] = episode in ser.get('watched', {}).get(season, [])
-            elif 'imdb_id' in entry and movies:
-                mov = movies.setdefault(str(entry['imdb_id']), {})
+            elif 'imdb_id' in entry:
+                mov = movies.get(entry['imdb_id'])
+                if mov is None:
+                    continue
                 entry['uoccin_watchlist'] = mov.get('watchlist', False)
                 entry['uoccin_collected'] = mov.get('collected', False)
                 entry['uoccin_watched'] = mov.get('watched', False)
@@ -382,4 +418,5 @@ def register_plugin():
     plugin.register(UoccinCollDel, 'uoccin_collection_remove', api_ver=2)
     plugin.register(UoccinSeenAdd, 'uoccin_watched_true', api_ver=2)
     plugin.register(UoccinSeenDel, 'uoccin_watched_false', api_ver=2)
-    # plugin.register(UoccinLookup, 'uoccin_lookup', api_ver=2)
+    plugin.register(UoccinEmit, 'uoccin_emit', api_ver=2)
+    plugin.register(UoccinLookup, 'uoccin_lookup', api_ver=2)
