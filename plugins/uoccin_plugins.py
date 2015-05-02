@@ -333,7 +333,7 @@ class UoccinEmit(object):
     
     def on_task_input(self, task, config):
         """asd"""
-        udata = load_uoccin_data(config)
+        udata = load_uoccin_data(config['path'])
         section = udata['movies'] if config['type'] == 'movies' else udata['series']
         entries = []
         for eid, itm in section.items():
