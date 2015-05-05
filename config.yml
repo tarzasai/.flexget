@@ -823,16 +823,17 @@ tasks:
       - noseen
       - nosumm
       - nofail
-      # - mvinfo
-      - tvinfo
+      - mvinfo
+      # - tvinfo
     # metainfo_series: yes
     # thetvdb_lookup: yes
     # imdb_lookup: yes
     check_subtitles: yes
     find:
       path:
-        # - C:\Storage\Videos\Incoming
-        - C:\Storage\Videos\Incoming\series
+        - C:\Storage\Videos\Incoming\movies
+        - C:\Storage\Videos\Movies
+        # - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     # if:
