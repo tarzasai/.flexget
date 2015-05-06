@@ -743,7 +743,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
-      - uoccin_watched and uoccin_rating < 8: accept
+      - uoccin_watched and uoccin_rating < 4: accept
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
@@ -768,7 +768,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
-      - uoccin_watched and uoccin_rating >= 8: accept
+      - uoccin_watched and uoccin_rating >= 5: accept
     move:
       to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 10
