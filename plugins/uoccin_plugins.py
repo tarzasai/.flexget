@@ -340,7 +340,7 @@ class UoccinEmit(object):
             if not itm['watchlist']:
                 continue
             if 'tags' in config:
-                n = len(set(config['tags']) & set(itm['tags']))
+                n = len(set(config['tags']) & set(itm.get('tags', [])))
                 if config['check_tags'] == 'any' and n <= 0:
                     continue
                 if config['check_tags'] == 'all' and n != len(config['tags']):
