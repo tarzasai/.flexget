@@ -706,7 +706,31 @@ tasks:
       - noseen
       - nosumm
       - tvinfo
-      # - delsrt
+      - delsrt
+    find:
+      path:
+        - C:\Storage\Videos\Incoming\series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    if:
+      - uoccin_watched and uoccin_rating <= 4: accept
+      clean_source: 10
+    uoccin_collection_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+    # Eventually restore the incoming series folder (otherwise Flexget will not run next time).
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md C:\Storage\Videos\Incoming\series
+
+  save_series:
+    priority: 51
+    template:
+      - no_global
+      - noseen
+      - nosumm
+      - tvinfo
       - movsrt
     find:
       path:
@@ -714,7 +738,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
-      - uoccin_watched: accept
+      - uoccin_watched and uoccin_rating > 4: accept
     move:
       to: "C:\\Storage\\Videos\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
       clean_source: 10
@@ -729,7 +753,7 @@ tasks:
 
   # Delete watched movies.
   purge_movies:
-    priority: 51
+    priority: 52
     template:
       - no_global
       - noseen
@@ -742,7 +766,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
-      - uoccin_watched and uoccin_rating < 4: accept
+      - uoccin_watched and uoccin_rating <= 4: accept
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
@@ -754,7 +778,7 @@ tasks:
 
   # Save watched movies (the very good ones).
   save_movies:
-    priority: 52
+    priority: 53
     template:
       - no_global
       - noseen
@@ -767,7 +791,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
-      - uoccin_watched and uoccin_rating >= 5: accept
+      - uoccin_watched and uoccin_rating > 4: accept
     move:
       to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       clean_source: 10
