@@ -714,7 +714,6 @@ tasks:
       recursive: yes
     if:
       - uoccin_watched and uoccin_rating <= 4: accept
-      clean_source: 10
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
