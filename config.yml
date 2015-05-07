@@ -391,11 +391,10 @@ tasks:
   imdb2uoccin:
     priority: 10
     interval: 4 hours
-    # template:
+    template:
       # - no_global
-      # - noseen
-      # - nofail
-      # - mvinfo
+      - nofail
+      - mvinfo
     seen: local
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'
