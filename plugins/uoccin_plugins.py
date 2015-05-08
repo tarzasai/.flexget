@@ -3,6 +3,7 @@ from datetime import datetime
 import logging
 import os
 import re
+import shutil
 
 from flexget import plugin
 from flexget.entry import Entry
@@ -144,7 +145,7 @@ class UoccinReader(object):
     
     def on_task_start(self, task, config):
         UoccinReader.processor.reset(config['path'])
-
+    
     def on_task_exit(self, task, config):
         UoccinReader.processor.process()
     
@@ -154,30 +155,49 @@ class UoccinReader(object):
                 fn = os.path.basename(entry['location'])
                 if fn.endswith('.diff') and not (config['uuid'] in fn):
                     UoccinReader.processor.load(entry['location'])
+                    os.remove(entry['location'])
                 else:
                     self.log.debug('skipping %s (not a foreign diff file)' % fn)
 
 
 class UoccinWriter(object):
     
-    uoccin_queue_out = ''
+    out_queue = ''
+    my_folder = None
+    others_folders = None
     
     def on_task_start(self, task, config):
+        UoccinWriter.my_folder = os.path.join(config['path'], 'device.' + config['uuid'])
+        if not os.path.exists(UoccinWriter.my_folder):
+            os.makedirs(UoccinWriter.my_folder)
+        
         ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
         fn = '%d.%s.diff' % (ts, config['uuid'])
-        UoccinWriter.uoccin_queue_out = os.path.join(config['path'], fn)
-
+        UoccinWriter.out_queue = os.path.join(UoccinWriter.my_folder, fn)
+        
+        UoccinWriter.others_folders = []
+        for fld in next(os.walk(config['path']))[1]:
+            if fld.startswith('device.') and fld != ('device.' + config['uuid']):
+                UoccinWriter.others_folders.append(os.path.join(config['path'], fld))
+    
     def on_task_exit(self, task, config):
-        if os.path.exists(UoccinWriter.uoccin_queue_out):
+        if os.path.exists(UoccinWriter.out_queue):
+            # update the backup file (uoccin.json)
             up = UoccinProcess()
             up.reset(config['path'])
-            up.load(UoccinWriter.uoccin_queue_out)
+            up.load(UoccinWriter.out_queue)
             up.process()
+            # forward the diff file in other devices folders
+            for fld in UoccinWriter.others_folders:
+                shutil.copy2(UoccinWriter.out_queue, fld)
+                self.log.verbose('%s copied in %s' % (UoccinWriter.out_queue, fld))
+            # delete the local diff file
+            os.remove(UoccinWriter.out_queue)
     
     def append_command(self, target, title, field, value):
         ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
         line = '%d|%s|%s|%s|%s\n' % (ts, target, title, field, value)
-        with open(UoccinWriter.uoccin_queue_out, 'a') as f:
+        with open(UoccinWriter.out_queue, 'a') as f:
             f.write(line)
 
 
