@@ -158,7 +158,7 @@ class UoccinLookup(object):
                 entry['uoccin_watched'] = mov.get('watched', False)
                 entry['uoccin_rating'] = mov.get('rating')
                 entry['uoccin_tags'] = mov.get('tags', [])
-                entry['uoccin_subtitles'] = mov.get('tags', [])
+                entry['uoccin_subtitles'] = mov.get('subtitles', [])
 
 
 class UoccinProcess(object):
