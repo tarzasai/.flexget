@@ -360,9 +360,10 @@ class UoccinWriter(object):
             up.load(UoccinWriter.out_queue)
             up.process()
             # copy the diff file in other devices folders
+			fn = os.path.basename(UoccinWriter.out_queue)
             for fld in next(os.walk(config['path']))[1]:
                 if fld.startswith('device.') and fld != ('device.' + config['uuid']):
-                    shutil.copy2(UoccinWriter.out_queue, fld)
+                    shutil.copy(UoccinWriter.out_queue, os.path.join(fld, fn))
                     self.log.verbose('%s copied in %s' % (UoccinWriter.out_queue, fld))
             # delete the diff file in the local device folder
             os.remove(UoccinWriter.out_queue)
