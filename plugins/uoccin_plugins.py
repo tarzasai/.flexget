@@ -25,7 +25,165 @@ def load_uoccin_data(path):
     return udata
 
 
+class UoccinEmit(object):
+
+    schema = {
+        'type': 'object',
+        'properties': {
+            'path': {'type': 'string', 'format': 'path'},
+            'type': {'type': 'string', 'enum': ['series', 'movies']},
+            'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
+            'check_tags': {'type': 'string', 'enum': ['any', 'all', 'none'], 'default': 'any'},
+        },
+        'required': ['path', 'type'],
+        'additionalProperties': False
+    }
+    
+    def on_task_input(self, task, config):
+        """Creates an entry for each item in your uoccin watchlist.
+        
+        Example::
+            
+            uoccin_emit:
+              path: /path/to/gdrive/uoccin
+              type: series
+              tags: [ 'favorite', 'hires' ]
+              check_tags: all
+        
+        Options path and type are required while the others are for filtering:
+        - 'any' will include all the items marked with one or more tags in the list
+        - 'all' will only include the items marked with all the listed tags
+        - 'none' will only include the items not marked with any of the listed tags.
+        
+        The entries created will have a valid imdb/tvdb url and id.
+        """
+        udata = load_uoccin_data(config['path'])
+        section = udata['movies'] if config['type'] == 'movies' else udata['series']
+        entries = []
+        for eid, itm in section.items():
+            if not itm['watchlist']:
+                continue
+            if 'tags' in config:
+                n = len(set(config['tags']) & set(itm.get('tags', [])))
+                if config['check_tags'] == 'any' and n <= 0:
+                    continue
+                if config['check_tags'] == 'all' and n != len(config['tags']):
+                    continue
+                if config['check_tags'] == 'none' and n > 0:
+                    continue
+            entry = Entry()
+            entry['title'] = itm['name']
+            if config['type'] == 'movies':
+                entry['url'] = 'http://www.imdb.com/title/' + eid
+                entry['imdb_id'] = eid
+            else:
+                entry['url'] = 'http://thetvdb.com/?tab=series&id=' + eid
+                entry['tvdb_id'] = eid
+            if 'tags' in itm:
+                entry['uoccin_tags'] = itm['tags']
+            if entry.isvalid():
+                entries.append(entry)
+            else:
+                self.log.debug('Invalid entry created? %s' % entry)
+        return entries
+
+
+class UoccinLookup(object):
+
+    schema = { 'type': 'string', 'format': 'path' }
+    
+    # Run after metainfo_series / thetvdb_lookup / imdb_lookup
+    @plugin.priority(100)
+    def on_task_metainfo(self, task, config):
+        """Retrieves all the information found in the uoccin.json file for the entries.
+        
+        Example::
+            
+            uoccin_lookup: /path/to/gdrive/uoccin
+        
+        Resulting fields on entries:
+        
+        on series (requires tvdb_id):
+        - uoccin_watchlist (true|false)
+        - uoccin_rating (integer)
+        - uoccin_tags (list)
+        
+        on episodes (requires tvdb_id, series_season and series_episode):
+        - uoccin_collected (true|false)
+        - uoccin_watched (true|false)
+        - uoccin_subtitles (list of language codes)
+        (plus the 3 series specific fields)
+        
+        on movies (requires imdb_id):
+        - uoccin_watchlist (true|false)
+        - uoccin_collected (true|false)
+        - uoccin_watched (true|false)
+        - uoccin_rating (integer)
+        - uoccin_tags (list)
+        - uoccin_subtitles (list of language codes)
+        
+        """
+        if not task.entries:
+            return
+        udata = load_uoccin_data(config)
+        movies = udata['movies']
+        series = udata['series']
+        for entry in task.entries:
+            entry['uoccin_watchlist'] = False
+            entry['uoccin_collected'] = False
+            entry['uoccin_watched'] = False
+            entry['uoccin_rating'] = None
+            entry['uoccin_tags'] = []
+            entry['uoccin_subtitles'] = []
+            if 'tvdb_id' in entry:
+                ser = series.get(str(entry['tvdb_id']))
+                if ser is None:
+                    continue
+                entry['uoccin_watchlist'] = ser.get('watchlist', False)
+                entry['uoccin_rating'] = ser.get('rating')
+                entry['uoccin_tags'] = ser.get('tags', [])
+                if all(field in entry for field in ['series_season', 'series_episode']):
+                    season = str(entry['series_season'])
+                    episode = entry['series_episode']
+                    edata = ser.get('collected', {}).get(season, {}).get(str(episode))
+                    entry['uoccin_collected'] = isinstance(edata, list)
+                    entry['uoccin_subtitles'] = edata if entry['uoccin_collected'] else []
+                    entry['uoccin_watched'] = episode in ser.get('watched', {}).get(season, [])
+            elif 'imdb_id' in entry:
+                mov = movies.get(entry['imdb_id'])
+                if mov is None:
+                    continue
+                entry['uoccin_watchlist'] = mov.get('watchlist', False)
+                entry['uoccin_collected'] = mov.get('collected', False)
+                entry['uoccin_watched'] = mov.get('watched', False)
+                entry['uoccin_rating'] = mov.get('rating')
+                entry['uoccin_tags'] = mov.get('tags', [])
+                entry['uoccin_subtitles'] = mov.get('tags', [])
+
+
 class UoccinProcess(object):
+    """Update the uoccin.json file applying one or more logged changes loaded from one or more uoccin diff files.
+    A diff file is a text file. Each line represent a modification in this form:
+      time|type|target|field|value
+    where:
+    - time is when the action took place. we'll sort the lines loaded prior to process them.
+    - type must be 'movie' or 'series'.
+    - target can be the movie imdb_id, the series tvdb_id or the episode id in the form tvdb_id.season.episode
+      (i.e. "230435.2.14").
+    - field can be one of: watchlist, collected, watched, rating, tags, subtitles.
+    - value can be:
+      - true|false when field is watchlist, collected or watched.
+      - a integer 0-n for rating (5 is the cap in the Android app).
+      - a comma separated list for tags and subtitles.
+    example:
+      1431093328971|movie|tt346578|watchlist|true
+      1431093328971|movie|tt283759|collected|false
+      1431093329029|series|80379|watchlist|true
+      1431093329033|series|80379|tags|pippo,pluto
+      1431175098984|series|80379.8.24|watched|true
+      1431198108547|series|272135.2.5|collected|true
+      1431198108565|series|272135.2.5|subtitles|eng,ita
+    """
     
     def __init__(self):
         self.reset(None)
@@ -119,6 +277,7 @@ class UoccinProcess(object):
                     udata['series'].pop(sid)
             else:
                 self.log.warning('invalid element type "%s"' % typ)
+        # save the updated uoccin.json
         ufile = os.path.join(self.folder, 'uoccin.json')
         try:
             text = json.dumps(udata, sort_keys=True, indent=4, separators=(',', ': '))
@@ -150,6 +309,25 @@ class UoccinReader(object):
         UoccinReader.processor.process()
     
     def on_task_output(self, task, config):
+        """Process incoming diff to update the uoccin.json file. Requires the location field.
+        
+        Example::
+        
+          uoccin_sync_task:
+            seen: local
+            find:
+              path:
+                - '{{ secrets.uoccin.path }}\device.{{ secrets.uoccin.uuid }}'
+              regexp: '.*\.diff$'
+            accept_all: yes
+            uoccin_reader:
+              uuid: '{{ secrets.uoccin.uuid }}'
+              path: '{{ secrets.uoccin.path }}'
+        
+        Note::
+        - the uoccin.json file will be created if not exists.
+        - the uuid must be a filename-safe text.
+        """
         for entry in task.accepted:
             if entry.get('location'):
                 fn = os.path.basename(entry['location'])
@@ -163,35 +341,30 @@ class UoccinReader(object):
 class UoccinWriter(object):
     
     out_queue = ''
-    my_folder = None
-    others_folders = None
     
     def on_task_start(self, task, config):
-        UoccinWriter.my_folder = os.path.join(config['path'], 'device.' + config['uuid'])
-        if not os.path.exists(UoccinWriter.my_folder):
-            os.makedirs(UoccinWriter.my_folder)
-        
+        # create the local device folder if not exists
+        my_folder = os.path.join(config['path'], 'device.' + config['uuid'])
+        if not os.path.exists(my_folder):
+            os.makedirs(my_folder)
+        # define the filename for the outgoing diff file
         ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
         fn = '%d.%s.diff' % (ts, config['uuid'])
-        UoccinWriter.out_queue = os.path.join(UoccinWriter.my_folder, fn)
-        
-        UoccinWriter.others_folders = []
-        for fld in next(os.walk(config['path']))[1]:
-            if fld.startswith('device.') and fld != ('device.' + config['uuid']):
-                UoccinWriter.others_folders.append(os.path.join(config['path'], fld))
+        UoccinWriter.out_queue = os.path.join(my_folder, fn)
     
     def on_task_exit(self, task, config):
         if os.path.exists(UoccinWriter.out_queue):
-            # update the backup file (uoccin.json)
+            # update uoccin.json
             up = UoccinProcess()
             up.reset(config['path'])
             up.load(UoccinWriter.out_queue)
             up.process()
-            # forward the diff file in other devices folders
-            for fld in UoccinWriter.others_folders:
-                shutil.copy2(UoccinWriter.out_queue, fld)
-                self.log.verbose('%s copied in %s' % (UoccinWriter.out_queue, fld))
-            # delete the local diff file
+            # copy the diff file in other devices folders
+            for fld in next(os.walk(config['path']))[1]:
+                if fld.startswith('device.') and fld != ('device.' + config['uuid']):
+                    shutil.copy2(UoccinWriter.out_queue, fld)
+                    self.log.verbose('%s copied in %s' % (UoccinWriter.out_queue, fld))
+            # delete the diff file in the local device folder
             os.remove(UoccinWriter.out_queue)
     
     def append_command(self, target, title, field, value):
@@ -207,7 +380,25 @@ class UoccinWatchlist(UoccinWriter):
     set_true = None
     
     def on_task_output(self, task, config):
-        """Add accepted series and/or movies to uoccin's watchlist"""
+        """Add or remove in the uoccin.json file watchlist the accepted series and/or movies.
+        Requires tvdb_id for series and imdb_id for movies.
+        
+        Examples::
+            
+            uoccin_watchlist_add:
+              uuid: flexget_server_home
+              path: /path/to/gdrive/uoccin
+              tags: [ 'discovered', 'evaluate', 'bazinga' ]
+            
+            uoccin_watchlist_remove:
+              uuid: flexget_server_home
+              path: /path/to/gdrive/uoccin
+        
+        Note::
+        - the uoccin.json file will be created if not exists.
+        - the uuid must be a filename-safe text.
+        - for uoccin_watchlist_add at least 1 tag is required.
+        """
         for entry in task.accepted:
             tid = None
             typ = None
@@ -269,7 +460,19 @@ class UoccinCollection(UoccinWriter):
     set_true = None
     
     def on_task_output(self, task, config):
-        """Add accepted episodes and/or movies to uoccin's collection"""
+        """Set the accepted episodes and/or movies as collected (or not) in the uoccin.json file.
+        Requires tvdb_id, series_season and series_episode fields for episodes, or imdb_id for movies.
+        
+        Example::
+            
+            uoccin_collection_remove:
+              uuid: flexget_server_home
+              path: /path/to/gdrive/uoccin
+        
+        Note::
+        - the uoccin.json file will be created if not exists.
+        - the uuid must be a filename-safe text.
+        """
         for entry in task.accepted:
             tid = None
             typ = None
@@ -312,7 +515,19 @@ class UoccinWatched(UoccinWriter):
     set_true = None
     
     def on_task_output(self, task, config):
-        """Add accepted episodes and/or movies to uoccin's watched list"""
+        """Set the accepted episodes and/or movies as watched (or not) in the uoccin.json file.
+        Requires tvdb_id, series_season and series_episode fields for episodes, or imdb_id for movies.
+        
+        Example::
+            
+            uoccin_watched_true:
+              uuid: flexget_server_home
+              path: /path/to/gdrive/uoccin
+        
+        Note::
+        - the uoccin.json file will be created if not exists.
+        - the uuid must be a filename-safe text.
+        """
         for entry in task.accepted:
             tid = None
             typ = None
@@ -337,100 +552,10 @@ class UoccinSeenDel(UoccinWatched):
     set_true = False
 
 
-class UoccinEmit(object):
-
-    schema = {
-        'type': 'object',
-        'properties': {
-            'path': {'type': 'string', 'format': 'path'},
-            'type': {'type': 'string', 'enum': ['series', 'movies']},
-            'tags': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1},
-            'check_tags': {'type': 'string', 'enum': ['any', 'all', 'none'], 'default': 'any'},
-        },
-        'required': ['path', 'type'],
-        'additionalProperties': False
-    }
-    
-    def on_task_input(self, task, config):
-        """asd"""
-        udata = load_uoccin_data(config['path'])
-        section = udata['movies'] if config['type'] == 'movies' else udata['series']
-        entries = []
-        for eid, itm in section.items():
-            if not itm['watchlist']:
-                continue
-            if 'tags' in config:
-                n = len(set(config['tags']) & set(itm.get('tags', [])))
-                if config['check_tags'] == 'any' and n <= 0:
-                    continue
-                if config['check_tags'] == 'all' and n != len(config['tags']):
-                    continue
-                if config['check_tags'] == 'none' and n > 0:
-                    continue
-            entry = Entry()
-            entry['title'] = itm['name']
-            if config['type'] == 'movies':
-                entry['url'] = 'http://www.imdb.com/title/' + eid
-                entry['imdb_id'] = eid
-            else:
-                entry['url'] = 'http://thetvdb.com/?tab=series&id=' + eid
-                entry['tvdb_id'] = eid
-            if 'tags' in itm:
-                entry['uoccin_tags'] = itm['tags']
-            if entry.isvalid():
-                entries.append(entry)
-            else:
-                self.log.debug('Invalid entry created? %s' % entry)
-        return entries
-
-
-class UoccinLookup(object):
-
-    schema = { 'type': 'string', 'format': 'path' }
-    
-    # Run after metainfo_series / thetvdb_lookup / imdb_lookup
-    @plugin.priority(100)
-    def on_task_metainfo(self, task, config):
-        if not task.entries:
-            return
-        udata = load_uoccin_data(config)
-        movies = udata['movies']
-        series = udata['series']
-        for entry in task.entries:
-            entry['uoccin_watchlist'] = False
-            entry['uoccin_collected'] = False
-            entry['uoccin_watched'] = False
-            entry['uoccin_rating'] = None
-            entry['uoccin_tags'] = []
-            entry['uoccin_subtitles'] = []
-            if 'tvdb_id' in entry:
-                ser = series.get(str(entry['tvdb_id']))
-                if ser is None:
-                    continue
-                entry['uoccin_watchlist'] = ser.get('watchlist', False)
-                entry['uoccin_rating'] = ser.get('rating')
-                entry['uoccin_tags'] = ser.get('tags', [])
-                if all(field in entry for field in ['series_season', 'series_episode']):
-                    season = str(entry['series_season'])
-                    episode = entry['series_episode']
-                    edata = ser.get('collected', {}).get(season, {}).get(str(episode))
-                    entry['uoccin_collected'] = isinstance(edata, list)
-                    entry['uoccin_subtitles'] = edata if entry['uoccin_collected'] else []
-                    entry['uoccin_watched'] = episode in ser.get('watched', {}).get(season, [])
-            elif 'imdb_id' in entry:
-                mov = movies.get(entry['imdb_id'])
-                if mov is None:
-                    continue
-                entry['uoccin_watchlist'] = mov.get('watchlist', False)
-                entry['uoccin_collected'] = mov.get('collected', False)
-                entry['uoccin_watched'] = mov.get('watched', False)
-                entry['uoccin_rating'] = mov.get('rating')
-                entry['uoccin_tags'] = mov.get('tags', [])
-                entry['uoccin_subtitles'] = mov.get('tags', [])
-
-
 @event('plugin.register')
 def register_plugin():
+    plugin.register(UoccinEmit, 'uoccin_emit', api_ver=2)
+    plugin.register(UoccinLookup, 'uoccin_lookup', api_ver=2)
     plugin.register(UoccinReader, 'uoccin_reader', api_ver=2)
     plugin.register(UoccinWlstAdd, 'uoccin_watchlist_add', api_ver=2)
     plugin.register(UoccinWlstDel, 'uoccin_watchlist_remove', api_ver=2)
@@ -438,5 +563,3 @@ def register_plugin():
     plugin.register(UoccinCollDel, 'uoccin_collection_remove', api_ver=2)
     plugin.register(UoccinSeenAdd, 'uoccin_watched_true', api_ver=2)
     plugin.register(UoccinSeenDel, 'uoccin_watched_false', api_ver=2)
-    plugin.register(UoccinEmit, 'uoccin_emit', api_ver=2)
-    plugin.register(UoccinLookup, 'uoccin_lookup', api_ver=2)
