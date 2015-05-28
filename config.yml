@@ -82,17 +82,15 @@ templates:
   # The sources for series torrents.
   tvfeed:
     inputs:
-      - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
-      - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
+      # - rss: { url: 'http://kat.torrenticity.com/tv/?rss=1', silent: yes }
+      # - rss: { url: 'http://torrentz.eu/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://torrentz.me/feed_verified?q=tv', silent: yes }
       - rss: { url: 'http://www.torlock.com/television/rss.xml', silent: yes }
-      - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
+      # - rss: { url: 'http://rss.bt-chat.com/?group=3', silent: yes }
       - rss: { url: 'http://showrss.info/feeds/all.rss', silent: yes }
     log_filter:
       inputs:
         - Unable to download the RSS for task
-        - ezrss.it
-        - kat.torrenticity.com
       rss:
         - I have saved the invalid content
         - login page
