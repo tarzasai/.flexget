@@ -711,6 +711,7 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
+      - uoccin_tags and 'no' in uoccin_tags: accept
       - uoccin_watched and uoccin_rating <= 4: accept
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
