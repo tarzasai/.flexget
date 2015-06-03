@@ -315,7 +315,7 @@ tasks:
             uoccin_emit:
               path: '{{ secrets.uoccin.path }}'
               type: series
-              tags: [ 'hires', 'netflix' ]
+              tags: [ 'hires', 'netflix', 'no' ]
               check_tags: none
       - configure_series:
           settings:
@@ -374,7 +374,7 @@ tasks:
     torrent_alive:
       min_seeds: 40
     if:
-      - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
+      - uoccin_tags or uoccin_watchlist or uoccin_watched or uoccin_collected: reject
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
     # Unknown series are less important.
     transmission:
