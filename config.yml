@@ -144,6 +144,10 @@ templates:
           replace:
             regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
             format: "TURN_Washington_Spies."
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*aquarius.(us|\(us\))?[^a-z0-9]*'
+            format: 'Aquarius.2015.'
 
   # Global filters for series.
   tvfltr:
@@ -1106,11 +1110,12 @@ tasks:
       - no_global
       - noseen
       - nofail
-    metainfo_series: yes
-    thetvdb_lookup: yes
-    uoccin_lookup: '{{ secrets.uoccin.path }}'
+      - tvinfo
+    # metainfo_series: yes
+    # thetvdb_lookup: yes
+    # uoccin_lookup: '{{ secrets.uoccin.path }}'
     mock:
-      - { title: 'penny dreadful s01e03' }
+      - { title: 'Aquarius.US.S01E01.HDTV.x264-LOL[ettv]' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
