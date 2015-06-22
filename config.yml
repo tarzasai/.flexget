@@ -369,9 +369,12 @@ tasks:
         - mini-series: {from: tvdb_genres}
         - musical: {from: tvdb_genres}
         - reality: {from: tvdb_genres}
+        - romance: {from: tvdb_genres}
         - soap: {from: tvdb_genres}
         - special interest: {from: tvdb_genres}
+        - sport: {from: tvdb_genres}
         - talk show: {from: tvdb_genres}
+        - travel: {from: tvdb_genres}
     series_premiere:
       timeframe: 4 hours
       # quality: <720p hdtv+
