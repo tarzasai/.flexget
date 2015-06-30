@@ -1144,3 +1144,57 @@ tasks:
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
+
+  test_series:
+    manual: yes
+    template:
+      - tvinfo
+      # - tvfeed
+      # - tvfltr
+      - noseen
+    # log_filter:
+      # series:
+        # - identified_by has locked
+      # remember_rej:
+        # - Remembering rejection of
+      # remember_rejected:
+        # - Remembering rejection of
+    # seen: local
+    # manipulate:
+      # - title:
+          # replace:
+            # regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            # format: 'Turn '
+    mock:
+      - { title: 'Humans.S01E02.HDTV.x264-LOL[ettv]' }
+    # uoccin_emit:
+      # path: '{{ secrets.uoccin.path }}'
+      # type: series
+      # tags: [ 'tvdb_premiere' ]
+      # check_tags: none
+    sequence:
+      # - configure_series:
+          # settings:
+            # quality: 720p hdtv+
+          # from:
+            # uoccin_emit:
+              # path: '{{ secrets.uoccin.path }}'
+              # type: series
+              # tags: [ 'hires' ]
+      - configure_series:
+          settings:
+            quality: <720p hdtv+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin.path }}'
+              type: series
+              tags: [ 'hires', 'netflix', 'no' ]
+              check_tags: none
+      # - configure_series:
+          # settings:
+            # quality: webrip
+          # from:
+            # uoccin_emit:
+              # path: '{{ secrets.uoccin.path }}'
+              # type: series
+              # tags: [ 'netflix' ]
