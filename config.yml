@@ -620,7 +620,7 @@ tasks:
       path: "C:\\Storage\\Videos\\Incoming\\series"
       allow_different_qualities: better
     if:
-      - uoccin_collected or uoccin_watched: reject
+      - not proper and (uoccin_collected or uoccin_watched): reject
     # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might 
     # have modified it).
     copy:
