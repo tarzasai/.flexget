@@ -399,7 +399,7 @@ tasks:
     template:
       # - no_global
       - nofail
-      - mvinfo
+      # - mvinfo
     seen: local
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'

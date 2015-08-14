@@ -63,6 +63,7 @@ class UoccinEmit(object):
         
         The entries created will have a valid imdb/tvdb url and id.
         """
+        imdb_lookup = plugin.get_plugin_by_name('imdb_lookup').instance
         udata = load_uoccin_data(config['path'])
         section = udata['movies'] if config['type'] == 'movies' else udata['series']
         entries = []
@@ -81,7 +82,15 @@ class UoccinEmit(object):
             if config['type'] == 'movies':
                 entry['url'] = 'http://www.imdb.com/title/' + eid
                 entry['imdb_id'] = eid
-                entry['title'] = itm['name']  # TODO: lookup by imdb_id
+                if itm['name'] != 'N/A':
+                    entry['title'] = itm['name']
+                else:
+                    try:
+                        imdb_lookup.lookup(entry)
+                    except plugin.PluginError as e:
+                        self.log.trace('entry %s imdb failed (%s)' % (entry['imdb_id'], e.value))
+                        continue
+                    entry['title'] = entry.get('imdb_name')
             else:
                 entry['url'] = 'http://thetvdb.com/?tab=series&id=' + eid
                 entry['tvdb_id'] = eid
@@ -178,18 +187,18 @@ class UoccinProcess(object):
     A diff file is a text file. Each line represent a modification in this form:
       time|type|target|field|value
     where:
-    - time is when the action took place. we'll sort the lines loaded prior to process them.
+    - time is when the action took place. we'll sort the lines loaded from all the diff files prior to process them.
     - type must be 'movie' or 'series'.
-    - target can be the movie imdb_id, the series tvdb_id or the episode id in the form tvdb_id.season.episode
-      (i.e. "230435.2.14").
+    - target can be the movie imdb_id, the series tvdb_id or the episode id (in the form tvdb_id.season.episode,
+      i.e. "230435.2.14").
     - field can be one of: watchlist, collected, watched, rating, tags, subtitles.
     - value can be:
       - true|false when field is watchlist, collected or watched.
       - a integer 0-n for rating (5 is the cap in the Android app).
       - a comma separated list for tags and subtitles.
-    example:
+    examples:
       1431093328971|movie|tt346578|watchlist|true
-      1431093328971|movie|tt283759|collected|false
+      1431093328995|movie|tt283759|collected|false
       1431093329029|series|80379|watchlist|true
       1431093329033|series|80379|tags|pippo,pluto
       1431175098984|series|80379.8.24|watched|true
@@ -215,6 +224,7 @@ class UoccinProcess(object):
             self.log.debug('no changes found in %s' % filename)
     
     def process(self):
+        imdb_lookup = plugin.get_plugin_by_name('imdb_lookup').instance
         self.changes.sort()
         udata = load_uoccin_data(self.folder)
         for line in self.changes:
@@ -228,6 +238,15 @@ class UoccinProcess(object):
                 # default
                 mov = udata['movies'].setdefault(tid, 
                     {'name':'N/A', 'watchlist':False, 'collected':False, 'watched':False})
+                # movie title is unknown at this time
+                fake = Entry()
+                fake['url'] = 'http://www.imdb.com/title/' + tid
+                fake['imdb_id'] = tid
+                try:
+                    imdb_lookup.lookup(fake)
+                    mov['name'] = fake.get('imdb_name')
+                except plugin.PluginError:
+                    self.log.warning('Unable to lookup movie %s from imdb, using raw name.' % tid)
                 # setting
                 if fld == 'watchlist':
                     mov['watchlist'] = val == 'true'
@@ -252,7 +271,7 @@ class UoccinProcess(object):
                 eno = tmp[2] if len(tmp) > 2 else None
                 # default
                 ser = udata['series'].setdefault(sid, {'name':'N/A', 'watchlist':False, 'collected':{}, 'watched':{}})
-                # series name could be unknown at this time
+                # series name is unknown at this time
                 try:
                     series = lookup_series(tvdb_id=sid)
                     ser['name'] = series.seriesname
