@@ -16,7 +16,7 @@ templates:
         # - \bHS\b: {from: title}
         # - \bDTS\b: {from: title}
         # - \bHDTS\b: {from: title}
-        - \b(H|D)?TS\b: {from: title}
+        - \bH?D?TS\b: {from: title}
         - \bVHS: {from: title}
         - \b3-?D\b: {from: title}
         - \btrailer\b: {from: title}
