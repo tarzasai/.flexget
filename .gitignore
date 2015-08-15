@@ -218,7 +218,8 @@ pip-log.txt
 *.log.*
 secrets.yml
 series.yml
-db-config.sqlite
+db-config.sqlit*
 received/
+.config-lock
 .copy_from_flexget.bat
 .copy_to_flexget.bat
