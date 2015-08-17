@@ -193,7 +193,7 @@ templates:
   mvfltr:
     content_size:
       min: 800
-      max: 10000
+      max: 15000
     movie_queue: accept
     quality: 1080p
 
@@ -406,9 +406,9 @@ tasks:
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'
       list: watchlist
-    require_field:
-      - imdb_id
-      - movie_name
+    # require_field:
+      # - imdb_id
+      # - movie_name
     uoccin_lookup: '{{ secrets.uoccin.path }}'
     if:
       - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
@@ -419,7 +419,7 @@ tasks:
       tags: [ 'IMDB' ]
 
   # Import Uoccin watchlist in flexget movie queue.
-  watchlist:
+  _watchlist:
     priority: 12
     interval: 1 hours
     # template:
@@ -449,7 +449,10 @@ tasks:
     seen: local
     discover:
       what:
-        - emit_movie_queue: { year: no }
+        # - emit_movie_queue: { year: no }
+        - uoccin_emit:
+            path: '{{ secrets.uoccin.path }}'
+            type: movies
       from:
         # - kat:
             # category: movies
