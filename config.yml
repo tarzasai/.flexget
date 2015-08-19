@@ -1118,12 +1118,12 @@ tasks:
       - no_global
       - noseen
       - nofail
-      - tvinfo
+      - mvinfo
     # metainfo_series: yes
     # thetvdb_lookup: yes
     # uoccin_lookup: '{{ secrets.uoccin.path }}'
     mock:
-      - { title: 'Aquarius.US.S01E01.HDTV.x264-LOL[ettv]' }
+      - { title: 'The.Butler.2013.1080p.BluRay.x264-SPARKS', imdb_id: 'tt1327773' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
