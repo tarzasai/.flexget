@@ -1150,6 +1150,22 @@ tasks:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
 
+  ut4:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+      # - tvinfo
+    metainfo_series: yes
+    uoccin_lookup: '{{ secrets.uoccin.path }}'
+    uoccin_emit:
+      path: '{{ secrets.uoccin.path }}'
+      type: episodes
+      # type: movies
+      tags: [ 'test' ]
+      ep_flags: collected
+
   test_series:
     manual: yes
     template:
