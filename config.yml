@@ -55,6 +55,12 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
+      entry:
+        - subtitles for now
+        - found for a second-choice
+      guessit.guess:
+        - duplicate properties
+        - both guesses to be merged
       manager:
         - Writing crash report to
       move:
@@ -70,6 +76,8 @@ templates:
       series:
         - releasing quality restriction
         - appears to be an episode pack
+      subtitles:
+        - Name computed for
       task:
         - Unhandled error in plugin from_transmission
         - Unhandled error in plugin clean_transmission
@@ -811,28 +819,20 @@ tasks:
       on_exit:
         phase: md C:\Storage\Videos\Incoming\movies
 
-  # Download italian and english subtitles for all the videos.
-  subtitles:
+  # Download italian and english subtitles for episodes.
+  subs_series:
     priority: 60
     template:
       - noseen
       - nosumm
       - nofail
+      - tvinfo
     plugin_priority:
       subliminal: -200
       uoccin_collection_add: -201
-    log_filter:
-      entry:
-        - subtitles for now
-        - found for a second-choice
-      guessit.guess:
-        - duplicate properties
-        - both guesses to be merged
-      subtitles:
-        - Name computed for
     find:
       path:
-        - C:\Storage\Videos\Incoming
+        - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -845,36 +845,39 @@ tasks:
     uoccin_collection_add:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
-    # I often see wrong accented characters in italian subs (I think it's something about text files encoding on Macs).
-    # This plugin should address most of the issues - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
     fix_subtitles: yes
 
-  updu4subs:
-    manual: yes
-    # priority: 61
+  # Download italian and english subtitles for movies.
+  subs_movies:
+    priority: 61
+    interval: 2 hours
     template:
       - noseen
       - nosumm
       - nofail
       - mvinfo
-      # - tvinfo
-    # metainfo_series: yes
-    # thetvdb_lookup: yes
-    # imdb_lookup: yes
-    check_subtitles: yes
+    plugin_priority:
+      subliminal: -200
+      uoccin_collection_add: -201
+    metainfo_series: yes
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
-        - C:\Storage\Videos\Movies
-        # - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
-    # if:
-      # - subtitles: accept
     accept_all: yes
+    subliminal:
+      languages:
+        - ita
+      alternatives:
+        - eng
+    # Updates the Uoccin collection with subs data.
     uoccin_collection_add:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
+    # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    fix_subtitles: yes
 
   ######################################################################################################################
   # NEWS & PODCASTS
