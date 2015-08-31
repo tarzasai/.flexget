@@ -316,6 +316,7 @@ tasks:
     sequence:
       - configure_series:
           settings:
+            tracking: backfill
             quality: 720p hdtv+
           from:
             uoccin_emit:
@@ -324,6 +325,7 @@ tasks:
               tags: [ 'hires' ]
       - configure_series:
           settings:
+            tracking: backfill
             quality: <720p hdtv+
           from:
             uoccin_emit:
@@ -333,6 +335,7 @@ tasks:
               check_tags: none
       - configure_series:
           settings:
+            tracking: backfill
             quality: webrip
           from:
             uoccin_emit:
