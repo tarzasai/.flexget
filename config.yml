@@ -66,6 +66,8 @@ templates:
       move:
         - left because it exceeds safety value
         - does not exists (anymore)
+      parser_internal:
+        - appears to be an episode pack
       requests.packages.urllib3.connectionpool:
         - error(10060
         - feed
