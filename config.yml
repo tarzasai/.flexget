@@ -730,6 +730,10 @@ tasks:
       - nosumm
       - tvinfo
       - delsrt
+    log_filter:
+      delete:
+        - has been deleted as well
+        - because was less than clean_source safe value
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -783,6 +787,10 @@ tasks:
       - nosumm
       - mvinfo
       - delsrt
+    log_filter:
+      delete:
+        - has been deleted as well
+        - because was less than clean_source safe value
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
