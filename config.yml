@@ -832,7 +832,7 @@ tasks:
       - tvinfo
     plugin_priority:
       subliminal: -200
-      uoccin_collection_add: -201
+      uoccin_subtitles: -201
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -845,7 +845,7 @@ tasks:
       alternatives:
         - eng
     # Updates the Uoccin collection with subs data.
-    uoccin_collection_add:
+    uoccin_subtitles:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
     # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
@@ -862,8 +862,7 @@ tasks:
       - mvinfo
     plugin_priority:
       subliminal: -200
-      uoccin_collection_add: -201
-    metainfo_series: yes
+      uoccin_subtitles: -201
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
@@ -876,7 +875,7 @@ tasks:
       alternatives:
         - eng
     # Updates the Uoccin collection with subs data.
-    uoccin_collection_add:
+    uoccin_subtitles:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
     # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
