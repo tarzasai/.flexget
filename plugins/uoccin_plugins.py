@@ -642,7 +642,7 @@ class UoccinSubtitles(UoccinWriter):
         
         Example::
             
-            uoccin_collection_remove:
+            uoccin_subtitles:
               uuid: flexget_server_home
               path: /path/to/gdrive/uoccin
         
