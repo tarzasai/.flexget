@@ -347,6 +347,67 @@ tasks:
     transmission:
       bandwidthpriority: 1
 
+  fill_series:
+    manual: yes
+    template:
+      - tvinfo
+      - tvfltr
+      - tvtran
+      - transm
+    log_filter:
+      series:
+        - identified_by has locked
+      remember_rej:
+        - Remembering rejection of
+      remember_rejected:
+        - Remembering rejection of
+    seen: local
+    manipulate:
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn '
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*from.dusk.till.dawn(:)?(.the.series.)?[^a-z0-9]*'
+            format: 'From Dusk Till Dawn '
+    sequence:
+      - configure_series:
+          settings:
+            tracking: backfill
+            quality: 720p hdtv+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin.path }}'
+              type: series
+              tags: [ 'hires' ]
+      - configure_series:
+          settings:
+            tracking: backfill
+            quality: <720p hdtv+
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin.path }}'
+              type: series
+              tags: [ 'hires', 'netflix', 'no' ]
+              check_tags: none
+      - configure_series:
+          settings:
+            tracking: backfill
+            quality: webrip
+          from:
+            uoccin_emit:
+              path: '{{ secrets.uoccin.path }}'
+              type: series
+              tags: [ 'netflix' ]
+    discover:
+      what:
+        - emit_series: yes
+      from:
+        - torrentz: verified
+    transmission:
+      bandwidthpriority: 1
+
   # This one grabs the pilots.
   premieres:
     priority: 5
@@ -892,188 +953,28 @@ tasks:
     fix_subtitles: yes
 
   ######################################################################################################################
-  # NEWS & PODCASTS
-  # the following tasks have nothing to do with series and movies, it's just me using Flexget as a push notification 
-  # system to get some updates on my phone :P
+  # CLEANUPS (DANGER!!!)
   ######################################################################################################################
 
-  _events:
-    priority: 200
-    # interval: 50 minutes
+  clean_series:
+    manual: yes
     template:
       - no_global
-    log_filter:
-      details:
-        - Task didn't produce any entries.
-    seen: local
-    # This plugin emits entries about the latest events logged in the specified Windows registry (Application in this 
-    # task) - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    winevents:
-      filename: c:\windows\sysnative\winevt\logs\Application.evtx
-      providers:
-        - APC UPS Service:
-            short: UPS
-            events:
-              - 61452: Test automatico riuscito
-              - 61453: Sistema alimentato a batteria per disturbo elettrico
-              - 173: Sistema alimentato a batteria per sottotensione
-              - 174: Sistema alimentato a batteria per blackout
-              - 61455: Alimentazione ripristinata a corrente di rete
-              - 61456: PowerChute non comunica con la batteria di backup
-              - 61465: PowerChute comunica di nuovo con la batteria di backup
-              - 176: PowerChute ha spento il sistema
+      - noseen
+      - nofail
+    series_list: yes
+    crossmatch:
+      from:
+        - uoccin_emit:
+            path: '{{ secrets.uoccin.path }}'
+            type: series
+      fields:
+        - title
+      action: reject
     accept_all: yes
-    # friendfeed:
-      # app_key: '{{ secrets.ff.key }}'
-      # app_secret: '{{ secrets.ff.sec }}'
-      # username: '{{ secrets.ff.usr }}'
-      # password: '{{ secrets.ff.pwd }}'
-      # feeds: [esorfeeds]
-      # text: "[Eventi di sistema] {{ event_time.strftime('%H:%M:%S') }} - {{ short_name }}: {{ event_text }}"
+    forget_series: yes
 
-  _Podcasts:
-    priority: 300
-    interval: 12 hours
-    template:
-      - no_global
-      # - ffeeds
-    inputs:
-      - rss: { url: 'http://www.macchianera.net/podcast.xml', silent: yes, all_entries: no }
-
-  _Imogen Heap:
-    priority: 301
-    interval: 12 hours
-    template:
-      - no_global
-      # - ffeeds
-    inputs:
-      - rss: { url: 'https://twitrss.me/twitter_user_to_rss/?user=imogenheap', silent: yes, all_entries: no }
-
-  _Macchianera:
-    priority: 302
-    interval: 12 hours
-    template:
-      - no_global
-      # - ffeeds
-    inputs:
-      - rss: { url: 'http://feeds.feedburner.com/Macchianera', silent: yes, all_entries: no }
-
-  _Dilbert:
-    priority: 303
-    interval: 12 hours
-    template:
-      - no_global
-    inputs:
-      - rss: { url: 'http://feed.dilbert.com/dilbert/daily_strip', silent: yes, all_entries: no }
-    # This plugin gets a direct link to the picture - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    dilbert_strip: yes
-    # friendfeed:
-      # app_key: '{{ secrets.ff.key }}'
-      # app_secret: '{{ secrets.ff.sec }}'
-      # username: '{{ secrets.ff.usr }}'
-      # password: '{{ secrets.ff.pwd }}'
-      # feeds: [esorfeeds]
-      # link: "{{ url }}"
-      # text: "{{ strip_title }}"
-      # image: "{{ strip_url }}"
-
-  _Zerocalcare:
-    priority: 304
-    interval: 12 hours
-    template:
-      - no_global
-      # - ffeeds
-    inputs:
-      - rss: { url: 'http://feeds.feedburner.com/Zerocalcareit?format=xml', silent: yes, all_entries: no }
-
-  _Romantically Apocalyptic:
-    priority: 305
-    interval: 1 days
-    template:
-      - no_global
-      # - ffeeds
-    inputs:
-      - rss: { url: 'http://feeds.feedburner.com/zeefeed?format=xml', silent: yes, all_entries: no }
-
-  _tvrenewed:
-    priority: 400
-    interval: 7 days
-    template:
-      - tvinfo
-    # This plugin grabs the latest news about series renewal/cancellation on TVRage - see 
-    # https://github.com/tarzasai/.flexget/tree/master/plugins
-    tvrage_rencans:
-      pages: 3
-      context: renewed
-    if:
-      - tvrage_date >= now - timedelta(days=8): accept
-    require_field:
-      - tvdb_id
-      - tvdb_genres
-    regexp:
-      reject:
-        - animation: {from: tvdb_genres}
-        - children: {from: tvdb_genres}
-        - documentary: {from: tvdb_genres}
-        - family: {from: tvdb_genres}
-        - game show: {from: tvdb_genres}
-        - home and garden: {from: tvdb_genres}
-        - musical: {from: tvdb_genres}
-        - reality: {from: tvdb_genres}
-        - soap: {from: tvdb_genres}
-        - special interest: {from: tvdb_genres}
-        - talk show: {from: tvdb_genres}
-    # friendfeed:
-      # app_key: '{{ secrets.ff.key }}'
-      # app_secret: '{{ secrets.ff.sec }}'
-      # username: '{{ secrets.ff.usr }}'
-      # password: '{{ secrets.ff.pwd }}'
-      # feeds: [me, serietv]
-      # mode: comments
-      # text: "TVRage weekly #rencans: serie confermate/rinnovate"
-      # link: 'http://www.tvrage.com/status_update.php'
-      # comment: "{{ tvdb_series_name|default(series_name) }}"
-
-  _tvcanceled:
-    priority: 401
-    interval: 7 days
-    template:
-      - tvinfo
-    # This plugin grabs the latest news about series renewal/cancellation on TVRage - see 
-    # https://github.com/tarzasai/.flexget/tree/master/plugins
-    tvrage_rencans:
-      pages: 3
-      context: canceled
-    if:
-      - tvrage_date >= now - timedelta(days=8): accept
-    require_field:
-      - tvdb_id
-      - tvdb_genres
-    regexp:
-      reject:
-        - animation: {from: tvdb_genres}
-        - children: {from: tvdb_genres}
-        - documentary: {from: tvdb_genres}
-        - family: {from: tvdb_genres}
-        - game show: {from: tvdb_genres}
-        - home and garden: {from: tvdb_genres}
-        - musical: {from: tvdb_genres}
-        - reality: {from: tvdb_genres}
-        - soap: {from: tvdb_genres}
-        - special interest: {from: tvdb_genres}
-        - talk show: {from: tvdb_genres}
-    # friendfeed:
-      # app_key: '{{ secrets.ff.key }}'
-      # app_secret: '{{ secrets.ff.sec }}'
-      # username: '{{ secrets.ff.usr }}'
-      # password: '{{ secrets.ff.pwd }}'
-      # feeds: [me, serietv]
-      # mode: comments
-      # text: "TVRage weekly #rencans: serie CANCELLATE"
-      # link: 'http://www.tvrage.com/status_update.php'
-      # comment: "{{ tvdb_series_name|default(series_name) }}"
-
-  fix_episodes:
+  clean_episodes:
     manual: yes
     template:
       - no_global
@@ -1087,6 +988,10 @@ tasks:
       - not tvdb_id: accept
       - not tvdb_ep_air_date or tvdb_ep_air_date > now - timedelta(days=1): accept
     forget_episodes: yes
+
+  ######################################################################################################################
+  # TESTS
+  ######################################################################################################################
 
   d2uc:
     manual: yes
@@ -1181,6 +1086,20 @@ tasks:
       tags: [ 'test' ]
       ep_flags: collected
 
+  # sa:
+    # manual: yes
+    # template:
+      # - no_global
+      # - noseen
+      # - nofail
+    # series_altnames:
+      # 4324234:
+        # - fdafsf
+        # - fda fsfdfds
+      # 565465:
+        # - gjfdlkg jljsd
+        # - vbvc whatenv ver
+
   test_series:
     manual: yes
     template:
@@ -1196,18 +1115,31 @@ tasks:
       # remember_rejected:
         # - Remembering rejection of
     # seen: local
-    # manipulate:
-      # - title:
-          # replace:
-            # regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            # format: 'Turn '
-    mock:
-      - { title: 'Humans.S01E02.HDTV.x264-LOL[ettv]' }
+    manipulate:
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn '
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*from.dusk.till.dawn(:)?(.the.series.)?[^a-z0-9]*'
+            format: 'From Dusk Till Dawn '
+    # mock:
+      # - { title: 'From Dusk Till Dawn S01E05 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S01E06 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S01E07 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S01E08 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S01E09 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S01E10 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S02E01 HDTV x264 KILLERS ettv' }
+      # - { title: 'From Dusk Till Dawn S02E02 HDTV x264 KILLERS ettv' }
     # uoccin_emit:
       # path: '{{ secrets.uoccin.path }}'
       # type: series
       # tags: [ 'tvdb_premiere' ]
       # check_tags: none
+    # accept_all: yes
+    emit_series: yes
     sequence:
       # - configure_series:
           # settings:
@@ -1220,11 +1152,12 @@ tasks:
       - configure_series:
           settings:
             quality: <720p hdtv+
+            tracking: backfill
           from:
             uoccin_emit:
               path: '{{ secrets.uoccin.path }}'
               type: series
-              tags: [ 'hires', 'netflix', 'no' ]
+              tags: [ 'no' ]
               check_tags: none
       # - configure_series:
           # settings:
