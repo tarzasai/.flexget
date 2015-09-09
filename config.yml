@@ -144,18 +144,18 @@ templates:
           replace:
             regexp: '.*(marvel|marvels|marvel.s)?.agents.of.(s.h.i.e.l.d.|shield)[\b-.]*'
             format: 'marvels_agents_of_shield.'
-      - title:
-          replace:
-            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
-            format: 'from_dusk_till_dawn.'
+      # - title:
+          # replace:
+            # regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            # format: 'From.Dusk.Till.Dawn.'
       - title:
           replace:
             regexp: '^[^a-z0-9]*house.of.cards.(us|\(us\))?[^a-z0-9]*'
             format: 'House.of.Cards.(US).'
-      - title:
-          replace:
-            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: "TURN_Washington_Spies."
+      # - title:
+          # replace:
+            # regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            # format: "TURN_Washington_Spies."
       - title:
           replace:
             regexp: '^[^a-z0-9]*aquarius.(us|\(us\))?[^a-z0-9]*'
@@ -313,8 +313,12 @@ tasks:
     manipulate:
       - title:
           replace:
+            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            format: 'From Dusk Till Dawn The Series '
+      - title:
+          replace:
             regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: 'Turn '
+            format: 'Turn Washingtons Spies '
     sequence:
       - configure_series:
           settings:
@@ -365,12 +369,12 @@ tasks:
     manipulate:
       - title:
           replace:
-            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: 'Turn '
+            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            format: 'From Dusk Till Dawn The Series '
       - title:
           replace:
-            regexp: '^[^a-z0-9]*from.dusk.till.dawn(:)?(.the.series.)?[^a-z0-9]*'
-            format: 'From Dusk Till Dawn '
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn Washingtons Spies '
     sequence:
       - configure_series:
           settings:
@@ -473,16 +477,11 @@ tasks:
     priority: 10
     interval: 4 hours
     template:
-      # - no_global
       - nofail
-      # - mvinfo
     seen: local
     imdb_list:
       user_id: '{{ secrets.imdb.uid }}'
       list: watchlist
-    # require_field:
-      # - imdb_id
-      # - movie_name
     uoccin_lookup: '{{ secrets.uoccin.path }}'
     if:
       - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
@@ -496,10 +495,6 @@ tasks:
   _watchlist:
     priority: 12
     interval: 1 hours
-    # template:
-      # - no_global
-      # - noseen
-      # - nofail
     seen: local
     uoccin_emit:
       path: '{{ secrets.uoccin.path }}'
@@ -678,6 +673,15 @@ tasks:
         - HTTP data
       crossmatch:
         - Input find did not return anything
+    manipulate:
+      - title:
+          replace:
+            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            format: 'From Dusk Till Dawn '
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn '
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the 
     # actual video filename is completely different, up to make the lookup on metainfo sites impossible.
     from_transmission:
