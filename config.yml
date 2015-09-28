@@ -81,6 +81,8 @@ templates:
       subtitles:
         - Name computed for
       task:
+        - Plugin content_size has requested task to be ran again
+        - Rerunning the task in case better resolution
         - Unhandled error in plugin from_transmission
         - Unhandled error in plugin clean_transmission
       torrentz:
