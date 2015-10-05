@@ -4,18 +4,12 @@ secrets: secrets.yml
 templates:
 
   global:
-    # plugin_priority:
-      # notify_xmpp: -255
     private_torrents: no
     regexp:
       reject:
         - \btemporada\b: {from: title}
         - \bsubt\b: {from: title}
         - (s|d)ub(s|bed|lado)?\b: {from: title}
-        # - \bTS\b: {from: title}
-        # - \bHS\b: {from: title}
-        # - \bDTS\b: {from: title}
-        # - \bHDTS\b: {from: title}
         - \bH?D?TS\b: {from: title}
         - \bVHS: {from: title}
         - \b3-?D\b: {from: title}
@@ -162,7 +156,6 @@ templates:
         - cannot find any series numbering
     # Some titles need little corrections to find matches on metainfo sites.
     manipulate:
-      # Original title backup
       - title:
           replace:
             regexp: '^\[[^\]]*\][^a-z0-9]*'
@@ -175,24 +168,18 @@ templates:
           replace:
             regexp: '^\([^\]]*\)[^a-z0-9]*'
             format: ''
+      # Original title backup
       - tvinfo_title:
           from: title
+      # Now the modifications
       - title:
           replace:
             regexp: '.*(marvel|marvels|marvel.s)?.agents.of.(s.h.i.e.l.d.|shield)[\b-.]*'
             format: 'marvels_agents_of_shield.'
-      # - title:
-          # replace:
-            # regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
-            # format: 'From.Dusk.Till.Dawn.'
       - title:
           replace:
             regexp: '^[^a-z0-9]*house.of.cards.(us|\(us\))?[^a-z0-9]*'
             format: 'House.of.Cards.(US).'
-      # - title:
-          # replace:
-            # regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            # format: "TURN_Washington_Spies."
       - title:
           replace:
             regexp: '^[^a-z0-9]*aquarius.(us|\(us\))?[^a-z0-9]*'
@@ -230,11 +217,9 @@ templates:
     plugin_priority:
       # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
       tmdb_lookup: 128
-      # rottentomatoes_lookup: 127
     imdb_lookup: yes
     tmdb_lookup: yes
     uoccin_lookup: '{{ secrets.uoccin.path }}'
-    # rottentomatoes_lookup: yes
 
   # Global filters for movies.
   mvfltr:
@@ -260,12 +245,6 @@ templates:
         - Expecting
         - Request
         - HTTP data
-    # notify_xmpp:
-      # sender: '{{ secrets.xmpp.usr }}'
-      # password: '{{ secrets.xmpp.pwd }}'
-      # recipient: '{{ secrets.xmpp.dst }}'
-      # title: 'Sto scaricando:'
-      # text: '{% if imdb_name|default(False) %}Film: {{ imdb_name }}{% elif series_name|default(False) %}Serie: {{ series_name }} {{ series_id }}{% else %}(?) {{ title }}{% endif %}'
 
   # Subtitles should always follow their video.
   movsrt:
@@ -315,6 +294,9 @@ templates:
 
 tasks:
 
+  # Synchronize the local uoccin.json file with updates from my Android app.
+  # the app: https://play.google.com/store/apps/details?id=net.ggelardi.uoccin
+  # how to use it with Flexget: https://github.com/Flexget/Flexget/pull/506
   uoccin_sync:
     priority: 1
     template:
@@ -388,67 +370,6 @@ tasks:
     transmission:
       bandwidthpriority: 1
 
-  fill_series:
-    manual: yes
-    template:
-      - tvinfo
-      - tvfltr
-      - tvtran
-      - transm
-    log_filter:
-      series:
-        - identified_by has locked
-      remember_rej:
-        - Remembering rejection of
-      remember_rejected:
-        - Remembering rejection of
-    seen: local
-    manipulate:
-      - title:
-          replace:
-            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
-            format: 'From Dusk Till Dawn The Series '
-      - title:
-          replace:
-            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: 'Turn Washingtons Spies '
-    sequence:
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: 720p hdtv+
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'hires' ]
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: <720p hdtv+
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'hires', 'netflix', 'no' ]
-              check_tags: none
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: webrip
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'netflix' ]
-    discover:
-      what:
-        - emit_series: yes
-      from:
-        - torrentz: verified
-    transmission:
-      bandwidthpriority: 1
-
   # This one grabs the pilots.
   premieres:
     priority: 5
@@ -459,9 +380,6 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-    # plugin_priority:
-      # if: -252
-      # manipulate: -253
     log_filter:
       series:
         - identified_by has locked
@@ -494,7 +412,6 @@ tasks:
         - travel: {from: tvdb_genres}
     series_premiere:
       timeframe: 4 hours
-      # quality: <720p hdtv+
     torrent_alive:
       min_seeds: 40
     if:
@@ -503,7 +420,6 @@ tasks:
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
-    # set_series_begin: yes
     uoccin_watchlist_add:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
@@ -528,17 +444,6 @@ tasks:
       path: '{{ secrets.uoccin.path }}'
       tags: [ 'IMDB' ]
 
-  # Import Uoccin watchlist in flexget movie queue.
-  _watchlist:
-    priority: 12
-    interval: 1 hours
-    seen: local
-    uoccin_emit:
-      path: '{{ secrets.uoccin.path }}'
-      type: movies
-    accept_all: yes
-    movie_queue: add
-
   # This is the search & download task for movies.
   get_movies:
     priority: 15
@@ -555,7 +460,6 @@ tasks:
     seen: local
     discover:
       what:
-        # - emit_movie_queue: { year: no }
         - uoccin_emit:
             path: '{{ secrets.uoccin.path }}'
             type: movies
