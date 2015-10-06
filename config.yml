@@ -1004,16 +1004,17 @@ tasks:
     metainfo_series: yes
     thetvdb_lookup: yes
     mock:
-      - { title: 'penny dreadful s01e03' }
+      - { title: '[HorribleSubs] One Piece - 712' }
+      - { title: 'One Piece - s07e12' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
       # - { title: 'the big bang theory s01e02 webrip x264 dimension' }
       # - { title: 'the big bang theory s01e03 webrip x264 dimension' }
-    accept_all: yes
-    uoccin_collection_remove:
-      uuid: '{{ secrets.uoccin.uuid }}'
-      path: '{{ secrets.uoccin.path }}'
+    # accept_all: yes
+    # uoccin_collection_remove:
+      # uuid: '{{ secrets.uoccin.uuid }}'
+      # path: '{{ secrets.uoccin.path }}'
 
   ut4:
     manual: yes
