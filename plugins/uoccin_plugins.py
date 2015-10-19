@@ -206,7 +206,11 @@ class UoccinLookup(object):
                     entry['uoccin_subtitles'] = edata if entry['uoccin_collected'] else []
                     entry['uoccin_watched'] = episode in ser.get('watched', {}).get(season, [])
             elif 'imdb_id' in entry:
-                mov = movies.get(entry['imdb_id'])
+                try:
+                    mov = movies.get(entry['imdb_id'])
+                except plugin.PluginError as e:
+                    self.log.trace('entry %s imdb failed (%s)' % (entry['imdb_id'], e.value))
+                    continue
                 if mov is None:
                     continue
                 entry['uoccin_watchlist'] = mov.get('watchlist', False)
