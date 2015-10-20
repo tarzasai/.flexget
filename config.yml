@@ -187,9 +187,9 @@ templates:
 
   # Global filters for series.
   tvfltr:
-    content_size:
-      min: 100
-      max: 3000
+    # content_size:
+      # min: 100
+      # max: 3000
     set:
       allow_teasers: no
       propers: 12 hours
