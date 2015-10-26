@@ -367,6 +367,8 @@ tasks:
               path: '{{ secrets.uoccin.path }}'
               type: series
               tags: [ 'netflix' ]
+    if:
+      - uoccin_watched: reject
     transmission:
       bandwidthpriority: 1
 
