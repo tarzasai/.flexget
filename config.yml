@@ -49,9 +49,6 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
-      entry:
-        - subtitles for now
-        - found for a second-choice
       guessit.guess:
         - duplicate properties
         - both guesses to be merged
@@ -72,8 +69,6 @@ templates:
       series:
         - releasing quality restriction
         - appears to be an episode pack
-      subtitles:
-        - Name computed for
       task:
         - Plugin content_size has requested task to be ran again
         - Rerunning the task in case better resolution
@@ -81,6 +76,8 @@ templates:
         - Unhandled error in plugin clean_transmission
       torrentz:
         - Too Many Requests
+      uoccin_process:
+        - changes in C
       urlrewriter:
         - URL rewritten to
     # torrentz' guys banned flexget users
@@ -741,7 +738,8 @@ tasks:
     log_filter:
       delete:
         - has been deleted as well
-        - because was less than clean_source safe value
+        - left because it exceeds safety value
+        - was less than clean_source safe value
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -798,7 +796,8 @@ tasks:
     log_filter:
       delete:
         - has been deleted as well
-        - because was less than clean_source safe value
+        - left because it exceeds safety value
+        - was less than clean_source safe value
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
@@ -851,6 +850,15 @@ tasks:
     plugin_priority:
       subliminal: -200
       uoccin_subtitles: -201
+    log_filter:
+      entry:
+        - subtitles for now
+        - found for a second-choice
+      fix_subtitles:
+        - fixed
+      subtitles:
+        - Name computed for
+        - found for a second-choice
     find:
       path:
         - C:\Storage\Videos\Incoming\series
@@ -881,6 +889,15 @@ tasks:
     plugin_priority:
       subliminal: -200
       uoccin_subtitles: -201
+    log_filter:
+      entry:
+        - subtitles for now
+        - found for a second-choice
+      fix_subtitles:
+        - fixed
+      subtitles:
+        - Name computed for
+        - found for a second-choice
     find:
       path:
         - C:\Storage\Videos\Incoming\movies
