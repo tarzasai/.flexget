@@ -7,7 +7,7 @@ templates:
     private_torrents: no
     regexp:
       reject:
-        - \btemporada\b: {from: title}
+        - \bemporada\b: {from: title}
         - \bsubt\b: {from: title}
         - (s|d)ub(s|bed|lado)?\b: {from: title}
         - \bH?D?TS\b: {from: title}
