@@ -66,6 +66,8 @@ templates:
         - getaddrinfo failed
         - ReadTimeoutError
         - after connection broken
+      rss:
+        - like error page
       series:
         - releasing quality restriction
         - appears to be an episode pack
@@ -131,6 +133,8 @@ templates:
     log_filter:
       inputs:
         - Unable to download the RSS for task
+        - invalid RSS content
+        - rss did not return
       rss:
         - I have saved the invalid content
         - login page
@@ -146,6 +150,7 @@ templates:
     log_filter:
       api_tvdb:
         - using cached data
+        - not get update information from
       manipulate:
         - tvinfo_title
       parser_internal:
@@ -300,7 +305,7 @@ tasks:
       - nosumm
       - nofail
     seen: local
-    find:
+    filesystem:
       path:
         - '{{ secrets.uoccin.path }}\device.{{ secrets.uoccin.uuid }}'
       regexp: '.*\.diff$'
@@ -563,7 +568,7 @@ tasks:
       - tvinfo
       - tvtran
       - transm
-    find:
+    filesystem:
       path:
         - C:\Google Drive\torrents\series
       regexp: '.*\.torrent$'
@@ -585,7 +590,7 @@ tasks:
       - mvinfo
       - mvtran
       - transm
-    find:
+    filesystem:
       path:
         - C:\Google Drive\torrents\movies
       regexp: '.*\.torrent$'
@@ -631,7 +636,7 @@ tasks:
     # Accept only files in series' Transmission destination path (tasks get_series, premieres, dropox_series).
     crossmatch:
       from:
-        - find:
+        - filesystem:
             path:
               - C:\Storage\Videos\Stage\series
             regexp: '.*\.(avi|mkv|mp4)$'
@@ -684,7 +689,7 @@ tasks:
     # Accept only files in movies' Transmission destination path (tasks get_movies, dropox_movies).
     crossmatch:
       from:
-        - find:
+        - filesystem:
             path:
               - C:\Storage\Videos\Stage\movies
             regexp: '.*\.(avi|mkv|mp4)$'
@@ -740,7 +745,7 @@ tasks:
         - has been deleted as well
         - left because it exceeds safety value
         - was less than clean_source safe value
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -765,7 +770,7 @@ tasks:
       - nosumm
       - tvinfo
       - movsrt
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -798,7 +803,7 @@ tasks:
         - has been deleted as well
         - left because it exceeds safety value
         - was less than clean_source safe value
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -823,7 +828,7 @@ tasks:
       - nosumm
       - mvinfo
       - movsrt
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -859,7 +864,7 @@ tasks:
       subtitles:
         - Name computed for
         - found for a second-choice
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -898,7 +903,7 @@ tasks:
       subtitles:
         - Name computed for
         - found for a second-choice
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
@@ -972,7 +977,7 @@ tasks:
     log_filter:
       urlrewriter:
         - URL rewritten to
-    find:
+    filesystem:
       path:
         - C:\Storage\Videos\Incoming\movies
         - C:\Storage\Videos\Movies
@@ -1007,7 +1012,7 @@ tasks:
     # thetvdb_lookup: yes
     # uoccin_lookup: '{{ secrets.uoccin.path }}'
     mock:
-      - { title: 'The.Butler.2013.1080p.BluRay.x264-SPARKS', imdb_id: 'tt1327773' }
+      - { title: 'The.Perfect.Guy.2015.1080p.BluRay.x264-GECKOS' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
