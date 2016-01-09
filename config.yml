@@ -49,6 +49,8 @@ templates:
       content_size:
         - too big, rejecting
         - too small, rejecting
+      crossmatch:
+        - filesystem did not return anything
       guessit.guess:
         - duplicate properties
         - both guesses to be merged
@@ -228,8 +230,8 @@ templates:
     content_size:
       min: 800
       max: 15000
-    movie_queue: accept
     quality: 1080p
+    accept_all: yes
 
   # Destination path for movies in Transmission (requires transm template too).
   mvtran:
