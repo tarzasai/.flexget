@@ -68,8 +68,6 @@ templates:
         - getaddrinfo failed
         - ReadTimeoutError
         - after connection broken
-      rss:
-        - like error page
       series:
         - releasing quality restriction
         - appears to be an episode pack
@@ -139,6 +137,7 @@ templates:
         - rss did not return
       rss:
         - I have saved the invalid content
+        - like error page
         - login page
 
   # All the metainfo plugins used by tasks handling series.
@@ -191,6 +190,13 @@ templates:
 
   # Global filters for series.
   tvfltr:
+    log_filter:
+      series:
+        - identified_by has locked
+      remember_rej:
+        - Remembering rejection of
+      remember_rejected:
+        - Remembering rejection of
     # content_size:
       # min: 100
       # max: 3000
@@ -213,14 +219,23 @@ templates:
     log_filter:
       inputs:
         - Unable to download the RSS for task
+        - invalid RSS content
+        - rss did not return
       rss:
         - I have saved the invalid content
+        - like error page
+        - login page
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
-    plugin_priority:
+    # plugin_priority:
       # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
-      tmdb_lookup: 128
+      # tmdb_lookup: 128
+    log_filter:
+      imdb_lookup:
+        - lookup failed
+      tmdb_lookup:
+        - lookup failed
     imdb_lookup: yes
     tmdb_lookup: yes
     uoccin_lookup: '{{ secrets.uoccin.path }}'
@@ -231,6 +246,9 @@ templates:
       min: 800
       max: 15000
     quality: 1080p
+    if:
+      - not (imdb_id and imdb_name and imdb_year): reject
+      - uoccin_watched: reject
     accept_all: yes
 
   # Destination path for movies in Transmission (requires transm template too).
@@ -325,13 +343,6 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-    log_filter:
-      series:
-        - identified_by has locked
-      remember_rej:
-        - Remembering rejection of
-      remember_rejected:
-        - Remembering rejection of
     seen: local
     manipulate:
       - title:
@@ -386,13 +397,6 @@ tasks:
       - tvfltr
       - tvtran
       - transm
-    log_filter:
-      series:
-        - identified_by has locked
-      remember_rej:
-        - Remembering rejection of
-      remember_rejected:
-        - Remembering rejection of
     seen: local
     require_field:
       - tvdb_id
@@ -455,14 +459,10 @@ tasks:
     priority: 15
     interval: 2 hours
     template:
+      - mvinfo
       - mvfltr
       - mvtran
       - transm
-    log_filter:
-      imdb_lookup:
-        - lookup failed
-      tmdb_lookup:
-        - lookup failed
     seen: local
     discover:
       what:
@@ -479,25 +479,17 @@ tasks:
       bandwidthpriority: 0
 
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  _guess_movies:
+  guess_movies:
     priority: 20
     interval: 4 hours
     template:
       - noseen
       - nofail
-      # - mvinfo
+      - mvinfo
       - mvfeed
       - mvfltr
       - mvtran
       - transm
-    log_filter:
-      # api_rottentomatoes:
-        # - 403 Client Error
-      imdb_lookup:
-        - lookup failed
-      tmdb_lookup:
-        - lookup failed
-    uoccin_lookup: '{{ secrets.uoccin.path }}'
     exists_movie:
       - C:\Storage\Videos\Incoming\movies
       - C:\Storage\Videos\Movies
@@ -508,53 +500,25 @@ tasks:
       - imdb_url
       - imdb_languages
       - imdb_genres
-      - rt_genres
-      # - imdb_votes
-      # - imdb_score
-      # - rt_releases
-      # - rt_critics_score
-      # - rt_audience_score
-    # regexp:
-      # reject:
-        # - animation: {from: imdb_genres}
-        # - documentary: {from: imdb_genres}
-        # - family: {from: imdb_genres}
-        # - horror: {from: imdb_genres}
-        # - music: {from: imdb_genres}
-        # - musical: {from: imdb_genres}
-        # - romance: {from: imdb_genres}
-        # - sport: {from: imdb_genres}
-        # - Faith & Spirituality: {from: rt_genres}
-        # - Kids & Family: {from: rt_genres}
-        # - Sports & Fitness: {from: rt_genres}
-        # - Television: {from: rt_genres}
+      - imdb_score
+      - imdb_votes
+    regexp:
+      reject:
+        - animation: {from: imdb_genres}
+        - documentary: {from: imdb_genres}
+        - family: {from: imdb_genres}
+        - horror: {from: imdb_genres}
+        - music: {from: imdb_genres}
+        - musical: {from: imdb_genres}
+        - romance: {from: imdb_genres}
+        - sport: {from: imdb_genres}
     if:
       - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
-      # I usually don't like italian movies and I prefer English among all the foreign languages.
       - not imdb_languages or not 'english' in imdb_languages: reject
-      # Max 10 years old movies.
+      - not imdb_votes or imdb_votes < 10000: reject
+      - not imdb_score or imdb_score < 8.5: reject
+      - imdb_genres == ['comedy']: reject
       - imdb_year < now.year - 10: reject
-    imdb:
-      min_votes: 2000
-      min_score: 8
-      reject_genres:
-        - animation
-        - documentary
-        - family
-        - horror
-        - music
-        - musical
-        - romance
-        - sport
-    rottentomatoes:
-      min_critics_score: 80
-      min_audience_score: 90
-      reject_genres:
-        - Faith & Spirituality
-        - Kids & Family
-        - Sports & Fitness
-        - Television
-    accept_all: yes
     transmission:
       bandwidthpriority: -1
 
@@ -614,12 +578,8 @@ tasks:
       - tvinfo
       - copsrt
     log_filter:
-      transmissionrpc:
-        - Expecting
-        - Request
-        - HTTP data
       crossmatch:
-        - Input find did not return anything
+        - did not return anything
     manipulate:
       - title:
           replace:
@@ -672,16 +632,8 @@ tasks:
       - mvinfo
       - copsrt
     log_filter:
-      transmissionrpc:
-        - Expecting
-        - Request
-        - HTTP data
       crossmatch:
-        - Input find did not return anything
-      imdb_lookup:
-        - lookup failed
-      tmdb_lookup:
-        - lookup failed
+        - did not return anything
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the
     # actual video filename is completely different, up to make the lookup on metainfo sites impossible.
     from_transmission:
@@ -1009,17 +961,17 @@ tasks:
       - no_global
       - noseen
       - nofail
-      - mvinfo
-    # metainfo_series: yes
-    # thetvdb_lookup: yes
-    # uoccin_lookup: '{{ secrets.uoccin.path }}'
+    imdb_lookup: yes
+    tmdb_lookup: yes
     mock:
-      - { title: 'The.Perfect.Guy.2015.1080p.BluRay.x264-GECKOS' }
-      # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
-      # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
-      # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
-      # - { title: 'the big bang theory s01e02 webrip x264 dimension' }
-      # - { title: 'the big bang theory s01e03 webrip x264 dimension' }
+      - { title: 'Sinatra.-.All.or.Nothing.at.all.Complete.German.DOKU.720p.WebHD.x264-RAiNDEER' }
+      - { title: 'Sinatra: All or nothing at all' }
+      # - { title: '' }
+      # - { title: '' }
+      # - { title: '' }
+      # - { title: '' }
+      # - { title: '' }
+      # - { title: '' }
 
   ut3:
     manual: yes
@@ -1048,15 +1000,37 @@ tasks:
       - no_global
       - noseen
       - nofail
-      # - tvinfo
-    metainfo_series: yes
-    uoccin_lookup: '{{ secrets.uoccin.path }}'
-    uoccin_emit:
-      path: '{{ secrets.uoccin.path }}'
-      type: episodes
-      # type: movies
-      tags: [ 'test' ]
-      ep_flags: collected
+      - mvinfo
+    mock:
+      - { title: 'Sisters.2015.1080p.BluRay.H264.AAC-RARBG' }
+    quality: 1080p
+    require_field:
+      - imdb_id
+      - imdb_name
+      - imdb_year
+      - imdb_url
+      - imdb_languages
+      - imdb_genres
+      - imdb_score
+      - imdb_votes
+    regexp:
+      reject:
+        - animation: {from: imdb_genres}
+        - documentary: {from: imdb_genres}
+        - family: {from: imdb_genres}
+        - horror: {from: imdb_genres}
+        - music: {from: imdb_genres}
+        - musical: {from: imdb_genres}
+        - romance: {from: imdb_genres}
+        - sport: {from: imdb_genres}
+    if:
+      - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
+      - not imdb_languages or not 'english' in imdb_languages: reject
+      - not imdb_votes or imdb_votes < 10000: reject
+      - not imdb_score or imdb_score < 8.5: reject
+      - imdb_genres == ['comedy']: reject
+      - imdb_year < now.year - 10: reject
+    accept_all: yes
 
   # sa:
     # manual: yes
