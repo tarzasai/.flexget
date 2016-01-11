@@ -427,6 +427,7 @@ tasks:
     if:
       - uoccin_tags or uoccin_watchlist or uoccin_watched or uoccin_collected: reject
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+      - tvdb_genres == ['comedy']: reject
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
@@ -961,11 +962,14 @@ tasks:
       - no_global
       - noseen
       - nofail
+    parsing:
+      movie: guessit
     imdb_lookup: yes
-    tmdb_lookup: yes
+    # tmdb_lookup: yes
     mock:
-      - { title: 'Sinatra.-.All.or.Nothing.at.all.Complete.German.DOKU.720p.WebHD.x264-RAiNDEER' }
-      - { title: 'Sinatra: All or nothing at all' }
+      # - { title: 'Sinatra.-.All.or.Nothing.at.all.Complete.German.DOKU.720p.WebHD.x264-RAiNDEER' }
+      - { title: 'Sinatra: All or nothing at all', imdb_id: 'tt3838978' }
+      - { title: 'A Good Year', imdb_id: 'tt0401445' }
       # - { title: '' }
       # - { title: '' }
       # - { title: '' }
@@ -1031,20 +1035,6 @@ tasks:
       - imdb_genres == ['comedy']: reject
       - imdb_year < now.year - 10: reject
     accept_all: yes
-
-  # sa:
-    # manual: yes
-    # template:
-      # - no_global
-      # - noseen
-      # - nofail
-    # series_altnames:
-      # 4324234:
-        # - fdafsf
-        # - fda fsfdfds
-      # 565465:
-        # - gjfdlkg jljsd
-        # - vbvc whatenv ver
 
   test_series:
     manual: yes
