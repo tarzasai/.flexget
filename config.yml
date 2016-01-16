@@ -262,6 +262,7 @@ templates:
       enabled: yes
       port: 9092
       ratio: -1
+      magnetization_timeout: 90
     log_filter:
       transmissionrpc:
         - Expecting
