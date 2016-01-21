@@ -428,7 +428,7 @@ tasks:
     if:
       - uoccin_tags or uoccin_watchlist or uoccin_watched or uoccin_collected: reject
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
-      - tvdb_genres == ['comedy']: reject
+      - tvdb_genres == ['comedy'] or tvdb_genres == ['Comedy']: reject
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
