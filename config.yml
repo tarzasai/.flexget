@@ -806,7 +806,7 @@ tasks:
         phase: md C:\Storage\Videos\Incoming\movies
 
   # Download italian and english subtitles for episodes.
-  subs_series:
+  _subs_series:
     priority: 60
     template:
       - noseen
@@ -844,7 +844,7 @@ tasks:
     fix_subtitles: yes
 
   # Download italian and english subtitles for movies.
-  subs_movies:
+  _subs_movies:
     priority: 61
     interval: 2 hours
     template:
