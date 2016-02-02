@@ -481,9 +481,10 @@ tasks:
       bandwidthpriority: 0
 
   # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  __guess_movies:
-    priority: 20
-    interval: 4 hours
+  _guess_movies:
+    # priority: 20
+    # interval: 4 hours
+    manual: yes
     template:
       - noseen
       - nofail
