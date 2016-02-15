@@ -293,7 +293,8 @@ class UoccinWatchlist(UoccinWriter):
             elif entry.get('imdb_id'):
                 tid = entry['imdb_id']
                 typ = 'movie'
-            if tid is None:
+            if tid is None or tid.lower() == 'none':
+                self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'watchlist', str(self.set_true).lower())
             if self.set_true:
@@ -367,7 +368,8 @@ class UoccinCollection(UoccinWriter):
             elif entry.get('imdb_id'):
                 tid = entry['imdb_id']
                 typ = 'movie'
-            if tid is None:
+            if tid is None or tid.lower() == 'none':
+                self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'collected', str(self.set_true).lower())
             if self.set_true and 'subtitles' in entry:
@@ -422,7 +424,8 @@ class UoccinWatched(UoccinWriter):
             elif entry.get('imdb_id'):
                 tid = entry['imdb_id']
                 typ = 'movie'
-            if tid is None:
+            if tid is None or tid.lower() == 'none':
+                self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'watched', str(self.set_true).lower())
 
@@ -475,7 +478,8 @@ class UoccinSubtitles(UoccinWriter):
             elif entry.get('imdb_id'):
                 tid = entry['imdb_id']
                 typ = 'movie'
-            if tid is None:
+            if tid is None or tid.lower() == 'none':
+                self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'subtitles', ",".join(entry['subtitles']))
 
