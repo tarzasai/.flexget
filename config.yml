@@ -592,6 +592,10 @@ tasks:
           replace:
             regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
             format: 'Turn '
+      - title:
+          replace:
+            regexp: '11.22.63.'
+            format: '11.22.63 '
     require_field:
       - location
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the
