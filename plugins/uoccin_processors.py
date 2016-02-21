@@ -288,7 +288,7 @@ class UoccinWatchlist(UoccinWriter):
             tid = None
             typ = None
             if entry.get('tvdb_id'):
-                tid = entry['tvdb_id']
+                tid = str(entry['tvdb_id'])
                 typ = 'series'
             elif entry.get('imdb_id'):
                 tid = entry['imdb_id']
