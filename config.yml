@@ -187,6 +187,10 @@ templates:
           replace:
             regexp: '^[^a-z0-9]*aquarius.(us|\(us\))?[^a-z0-9]*'
             format: 'Aquarius.2015.'
+      - title:
+          replace:
+            regexp: '^[^a-z0-9]*11\.22\.63[^a-z0-9]*'
+            format: '11-22-63.'
 
   # Global filters for series.
   tvfltr:
@@ -993,11 +997,11 @@ tasks:
       - no_global
       - noseen
       - nofail
-    metainfo_series: yes
-    thetvdb_lookup: yes
+      - tvinfo
+    # metainfo_series: yes
+    # thetvdb_lookup: yes
     mock:
-      - { title: '[HorribleSubs] One Piece - 712' }
-      - { title: 'One Piece - s07e12' }
+      - { title: '11.22.63.s01e01.dasfff' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
