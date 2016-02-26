@@ -171,6 +171,14 @@ templates:
           replace:
             regexp: '^\([^\]]*\)[^a-z0-9]*'
             format: ''
+      - title:
+          replace:
+            regexp: '\s?\]\[\s?'
+            format: '@@'
+      - title:
+          replace:
+            regexp: '\W?@@.*'
+            format: ''
       # Original title backup
       - tvinfo_title:
           from: title
@@ -1001,7 +1009,7 @@ tasks:
     # metainfo_series: yes
     # thetvdb_lookup: yes
     mock:
-      - { title: '11.22.63.s01e01.dasfff' }
+      - { title: 'The Blacklist S03E16 480p 149mb HDTV x264-][ The Caretaker ][ 26-Feb-2016 ].mp4' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
