@@ -1,9 +1,9 @@
 from __future__ import unicode_literals, division, absolute_import
-from datetime import datetime
 import logging
 import os
 import re
 import shutil
+import time
 
 from flexget import plugin
 from flexget.entry import Entry
@@ -139,8 +139,9 @@ class UoccinProcess(object):
                     season = ser['collected'].setdefault(sno, {})
                     if val == 'true':
                         season.setdefault(eno, [])
-                    elif eno in season:
-                        season.pop(eno)
+                    else:
+                        if eno in season:
+                            season.pop(eno)
                         if not season:
                             self.log.verbose('deleting unused section: series\%s\collected\%s' % (sid, sno))
                             ser['collected'].pop(sno)
@@ -150,7 +151,7 @@ class UoccinProcess(object):
                     season = ser['watched'].setdefault(sno, [])
                     if val == 'true':
                         season = ser['watched'][sno] = list(set(season) | set([int(eno)]))
-                    elif eno in season:
+                    elif int(eno) in season:
                         season.remove(int(eno))
                     season.sort()
                     if not season:
@@ -233,7 +234,7 @@ class UoccinWriter(object):
         if not os.path.exists(my_folder):
             os.makedirs(my_folder)
         # define the filename for the outgoing diff file
-        ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
+        ts = int(time.time()*1000)
         fn = '%d.%s.diff' % (ts, config['uuid'])
         UoccinWriter.out_queue = os.path.join(my_folder, fn)
     
@@ -253,7 +254,7 @@ class UoccinWriter(object):
             os.remove(UoccinWriter.out_queue)
     
     def append_command(self, target, title, field, value):
-        ts = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
+        ts = int(time.time()*1000)
         line = '%d|%s|%s|%s|%s\n' % (ts, target, title, field, value)
         with open(UoccinWriter.out_queue, 'a') as f:
             f.write(line)
