@@ -189,7 +189,7 @@ templates:
             format: 'marvels_agents_of_shield.'
       - title:
           replace:
-            regexp: '^[^a-z0-9]*house.of.cards.(us|\(us\))?[^a-z0-9]*'
+            regexp: '^[^a-z0-9]*house.of.cards.(2013|us|\(us\))?[^a-z0-9]*'
             format: 'House.of.Cards.(US).'
       - title:
           replace:
