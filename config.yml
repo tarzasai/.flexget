@@ -185,20 +185,24 @@ templates:
       # Now the modifications
       - title:
           replace:
+            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
+            format: 'From Dusk Till Dawn The Series '
+      - title:
+          replace:
             regexp: '.*(marvel|marvels|marvel.s)?.agents.of.(s.h.i.e.l.d.|shield)[\b-.]*'
-            format: 'marvels_agents_of_shield.'
+            format: 'Marvels Agents Of Shield '
       - title:
           replace:
             regexp: '^[^a-z0-9]*house.of.cards.(2013|us|\(us\))?[^a-z0-9]*'
-            format: 'House.of.Cards.(US).'
+            format: 'House Of Cards (US) '
       - title:
           replace:
             regexp: '^[^a-z0-9]*aquarius.(us|\(us\))?[^a-z0-9]*'
-            format: 'Aquarius.2015.'
+            format: 'Aquarius 2015 '
       - title:
           replace:
-            regexp: '^[^a-z0-9]*11\.22\.63[^a-z0-9]*'
-            format: '11-22-63.'
+            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
+            format: 'Turn Washingtons Spies '
 
   # Global filters for series.
   tvfltr:
@@ -357,15 +361,6 @@ tasks:
       - tvtran
       - transm
     seen: local
-    manipulate:
-      - title:
-          replace:
-            regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
-            format: 'From Dusk Till Dawn The Series '
-      - title:
-          replace:
-            regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
-            format: 'Turn Washingtons Spies '
     sequence:
       - configure_series:
           settings:
@@ -1009,7 +1004,7 @@ tasks:
     # metainfo_series: yes
     # thetvdb_lookup: yes
     mock:
-      - { title: 'The Blacklist S03E16 480p 149mb HDTV x264-][ The Caretaker ][ 26-Feb-2016 ].mp4' }
+      - { title: 'Turn.S03E01.HDTV.x264-FLEET[rarbg]' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
