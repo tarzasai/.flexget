@@ -207,6 +207,10 @@ templates:
           replace:
             regexp: '^[^a-z0-9]*wallander.(uk|\(uk\))?[^a-z0-9]*'
             format: 'Wallander (UK) '
+      - title:
+          replace:
+            regexp: '^The\.Night\.Of\.Part\.'
+            format: 'The.Night.Of.S01E0'
 
   # Global filters for series.
   tvfltr:
@@ -607,6 +611,10 @@ tasks:
           replace:
             regexp: '11.22.63.'
             format: '11.22.63 '
+      - title:
+          replace:
+            regexp: '^The\.Night\.Of\.Part\.'
+            format: 'The.Night.Of.S01E0'
     require_field:
       - location
     # We get the entries from Transmission because we need the torrent title, because in some multi-file torrents the
@@ -1008,7 +1016,7 @@ tasks:
     # metainfo_series: yes
     # thetvdb_lookup: yes
     mock:
-      - { title: 'Wallander.S04E02.HDTV.x264-FLEET[rarbg]' }
+      - { title: 'The.Night.Of.Part.2.HDTV.x264-BATV[rarbg]' }
       # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
       # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
       # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
