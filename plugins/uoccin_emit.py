@@ -1,4 +1,6 @@
 from __future__ import unicode_literals, division, absolute_import
+from builtins import *  # pylint: disable=unused-import, redefined-builtin
+
 import os
 
 from flexget import plugin
@@ -41,10 +43,10 @@ class UoccinEmit(object):
         'required': ['path', 'type'],
         'additionalProperties': False
     }
-    
+
     def on_task_input(self, task, config):
         """Creates an entry for each item in your uoccin watchlist.
-        
+
         Example::
             
             uoccin_emit:
@@ -52,19 +54,19 @@ class UoccinEmit(object):
               type: series
               tags: [ 'favorite', 'hires' ]
               check_tags: all
-        
+
         Options path and type are required while the others are for filtering:
         - 'any' will include all the items marked with one or more tags in the list
         - 'all' will only include the items marked with all the listed tags
         - 'none' will only include the items not marked with any of the listed tags.
-        
+
         The entries created will have a valid imdb/tvdb url and id.
         """
         imdb_lookup = plugin.get_plugin_by_name('imdb_lookup').instance
         udata = load_uoccin_data(config['path'])
         section = udata['movies'] if config['type'] == 'movies' else udata['series']
         entries = []
-        for eid, itm in section.items():
+        for eid, itm in list(section.items()):
             if not itm['watchlist']:
                 continue
             if 'tags' in config:
@@ -114,7 +116,7 @@ class UoccinEmit(object):
                         self.log.debug('Invalid entry created? %s' % entry)
                 elif config['ep_flags'] == 'collected':
                     slist = itm.get('collected', {})
-                    for sno in slist.keys():
+                    for sno in list(slist.keys()):
                         for eno in slist[sno]:
                             entry = Entry()
                             entry['url'] = surl
@@ -126,7 +128,7 @@ class UoccinEmit(object):
                                 self.log.debug('Invalid entry created? %s' % entry)
                 else:
                     slist = itm.get('watched', {})
-                    for sno in slist.keys():
+                    for sno in list(slist.keys()):
                         for eno in slist[sno]:
                             entry = Entry()
                             entry['url'] = surl
