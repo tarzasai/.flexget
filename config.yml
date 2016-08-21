@@ -200,7 +200,7 @@ templates:
   # Destination path for series in Transmission (requires "transm" template too).
   tvtran:
     transmission:
-      path: C:\Storage\Videos\Stage\series
+      path: C:\Share\Stage\series
 
   # The sources for movies torrents.
   mvfeed:
@@ -244,7 +244,7 @@ templates:
   # Destination path for movies in Transmission (requires transm template too).
   mvtran:
     transmission:
-      path: C:\Storage\Videos\Stage\movies
+      path: C:\Share\Stage\movies
 
   # Common Transmission settings.
   transm:
@@ -263,28 +263,31 @@ templates:
   movsrt:
     move:
       along:
-        - srt
-        - it.srt
-        - ita.srt
-        - en.srt
-        - eng.srt
+        files:
+          - srt
+          - it.srt
+          - ita.srt
+          - en.srt
+          - eng.srt
   copsrt:
     copy:
       along:
-        - srt
-        - it.srt
-        - ita.srt
-        - en.srt
-        - eng.srt
+        files:
+          - srt
+          - it.srt
+          - ita.srt
+          - en.srt
+          - eng.srt
   delsrt:
     delete:
       clean_source: 50
       along:
-        - srt
-        - it.srt
-        - ita.srt
-        - en.srt
-        - eng.srt
+        files:
+          - srt
+          - it.srt
+          - ita.srt
+          - en.srt
+          - eng.srt
 
   # No messages about no input/output/whatever.
   nosumm:
@@ -404,6 +407,7 @@ tasks:
         - travel: {from: tvdb_genres}
     series_premiere:
       timeframe: 4 hours
+      allow_teasers: no
     torrent_alive:
       min_seeds: 40
     if:
@@ -419,23 +423,23 @@ tasks:
       tags: [ 'evaluate' ]
 
   # Import IMDB movies watchlist in Uoccin.
-  imdb2uoccin:
-    priority: 10
-    interval: 4 hours
-    template:
-      - nofail
-    seen: local
-    imdb_list:
-      user_id: '{{ secrets.imdb.uid }}'
-      list: watchlist
-    uoccin_lookup: '{{ secrets.uoccin.path }}'
-    if:
-      - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
-    accept_all: yes
-    uoccin_watchlist_add:
-      uuid: '{{ secrets.uoccin.uuid }}'
-      path: '{{ secrets.uoccin.path }}'
-      tags: [ 'IMDB' ]
+  # imdb2uoccin:
+    # priority: 10
+    # interval: 4 hours
+    # template:
+      # - nofail
+    # seen: local
+    # imdb_list:
+      # user_id: '{{ secrets.imdb.uid }}'
+      # list: watchlist
+    # uoccin_lookup: '{{ secrets.uoccin.path }}'
+    # if:
+      # - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
+    # accept_all: yes
+    # uoccin_watchlist_add:
+      # uuid: '{{ secrets.uoccin.uuid }}'
+      # path: '{{ secrets.uoccin.path }}'
+      # tags: [ 'IMDB' ]
 
   # This is the search & download task for movies.
   get_movies:
@@ -453,52 +457,7 @@ tasks:
     transmission:
       bandwidthpriority: 0
 
-  # This is a very simple upcoming movies evaluating task, based on IMDB and Rotten Tomatoes public votes.
-  _guess_movies:
-    # priority: 20
-    # interval: 4 hours
-    manual: yes
-    template:
-      - noseen
-      - nofail
-      - mvinfo
-      - mvfeed
-      - mvfltr
-      - mvtran
-      - transm
-    exists_movie:
-      - C:\Storage\Videos\Incoming\movies
-      - C:\Storage\Videos\Movies
-    require_field:
-      - imdb_id
-      - imdb_name
-      - imdb_year
-      - imdb_url
-      - imdb_languages
-      - imdb_genres
-      - imdb_score
-      - imdb_votes
-    regexp:
-      reject:
-        - animation: {from: imdb_genres}
-        - documentary: {from: imdb_genres}
-        - family: {from: imdb_genres}
-        - horror: {from: imdb_genres}
-        - music: {from: imdb_genres}
-        - musical: {from: imdb_genres}
-        - romance: {from: imdb_genres}
-        - sport: {from: imdb_genres}
-    if:
-      - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
-      - not imdb_languages or not 'english' in imdb_languages: reject
-      - not imdb_votes or imdb_votes < 10000: reject
-      - not imdb_score or imdb_score < 8.5: reject
-      - imdb_genres == ['comedy']: reject
-      - imdb_year < now.year - 10: reject
-    transmission:
-      bandwidthpriority: -1
-
-  # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my
+      # Sometimes, mostly for old stuff, I have to look for episodes in the old way: this task look for torrents in my
   # g-drive folder for series and send them directly to Transmission.
   dropbox_series:
     priority: 30
@@ -586,21 +545,21 @@ tasks:
       from:
         - filesystem:
             path:
-              - C:\Storage\Videos\Stage\series
+              - C:\Share\Stage\series
             regexp: '.*\.(avi|mkv|mp4)$'
             recursive: yes
       fields:
         - location
       action: accept
     exists_series:
-      path: "C:\\Storage\\Videos\\Incoming\\series"
+      path: "C:\\Share\\Incoming\\series"
       allow_different_qualities: better
     if:
       - not proper and (uoccin_collected or uoccin_watched): reject
     # Copy accepted files in the incoming path (filename will be the original title since manipulate in tvinfo might
     # have modified it).
     copy:
-      to: "C:\\Storage\\Videos\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
+      to: "C:\\Share\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
       filename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
     # Add to Uoccin episodes collection.
     uoccin_collection_add:
@@ -633,7 +592,7 @@ tasks:
       from:
         - filesystem:
             path:
-              - C:\Storage\Videos\Stage\movies
+              - C:\Share\Stage\movies
             regexp: '.*\.(avi|mkv|mp4)$'
             recursive: yes
       fields:
@@ -643,7 +602,7 @@ tasks:
       - uoccin_watched: reject
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
-      to: "C:\\Storage\\Videos\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
+      to: "C:\\Share\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
       filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
     # Update Uoccin movies collection/watchlist.
     uoccin_collection_add:
@@ -689,7 +648,7 @@ tasks:
         - was less than clean_source safe value
     filesystem:
       path:
-        - C:\Storage\Videos\Incoming\series
+        - C:\Share\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
@@ -702,7 +661,7 @@ tasks:
     exec:
       allow_background: yes
       on_exit:
-        phase: md C:\Storage\Videos\Incoming\series
+        phase: md C:\Share\Incoming\series
 
   save_series:
     priority: 51
@@ -714,13 +673,13 @@ tasks:
       - movsrt
     filesystem:
       path:
-        - C:\Storage\Videos\Incoming\series
+        - C:\Share\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
       - uoccin_watched and uoccin_rating > 4: accept
     move:
-      to: "C:\\Storage\\Videos\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
+      to: "C:\\Share\\Series\\{{ tvdb_series_name|default(series_name) }}\\Season {{ series_season }}\\"
       clean_source: 10
     uoccin_collection_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
@@ -729,7 +688,7 @@ tasks:
     exec:
       allow_background: yes
       on_exit:
-        phase: md C:\Storage\Videos\Incoming\series
+        phase: md C:\Share\Incoming\series
 
   # Delete watched movies.
   purge_movies:
@@ -747,7 +706,7 @@ tasks:
         - was less than clean_source safe value
     filesystem:
       path:
-        - C:\Storage\Videos\Incoming\movies
+        - C:\Share\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     if:
@@ -759,35 +718,10 @@ tasks:
     exec:
       allow_background: yes
       on_exit:
-        phase: md C:\Storage\Videos\Incoming\movies
-
-  # Save watched movies (the very good ones).
-  save_movies:
-    priority: 53
-    template:
-      - no_global
-      - noseen
-      - nosumm
-      - mvinfo
-      - movsrt
-    filesystem:
-      path:
-        - C:\Storage\Videos\Incoming\movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    if:
-      - uoccin_watched and uoccin_rating > 4: accept
-    move:
-      to: "C:\\Storage\\Videos\\Movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      clean_source: 10
-    # Eventually restore the incoming movies folder (otherwise Flexget will not run next time).
-    exec:
-      allow_background: yes
-      on_exit:
-        phase: md C:\Storage\Videos\Incoming\movies
+        phase: md C:\Share\Incoming\movies
 
   # Download italian and english subtitles for episodes.
-  _subs_series:
+  subs_series:
     priority: 60
     template:
       - noseen
@@ -808,7 +742,7 @@ tasks:
         - found for a second-choice
     filesystem:
       path:
-        - C:\Storage\Videos\Incoming\series
+        - C:\Share\Incoming\series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -825,7 +759,7 @@ tasks:
     fix_subtitles: yes
 
   # Download italian and english subtitles for movies.
-  _subs_movies:
+  subs_movies:
     priority: 61
     interval: 2 hours
     template:
@@ -847,7 +781,7 @@ tasks:
         - found for a second-choice
     filesystem:
       path:
-        - C:\Storage\Videos\Incoming\movies
+        - C:\Share\Incoming\movies
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -903,32 +837,6 @@ tasks:
   ######################################################################################################################
   # TESTS
   ######################################################################################################################
-
-  d2uc:
-    manual: yes
-    template:
-      - no_global
-      - noseen
-      - nofail
-      - mvinfo
-    disable:
-      - urlrewriter
-      - urlrewrite_redirect
-      - tmdb_lookup
-      - rottentomatoes_lookup
-    log_filter:
-      urlrewriter:
-        - URL rewritten to
-    filesystem:
-      path:
-        - C:\Storage\Videos\Incoming\movies
-        - C:\Storage\Videos\Movies
-      regexp: '.*\.(avi|mkv|mp4)$'
-      recursive: yes
-    accept_all: yes
-    uoccin_collection_add:
-      uuid: '{{ secrets.uoccin.uuid }}'
-      path: '{{ secrets.uoccin.path }}'
 
   ut1:
     manual: yes
@@ -1023,43 +931,3 @@ tasks:
       - imdb_genres == ['comedy']: reject
       - imdb_year < now.year - 10: reject
     accept_all: yes
-
-  test_series:
-    manual: yes
-    # template:
-      # - tvinfo
-      # - tvfeed
-      # - tvfltr
-      # - tvtran
-      # - transm
-    seen: local
-    sequence:
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: 720p hdtv+
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'hires' ]
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: <720p hdtv+
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'hires', 'netflix', 'no' ]
-              check_tags: none
-      - configure_series:
-          settings:
-            tracking: backfill
-            quality: webrip
-          from:
-            uoccin_emit:
-              path: '{{ secrets.uoccin.path }}'
-              type: series
-              tags: [ 'netflix' ]
-    emit_series: yes

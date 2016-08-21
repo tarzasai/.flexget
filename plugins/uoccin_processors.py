@@ -11,7 +11,7 @@ from flexget.event import event
 from flexget.utils import json
 
 try:
-    from flexget.plugins.api_tvdb import lookup_series
+    from flexget.plugins.internal.api_tvdb import lookup_series
 except ImportError:
     raise plugin.DependencyError(issued_by='uoccin', missing='api_tvdb',
                                  message='uoccin requires the `api_tvdb` plugin')
@@ -123,7 +123,7 @@ class UoccinProcess(object):
                 # series name is unknown at this time
                 try:
                     series = lookup_series(tvdb_id=sid)
-                    ser['name'] = series.seriesname
+                    ser['name'] = series.name
                 except LookupError:
                     self.log.warning('Unable to lookup series %s from tvdb, using raw name.' % sid)
                 # setting

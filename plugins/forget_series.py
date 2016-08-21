@@ -3,7 +3,7 @@ import logging
 
 from flexget import plugin
 from flexget.event import event
-from flexget.plugins.filter.series import forget_series
+from flexget.plugins.filter.series import remove_series
 
 log = logging.getLogger('set_series_forget')
 
@@ -27,7 +27,7 @@ class ForgetSeries(object):
             s = entry['title']
             try:
                 self.log.info('Removing series "%s"' % s)
-                forget_series(s)
+                remove_series(s)
             except ValueError as e:
                 self.log.error(e)
 

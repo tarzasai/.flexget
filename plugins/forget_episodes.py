@@ -3,7 +3,7 @@ import logging
 
 from flexget import plugin
 from flexget.event import event
-from flexget.plugins.filter.series import Series, forget_series_episode
+from flexget.plugins.filter.series import Series, remove_series_episode
 
 log = logging.getLogger('set_series_forget')
 
@@ -29,7 +29,7 @@ class ForgetEpisodes(object):
                 sid = entry['series_id']
                 try:
                     self.log.info('Removing episode %s references from "%s"' % (sid, snm))
-                    forget_series_episode(snm, sid)
+                    remove_series_episode(snm, sid)
                 except ValueError as e:
                     self.log.error('An error occurred: %s' % e)
 
