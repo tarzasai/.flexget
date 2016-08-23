@@ -95,17 +95,15 @@ templates:
           link: 'torrent:magnetURI'
           silent: yes
       - rss:
-          url: http://extratorrent.cc/rss.xml?type=popular&cid=8
+          # url: http://extratorrent.cc/rss.xml?cid=8&type=popular
+          url: http://extratorrent.cc/rss.xml?cid=8&type=last
           silent: yes
-    # log_filter:
-      # inputs:
-        # - Unable to download the RSS for task
-        # - invalid RSS content
-        # - rss did not return
-      # rss:
-        # - I have saved the invalid content
-        # - like error page
-        # - login page
+      - rss:
+          url: http://www.torrentfunk.com/tv/rss.xml
+          silent: yes
+    log_filter:
+      inputs:
+        - Error during input plugin rss
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
@@ -733,6 +731,7 @@ tasks:
       uoccin_subtitles: -201
     log_filter:
       entry:
+        - not found
         - subtitles for now
         - found for a second-choice
       fix_subtitles:
@@ -772,6 +771,7 @@ tasks:
       uoccin_subtitles: -201
     log_filter:
       entry:
+        - not found
         - subtitles for now
         - found for a second-choice
       fix_subtitles:
