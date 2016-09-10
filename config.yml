@@ -4,7 +4,7 @@ secrets: secrets.yml
 templates:
 
   global:
-    private_torrents: no
+    # private_torrents: no
     regexp:
       reject:
         - \bemporada\b: {from: title}
@@ -85,6 +85,9 @@ templates:
   # The sources for series torrents.
   tvfeed:
     inputs:
+      - rss:
+          url: '{{ secrets.privs.worldofp2p_tv }}'
+          silent: yes
       - rss:
           url: http://showrss.info/user/83874.rss?magnets=true&namespaces=true&name=null&quality=any&re=yes
           silent: yes
@@ -203,6 +206,7 @@ templates:
   # The sources for movies torrents.
   mvfeed:
     inputs:
+      - rss: { url: '{{ secrets.privs.worldofp2p_mv }}', silent: yes }
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
       - rss: { url: 'http://extratorrent.cc/rss.xml?type=popular&cid=4', silent: yes }
     log_filter:
@@ -421,24 +425,19 @@ tasks:
       path: '{{ secrets.uoccin.path }}'
       tags: [ 'evaluate' ]
 
-  # Import IMDB movies watchlist in Uoccin.
-  # imdb2uoccin:
-    # priority: 10
-    # interval: 4 hours
-    # template:
-      # - nofail
-    # seen: local
-    # imdb_list:
-      # user_id: '{{ secrets.imdb.uid }}'
-      # list: watchlist
-    # uoccin_lookup: '{{ secrets.uoccin.path }}'
-    # if:
-      # - uoccin_watchlist or uoccin_watched or uoccin_collected: reject
-    # accept_all: yes
-    # uoccin_watchlist_add:
-      # uuid: '{{ secrets.uoccin.uuid }}'
-      # path: '{{ secrets.uoccin.path }}'
-      # tags: [ 'IMDB' ]
+  # Copy movies from Uoccin watchlist to Flexget movie queue.
+  queue_movies:
+    priority: 10
+    interval: 4 hours
+    template:
+      - nofail
+    seen: local
+    uoccin_emit:
+      path: '{{ secrets.uoccin.path }}'
+      type: movies
+    accept_all: yes
+    list_add:
+      - movie_list: mqueue
 
   # This is the search & download task for movies.
   get_movies:
@@ -451,8 +450,11 @@ tasks:
       - mvtran
       - transm
     seen: local
-    if:
-      - uoccin_watchlist: accept
+    # if:
+      # - uoccin_watchlist: accept
+    list_match:
+      from:
+        - movie_list: mqueue
     transmission:
       bandwidthpriority: 0
 
