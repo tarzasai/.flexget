@@ -746,7 +746,8 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    subliminal:
+    mysubliminal:
+      single: no
       languages:
         - ita
       alternatives:
@@ -786,7 +787,8 @@ tasks:
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
-    subliminal:
+    mysubliminal:
+      single: no
       languages:
         - ita
       alternatives:
@@ -932,3 +934,25 @@ tasks:
       - imdb_genres == ['comedy']: reject
       - imdb_year < now.year - 10: reject
     accept_all: yes
+    
+  ut5:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+    filesystem:
+      path:
+        # - C:\Share\Incoming\series
+        - C:\Share\Incoming\series\Aquarius (2015)
+        # - C:\Share\Incoming\series\From Dusk Till Dawn The Series
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    accept_all: yes
+    mysubliminal:
+      single: no
+      languages:
+        - ita
+        # - eng
+      alternatives:
+        - eng
