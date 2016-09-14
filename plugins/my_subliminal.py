@@ -184,7 +184,7 @@ class PluginSubliminal(object):
                         
                         test = set([Language.fromietf(str(l.language)) for l in all_subtitles])
                         if len(test - (primary_languages | alternative_languages)) <= 0:
-                            log.verbose('There are no more languages to download for "%s"', entry['title'])
+                            log.debug('There are no more languages to download for "%s"', entry['title'])
                             continue  # subs for alternative language(s) already exists
 
                         subtitles = provider_pool.download_best_subtitles(all_subtitles, video, primary_languages,
