@@ -943,8 +943,8 @@ tasks:
       - nofail
     filesystem:
       path:
-        # - C:\Share\Incoming\series
-        - C:\Share\Incoming\series\Aquarius (2015)
+        - C:\Share\Incoming\series
+        # - C:\Share\Incoming\series\Aquarius (2015)
         # - C:\Share\Incoming\series\From Dusk Till Dawn The Series
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes

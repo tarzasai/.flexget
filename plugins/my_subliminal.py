@@ -158,7 +158,7 @@ class PluginSubliminal(object):
                     continue
 
                 try:
-                    entry_languages = set(entry.get('subtitle_languages', [])) or languages
+                    primary_languages = set(entry.get('subtitle_languages', [])) or languages
 
                     video = subliminal.scan_video(entry['location'])
                     # use metadata refiner to get mkv metadata
@@ -166,10 +166,6 @@ class PluginSubliminal(object):
                     subliminal.core.refine(video, episode_refiners=refiner, movie_refiners=refiner)
                     existing_subtitles = set(subliminal.core.search_external_subtitles(entry['location']).values())
                     video.subtitle_languages |= existing_subtitles
-                    
-                    print(video.subtitle_languages)
-                    print(existing_subtitles)
-                    
                     if isinstance(video, subliminal.Episode):
                         title = video.series
                         hash_scores = episode_scores['hash']
@@ -178,17 +174,21 @@ class PluginSubliminal(object):
                         hash_scores = movie_scores['hash']
                     log.info('Name computed for %s was %s', entry['location'], title)
                     msc = hash_scores if config['exact_match'] else 0
-                    if entry_languages.issubset(video.subtitle_languages) or (single_mode and video.subtitle_languages):
+                    if primary_languages.issubset(video.subtitle_languages) or (single_mode and video.subtitle_languages):
                         log.debug('All preferred languages already exist for "%s"', entry['title'])
-                        continue  # subs for preferred lang(s) already exists
+                        continue  # subs for preferred language(s) already exists
                     else:
                         # Gather the subtitles for the alternative languages too, to avoid needing to search the sites
                         # again. They'll just be ignored if the main languages are found.
-                        all_subtitles = provider_pool.list_subtitles(video, entry_languages | alternative_languages)
+                        all_subtitles = provider_pool.list_subtitles(video, primary_languages | alternative_languages)
+                        
+                        test = set([Language.fromietf(str(l.language)) for l in all_subtitles])
+                        if len(test - (primary_languages | alternative_languages)) <= 0:
+                            log.verbose('There are no more languages to download for "%s"', entry['title'])
+                            continue  # subs for alternative language(s) already exists
 
-                        subtitles = provider_pool.download_best_subtitles(all_subtitles, video, entry_languages,
-                                                                          min_score=msc,
-                                                                          hearing_impaired=hearing_impaired)
+                        subtitles = provider_pool.download_best_subtitles(all_subtitles, video, primary_languages,
+                                                                          min_score=msc, hearing_impaired=hearing_impaired)
                         if subtitles:
                             downloaded_subtitles[video].extend(subtitles)
                             log.info('Subtitles found for %s', entry['location'])
