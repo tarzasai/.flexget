@@ -254,6 +254,22 @@ class UoccinWriter(object):
                     self.log.verbose('%s copied in %s' % (UoccinWriter.out_queue, fld))
             # delete the diff file in the local device folder
             os.remove(UoccinWriter.out_queue)
+    
+    def get_target_type(self, entry):
+        tid = None
+        typ = None
+        if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
+            tid = str(entry['tvdb_id'])
+            if tid is None or tid.lower() == 'none':
+                return None, None
+            tid += '.%d.%d' % (entry['series_season'], entry['series_episode'])
+            typ = 'series'
+        elif entry.get('imdb_id'):
+            tid = entry['imdb_id']
+            if tid is None or tid.lower() == 'none':
+                return None, None
+            typ = 'movie'
+        return typ, tid
 
     def append_command(self, target, title, field, value):
         ts = int(time.time() * 1000)
@@ -287,15 +303,8 @@ class UoccinWatchlist(UoccinWriter):
         - for uoccin_watchlist_add at least 1 tag is required.
         """
         for entry in task.accepted:
-            tid = None
-            typ = None
-            if entry.get('tvdb_id'):
-                tid = str(entry['tvdb_id'])
-                typ = 'series'
-            elif entry.get('imdb_id'):
-                tid = entry['imdb_id']
-                typ = 'movie'
-            if tid is None or tid.lower() == 'none':
+            typ, tid = self.get_target_type(entry)
+            if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'watchlist', str(self.set_true).lower())
@@ -361,15 +370,8 @@ class UoccinCollection(UoccinWriter):
         - the uuid must be a filename-safe text.
         """
         for entry in task.accepted:
-            tid = None
-            typ = None
-            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
-                tid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
-                typ = 'series'
-            elif entry.get('imdb_id'):
-                tid = entry['imdb_id']
-                typ = 'movie'
-            if tid is None or tid.lower() == 'none':
+            typ, tid = self.get_target_type(entry)
+            if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'collected', str(self.set_true).lower())
@@ -416,15 +418,8 @@ class UoccinWatched(UoccinWriter):
         - the uuid must be a filename-safe text.
         """
         for entry in task.accepted:
-            tid = None
-            typ = None
-            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
-                tid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
-                typ = 'series'
-            elif entry.get('imdb_id'):
-                tid = entry['imdb_id']
-                typ = 'movie'
-            if tid is None or tid.lower() == 'none':
+            typ, tid = self.get_target_type(entry)
+            if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'watched', str(self.set_true).lower())
@@ -467,17 +462,11 @@ class UoccinSubtitles(UoccinWriter):
         - the uuid must be a filename-safe text.
         """
         for entry in task.accepted:
-            if not entry.get('subtitles'):
+            if not 'subtitles' in entry:
+                self.log.verbose('no subtitles field in %s' % entry)
                 continue
-            tid = None
-            typ = None
-            if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
-                tid = '%s.%d.%d' % (entry['tvdb_id'], entry['series_season'], entry['series_episode'])
-                typ = 'series'
-            elif entry.get('imdb_id'):
-                tid = entry['imdb_id']
-                typ = 'movie'
-            if tid is None or tid.lower() == 'none':
+            typ, tid = self.get_target_type(entry)
+            if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
             self.append_command(typ, tid, 'subtitles', ",".join(entry['subtitles']))

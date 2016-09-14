@@ -158,61 +158,72 @@ class PluginSubliminal(object):
                     continue
 
                 try:
-                    primary_languages = set(entry.get('subtitle_languages', [])) or languages
-
                     video = subliminal.scan_video(entry['location'])
+                    
                     # use metadata refiner to get mkv metadata
-                    refiner = ('metadata',)
-                    subliminal.core.refine(video, episode_refiners=refiner, movie_refiners=refiner)
-                    existing_subtitles = set(subliminal.core.search_external_subtitles(entry['location']).values())
-                    video.subtitle_languages |= existing_subtitles
+                    subliminal.core.refine(video, episode_refiners=('metadata',), movie_refiners=('metadata',))
+                    video.subtitle_languages |= set(subliminal.core.search_external_subtitles(entry['location']).values())
+                    
+                    primary_languages = set(entry.get('subtitle_languages', [])) or languages
+                    if primary_languages.issubset(video.subtitle_languages) or (single_mode and video.subtitle_languages):
+                        log.debug('All preferred languages already exist for "%s"', entry['title'])
+                        continue  # subs for preferred language(s) already exists
+                    
                     if isinstance(video, subliminal.Episode):
                         title = video.series
                         hash_scores = episode_scores['hash']
                     else:
                         title = video.title
                         hash_scores = movie_scores['hash']
-                    log.info('Name computed for %s was %s', entry['location'], title)
+                    log.debug('Name computed for %s was %s', entry['location'], title)
                     msc = hash_scores if config['exact_match'] else 0
-                    if primary_languages.issubset(video.subtitle_languages) or (single_mode and video.subtitle_languages):
-                        log.debug('All preferred languages already exist for "%s"', entry['title'])
-                        continue  # subs for preferred language(s) already exists
-                    else:
-                        # Gather the subtitles for the alternative languages too, to avoid needing to search the sites
-                        # again. They'll just be ignored if the main languages are found.
-                        all_subtitles = provider_pool.list_subtitles(video, primary_languages | alternative_languages)
-                        
-                        test = set([Language.fromietf(str(l.language)) for l in all_subtitles])
-                        if len(test - (primary_languages | alternative_languages)) <= 0:
-                            log.debug('There are no more languages to download for "%s"', entry['title'])
-                            continue  # subs for alternative language(s) already exists
-
-                        subtitles = provider_pool.download_best_subtitles(all_subtitles, video, primary_languages,
-                                                                          min_score=msc, hearing_impaired=hearing_impaired)
-                        if subtitles:
-                            downloaded_subtitles[video].extend(subtitles)
+                    
+                    ####################################################################################################
+                    
+                    all_languages = primary_languages | alternative_languages
+                    subtitles_list = provider_pool.list_subtitles(video, all_languages - video.subtitle_languages)
+                    subtitles = provider_pool.download_best_subtitles(subtitles_list, video, all_languages,
+                                                                      min_score=msc, hearing_impaired=hearing_impaired)
+                    if subtitles:
+                        downloaded_subtitles[video].extend(subtitles)
+                        downloaded_languages = set([Language.fromietf(str(l.language)) for l in subtitles])
+                        if len(downloaded_languages & primary_languages):
                             log.info('Subtitles found for %s', entry['location'])
                         else:
-                            # only try to download for alternatives that aren't alread downloaded
-                            subtitles = provider_pool.download_best_subtitles(all_subtitles, video,
-                                                                              alternative_languages, min_score=msc,
-                                                                              hearing_impaired=hearing_impaired)
+                            log.info('subtitles found for a second-choice language.')
+                        video.subtitle_languages |= downloaded_languages
+                        entry['subtitles'] = [l.alpha3 for l in video.subtitle_languages]
+                    else:
+                        log.verbose('cannot find any subtitles for now.')
 
-                            if subtitles:
-                                downloaded_subtitles[video].extend(subtitles)
-                                log.info('subtitles found for a second-choice language.')
-                            else:
-                                log.verbose('cannot find any subtitles for now.')
-
-                        downloaded_languages = set([Language.fromietf(str(l.language))
-                                                    for l in subtitles])
-                        
+                    '''
+                    subtitles_list = provider_pool.list_subtitles(video, primary_languages - video.subtitle_languages)
+                    subtitles = provider_pool.download_best_subtitles(subtitles_list, video, primary_languages,
+                                                                      min_score=msc, hearing_impaired=hearing_impaired)
+                    if subtitles:
+                        downloaded_subtitles[video].extend(subtitles)
+                        log.info('Subtitles found for %s', entry['location'])
+                    else:
+                        # only try to download for alternatives that aren't already downloaded
+                        subtitles_list = provider_pool.list_subtitles(video, alternative_languages - video.subtitle_languages)
+                        subtitles = provider_pool.download_best_subtitles(subtitles_list, video,
+                                                                          alternative_languages, min_score=msc,
+                                                                          hearing_impaired=hearing_impaired)
                         if subtitles:
-                            entry['subtitles'] = [l.alpha3 for l in video.subtitle_languages]
-                            for l in downloaded_subtitles[video]:
-                                code = Language.fromietf(unicode(l.language)).alpha3
-                                if not code in entry['subtitles']:
-                                    entry['subtitles'].append(code)
+                            downloaded_subtitles[video].extend(subtitles)
+                            log.info('subtitles found for a second-choice language.')
+                        else:
+                            log.verbose('cannot find any subtitles for now.')
+                            
+                    if subtitles:
+                        downloaded_languages = set([Language.fromietf(str(l.language)) for l in subtitles])
+                        entry['subtitles'] = [l.alpha3 for l in video.subtitle_languages]
+                        for l in downloaded_subtitles[video]:
+                            code = Language.fromietf(unicode(l.language)).alpha3
+                            if not code in entry['subtitles']:
+                                entry['subtitles'].append(code)
+                    '''
+                    ####################################################################################################
                                     
                 except ValueError as e:
                     log.error('subliminal error: %s', e)
