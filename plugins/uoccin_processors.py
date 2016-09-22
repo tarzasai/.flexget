@@ -255,14 +255,15 @@ class UoccinWriter(object):
             # delete the diff file in the local device folder
             os.remove(UoccinWriter.out_queue)
     
-    def get_target_type(self, entry):
+    def get_target_type(self, entry, episode):
         tid = None
         typ = None
         if all(field in entry for field in ['tvdb_id', 'series_season', 'series_episode']):
             tid = str(entry['tvdb_id'])
             if tid is None or tid.lower() == 'none':
                 return None, None
-            tid += '.%d.%d' % (entry['series_season'], entry['series_episode'])
+            if episode:
+                tid += '.%d.%d' % (entry['series_season'], entry['series_episode'])
             typ = 'series'
         elif entry.get('imdb_id'):
             tid = entry['imdb_id']
@@ -303,7 +304,7 @@ class UoccinWatchlist(UoccinWriter):
         - for uoccin_watchlist_add at least 1 tag is required.
         """
         for entry in task.accepted:
-            typ, tid = self.get_target_type(entry)
+            typ, tid = self.get_target_type(entry, False)
             if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
@@ -370,7 +371,7 @@ class UoccinCollection(UoccinWriter):
         - the uuid must be a filename-safe text.
         """
         for entry in task.accepted:
-            typ, tid = self.get_target_type(entry)
+            typ, tid = self.get_target_type(entry, True)
             if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
@@ -418,7 +419,7 @@ class UoccinWatched(UoccinWriter):
         - the uuid must be a filename-safe text.
         """
         for entry in task.accepted:
-            typ, tid = self.get_target_type(entry)
+            typ, tid = self.get_target_type(entry, True)
             if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
@@ -465,7 +466,7 @@ class UoccinSubtitles(UoccinWriter):
             if not 'subtitles' in entry:
                 self.log.verbose('no subtitles field in %s' % entry)
                 continue
-            typ, tid = self.get_target_type(entry)
+            typ, tid = self.get_target_type(entry, True)
             if tid is None:
                 self.log.warning('Skipping entry with invalid tvdb_id/imdb_id: %s' % entry)
                 continue
