@@ -18,6 +18,7 @@ templates:
         - \b(hd)?cam(rip)?\b: {from: title}
         - \bdual\baudio\b: {from: title}
         - r3mnants: {from: title}
+        - \bKOR\b: {from: title}
         - italian
         - french
         - german
@@ -98,15 +99,23 @@ templates:
           link: 'torrent:magnetURI'
           silent: yes
       - rss:
-          # url: http://extratorrent.cc/rss.xml?cid=8&type=popular
-          url: http://extratorrent.cc/rss.xml?cid=8&type=last
+          url: http://extratorrent.cc/rss.xml?cid=8
           silent: yes
       - rss:
           url: http://www.torrentfunk.com/tv/rss.xml
           silent: yes
+      - rss:
+          url: https://extratorrent.cc/rss.xml?type=search&search=white+rabbit+project
+          silent: yes
+      - rss:
+          url: https://extratorrent.cc/rss.xml?type=search&search=gangland+undercover
+          silent: yes
     log_filter:
       inputs:
         - Error during input plugin rss
+      rss:
+        - I have saved the invalid content
+        - Received content looks
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
@@ -179,6 +188,14 @@ templates:
           replace:
             regexp: '^The\.Night\.Of\.Part\.'
             format: 'The.Night.Of.S01E0'
+      - title:
+          replace:
+            regexp: '^Startup\.(2016)?'
+            format: 'Startup.'
+      - title:
+          replace:
+            regexp: '^SIX\.Part\.'
+            format: 'SIX.S01E0'
 
   # Global filters for series.
   tvfltr:
@@ -207,8 +224,8 @@ templates:
   mvfeed:
     inputs:
       - rss: { url: '{{ secrets.privs.worldofp2p_mv }}', silent: yes }
+      - rss: { url: 'http://extratorrent.cc/rss.xml?cid=4', silent: yes }
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
-      - rss: { url: 'http://extratorrent.cc/rss.xml?type=popular&cid=4', silent: yes }
     log_filter:
       inputs:
         - Unable to download the RSS for task
@@ -265,7 +282,7 @@ templates:
   movsrt:
     move:
       along:
-        files:
+        extensions:
           - srt
           - it.srt
           - ita.srt
@@ -274,7 +291,7 @@ templates:
   copsrt:
     copy:
       along:
-        files:
+        extensions:
           - srt
           - it.srt
           - ita.srt
@@ -284,7 +301,7 @@ templates:
     delete:
       clean_source: 50
       along:
-        files:
+        extensions:
           - srt
           - it.srt
           - ita.srt
@@ -414,6 +431,7 @@ tasks:
     torrent_alive:
       min_seeds: 40
     if:
+      - not tvdb_id: reject
       - uoccin_tags or uoccin_watchlist or uoccin_watched or uoccin_collected: reject
       - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
       - tvdb_genres == ['comedy'] or tvdb_genres == ['Comedy']: reject
@@ -559,7 +577,7 @@ tasks:
     # have modified it).
     copy:
       to: "C:\\Share\\Incoming\\series\\{{ tvdb_series_name|default(series_name) }}\\"
-      filename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
+      rename: "{{ tvinfo_title }}{% if not location|pathext in tvinfo_title %}{{ location|pathext }}{% endif %}"
     # Add to Uoccin episodes collection.
     uoccin_collection_add:
       uuid: '{{ secrets.uoccin.uuid }}'
@@ -602,14 +620,14 @@ tasks:
     # Copy accepted files in the incoming path (filename will be the original torrent name, see move_series).
     copy:
       to: "C:\\Share\\Incoming\\movies\\{{ imdb_name|replace('/', '_')|replace(':', ' -') }} ({{ imdb_year }})\\"
-      filename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
+      rename: "{{ title }}{% if not location|pathext in title %}{{ location|pathext }}{% endif %}"
     # Update Uoccin movies collection/watchlist.
     uoccin_collection_add:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
-    # uoccin_watchlist_remove:
-      # uuid: '{{ secrets.uoccin.uuid }}'
-      # path: '{{ secrets.uoccin.path }}'
+    uoccin_watchlist_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
 
   # Clean Transmission of completed torrents.
   cleantran:
@@ -757,7 +775,7 @@ tasks:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
     # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    fix_subtitles: yes
+    # fix_subtitles: yes
 
   # Download italian and english subtitles for movies.
   subs_movies:
@@ -798,7 +816,7 @@ tasks:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
     # fix wrong accented characters in italian subs - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    fix_subtitles: yes
+    # fix_subtitles: yes
 
   ######################################################################################################################
   # CLEANUPS (DANGER!!!)
@@ -860,17 +878,10 @@ tasks:
       - no_global
       - noseen
       - nofail
-    parsing:
-      movie: guessit
     imdb_lookup: yes
     # tmdb_lookup: yes
     mock:
-      # - { title: 'Sinatra.-.All.or.Nothing.at.all.Complete.German.DOKU.720p.WebHD.x264-RAiNDEER' }
-      - { title: 'Sinatra: All or nothing at all', imdb_id: 'tt3838978' }
-      - { title: 'A Good Year', imdb_id: 'tt0401445' }
-      # - { title: '' }
-      # - { title: '' }
-      # - { title: '' }
+      - { title: 'The.Jungle.Book.2016.MULTi.1080p.BluRay.x264-LOST' }
       # - { title: '' }
       # - { title: '' }
       # - { title: '' }
@@ -885,17 +896,15 @@ tasks:
     # metainfo_series: yes
     # thetvdb_lookup: yes
     mock:
-      - { title: 'The.Man.In.The.High.Castle.S01E01.Pilot.WEBRiP.x264-FaiLED.mp4' }
-      - { title: 'The.Man.In.the.High.Castle.S01E02.WEBRip.x264-RARBG' }
-      # - { title: 'lost.s01e03.hdtv.lol', subtitles: ['ita'] }
-      # - { title: 'true_detective.1x9.hdtv.swat', subtitles: ['ita'] }
-      # - { title: 'the big bang theory s01e01 webrip x264 dimension' }
-      # - { title: 'the big bang theory s01e02 webrip x264 dimension' }
-      # - { title: 'the big bang theory s01e03 webrip x264 dimension' }
-    # accept_all: yes
+      - { title: 'SIX.Part.5.HDTV.x264-FLEET[rarbg]' }
+    accept_all: yes
     # uoccin_collection_remove:
       # uuid: '{{ secrets.uoccin.uuid }}'
       # path: '{{ secrets.uoccin.path }}'
+    # uoccin_watchlist_add:
+      # uuid: '{{ secrets.uoccin.uuid }}'
+      # path: '{{ secrets.uoccin.path }}'
+      # tags: [ 'evaluate' ]
 
   ut4:
     manual: yes
@@ -943,10 +952,10 @@ tasks:
       - nofail
     filesystem:
       path:
-        # - C:\Share\Incoming\series
+        - C:\Share\Incoming\series
         # - C:\Share\Incoming\series\Aquarius (2015)
         # - C:\Share\Incoming\series\From Dusk Till Dawn The Series
-        - C:\Share\Incoming\series\test
+        # - C:\Share\Incoming\series\test
       regexp: '.*\.(avi|mkv|mp4)$'
       recursive: yes
     accept_all: yes
@@ -957,3 +966,29 @@ tasks:
         # - eng
       alternatives:
         - eng
+        
+  ut6:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+    mock:
+      - { title: 'Shooter.S01E02.HDTV.x264-FLEET[PRiME]', location: 'C:\Share\Incoming\series\Shooter\Shooter.S01E02.HDTV.x264-FLEET[PRiME].mkv' }
+    accept_all: yes
+    fix_subtitles: yes
+        
+  ut7:
+    manual: yes
+    template:
+      - no_global
+      - noseen
+      - nofail
+      - mvinfo
+    accept_all: yes
+    discover:
+      what:
+        - movie_list: mqueue
+      from:
+        - extratorrent_cc:
+            category: all

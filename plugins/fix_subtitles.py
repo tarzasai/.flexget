@@ -38,7 +38,10 @@ class FixSubs(object):
                 try:
                     with open(sub, 'r') as f:
                         txt = f.read()
-                    if chardet.detect(txt)['encoding'] == 'utf-8' and 'č' in txt:
+                    enc = chardet.detect(txt)['encoding']
+                    log.debug('encoding is %s for file %s' % (enc, sub))
+                    if enc == 'utf-8' and '\xc3' in txt:
+                        log.verbose('this file contains wrong characters!')
                         txt = txt.replace('ŕ', 'à').replace('č', 'è').replace('ě', 'ì').replace('ň', 'ò').replace('ů', 'ù').replace('Č', 'È')
                         bak = sub + '.bak'
                         if os.path.exists(bak):
@@ -48,7 +51,7 @@ class FixSubs(object):
                             f.write(txt)
                         log.info('Subtitles file fixed: ' + sub)
                 except Exception as err:
-                    log.error('Error on file %s: %s' % (sub, err.args[0]))
+                    log.error('Error on file %s: %s' % (sub, err))
 
 
 @event('plugin.register')

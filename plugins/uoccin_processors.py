@@ -464,7 +464,7 @@ class UoccinSubtitles(UoccinWriter):
         """
         for entry in task.accepted:
             if not 'subtitles' in entry:
-                self.log.verbose('no subtitles field in %s' % entry)
+                self.log.debug('no subtitles field in %s' % entry)
                 continue
             typ, tid = self.get_target_type(entry, True)
             if tid is None:
