@@ -99,6 +99,9 @@ templates:
           link: 'torrent:magnetURI'
           silent: yes
       - rss:
+          url: http://thepiratebay.org/rss/top100/205
+          silent: yes
+      - rss:
           url: http://extratorrent.cc/rss.xml?cid=8
           silent: yes
       - rss:
@@ -438,10 +441,31 @@ tasks:
     # Unknown series are less important.
     transmission:
       bandwidthpriority: -1
+    # uoccin_watchlist_add:
+      # uuid: '{{ secrets.uoccin.uuid }}'
+      # path: '{{ secrets.uoccin.path }}'
+      # tags: [ 'evaluate' ]
+
+  # Acquire movie titles from my IMDB list
+  imdb2uoccin:
+    priority: 9
+    interval: 12 hours
+    template:
+      - nofail
+      - mvinfo
+    seen: local
+    imdb_watchlist:
+      user_id: '{{ secrets.imdb.uid }}'
+      list: watchlist
+      force_language: en-us
+    if:
+      - not imdb_id: reject
+      - uoccin_tags or uoccin_watchlist or uoccin_watched or uoccin_collected: reject
+    accept_all: yes
     uoccin_watchlist_add:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
-      tags: [ 'evaluate' ]
+      tags: [ 'imdb' ]
 
   # Copy movies from Uoccin watchlist to Flexget movie queue.
   queue_movies:
@@ -468,8 +492,6 @@ tasks:
       - mvtran
       - transm
     seen: local
-    # if:
-      # - uoccin_watchlist: accept
     list_match:
       from:
         - movie_list: mqueue
