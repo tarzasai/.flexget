@@ -227,6 +227,7 @@ templates:
   mvfeed:
     inputs:
       - rss: { url: '{{ secrets.privs.worldofp2p_mv }}', silent: yes }
+      - rss: { url: 'https://thepiratebay.org/rss/top100/201', silent: yes }
       - rss: { url: 'http://extratorrent.cc/rss.xml?cid=4', silent: yes }
       - rss: { url: 'http://www.torlock.com/movies/rss.xml', silent: yes }
     log_filter:
@@ -481,6 +482,35 @@ tasks:
     list_add:
       - movie_list: mqueue
 
+  # Re-queue unwatchable movies (bad quality, on-screen subs, etc)
+  requeue_movies:
+    priority: 11
+    template:
+      - noseen
+      - nosumm
+      - nofail
+      - mvinfo
+      - delsrt
+    filesystem:
+      path:
+        - C:\Share\Incoming\.requeue
+      regexp: '.*\.(avi|mkv|mp4)$'
+      recursive: yes
+    accept_all: yes
+    list_add:
+      - movie_list: mqueue
+    uoccin_collection_remove:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+    uoccin_watchlist_add:
+      uuid: '{{ secrets.uoccin.uuid }}'
+      path: '{{ secrets.uoccin.path }}'
+      tags: [ 'requeued' ]
+    exec:
+      allow_background: yes
+      on_exit:
+        phase: md C:\Share\Incoming\.requeue
+
   # This is the search & download task for movies.
   get_movies:
     priority: 15
@@ -650,6 +680,9 @@ tasks:
     uoccin_watchlist_remove:
       uuid: '{{ secrets.uoccin.uuid }}'
       path: '{{ secrets.uoccin.path }}'
+    # 
+    list_remove:
+      - movie_list: mqueue
 
   # Clean Transmission of completed torrents.
   cleantran:
