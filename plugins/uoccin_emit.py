@@ -9,7 +9,7 @@ from flexget.event import event
 from flexget.utils import json
 
 try:
-    from flexget.plugins.internal.api_tvdb import lookup_series
+    from flexget.components.thetvdb.api_tvdb import lookup_series
 except ImportError:
     raise plugin.DependencyError(issued_by='uoccin', missing='api_tvdb',
                                  message='uoccin requires the `api_tvdb` plugin')

@@ -1,9 +1,15 @@
 from __future__ import unicode_literals, division, absolute_import
+from builtins import *  # noqa pylint: disable=unused-import, redefined-builtin
+
+import logging
 
 from flexget import plugin
 from flexget.entry import Entry
 from flexget.event import event
-from flexget.plugins.filter.series import Series
+from flexget.components.series.db import Series
+
+
+log = logging.getLogger('extratorrent')
 
 
 class GetSeriesList(object):
@@ -21,7 +27,7 @@ class GetSeriesList(object):
             if entry.isvalid():
                 entries.append(entry)
             else:
-                self.log.debug('Invalid entry created? %s' % entry)
+                log.debug('Invalid entry created? %s' % entry)
         return entries
 
 

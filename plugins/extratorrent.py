@@ -1,5 +1,5 @@
 from __future__ import unicode_literals, division, absolute_import
-from builtins import *  # pylint: disable=unused-import, redefined-builtin
+from builtins import *  # noqa pylint: disable=unused-import, redefined-builtin
 from future.moves.urllib.parse import quote
 
 import logging
@@ -9,9 +9,11 @@ import feedparser
 from flexget import plugin
 from flexget.entry import Entry
 from flexget.event import event
-from flexget.utils.search import normalize_unicode
+from flexget.components.sites.utils import normalize_unicode
+
 
 log = logging.getLogger('extratorrent')
+
 
 REGEXP = re.compile(r'https?://extratorrent.cc/torrent/([0-9]+)/(.*).html')
 
@@ -103,4 +105,4 @@ class UrlRewriteExtraTorrent(object):
 
 @event('plugin.register')
 def register_plugin():
-    plugin.register(UrlRewriteExtraTorrent, 'extratorrent_cc', groups=['urlrewriter', 'search'], api_ver=2)
+    plugin.register(UrlRewriteExtraTorrent, 'extratorrent_cc', interfaces=['urlrewriter', 'search'], api_ver=2)

@@ -1,11 +1,13 @@
 from __future__ import unicode_literals, division, absolute_import
+from builtins import *  # noqa pylint: disable=unused-import, redefined-builtin
+
 import logging
 
 from flexget import plugin
 from flexget.event import event
-from flexget.plugins.filter.series import remove_series
+from flexget.components.series.db import remove_series
 
-log = logging.getLogger('set_series_forget')
+log = logging.getLogger('forget_series')
 
 
 class ForgetSeries(object):
@@ -26,10 +28,10 @@ class ForgetSeries(object):
         for entry in task.accepted:
             s = entry['title']
             try:
-                self.log.info('Removing series "%s"' % s)
+                log.info('Removing series "%s"' % s)
                 remove_series(s)
             except ValueError as e:
-                self.log.error(e)
+                log.error(e)
 
 
 @event('plugin.register')

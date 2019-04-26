@@ -1,11 +1,13 @@
 from __future__ import unicode_literals, division, absolute_import
+from builtins import *  # noqa pylint: disable=unused-import, redefined-builtin
+
 import logging
 
 from flexget import plugin
 from flexget.event import event
-from flexget.plugins.filter.series import Series, remove_series_episode
+from flexget.components.series.db import remove_series_entity
 
-log = logging.getLogger('set_series_forget')
+log = logging.getLogger('forget_episodes')
 
 
 class ForgetEpisodes(object):
@@ -28,10 +30,10 @@ class ForgetEpisodes(object):
                 snm = entry['series_name']
                 sid = entry['series_id']
                 try:
-                    self.log.info('Removing episode %s references from "%s"' % (sid, snm))
-                    remove_series_episode(snm, sid)
+                    log.info('Removing episode %s references from "%s"' % (sid, snm))
+                    remove_series_entity(snm, sid)
                 except ValueError as e:
-                    self.log.error('An error occurred: %s' % e)
+                    log.error('An error occurred: %s' % e)
 
 
 @event('plugin.register')
