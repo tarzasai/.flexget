@@ -112,11 +112,8 @@ class PluginSubliminal(object):
         from subliminal.cli import MutexLock
         from subliminal.score import episode_scores, movie_scores
         try:
-            subliminal.region.configure('dogpile.cache.dbm',
-                                        arguments={
-                                            'filename': os.path.join(tempfile.gettempdir(), 'cachefile.dbm'),
-                                            'lock_factory': MutexLock,
-                                        })
+            cachefile = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'subliminal', 'subliminal', 'Cache', 'subliminal.dbm')
+            subliminal.region.configure('dogpile.cache.dbm', arguments={'filename': cachefile, 'lock_factory': MutexLock,})
         except RegionAlreadyConfigured:
             pass
 

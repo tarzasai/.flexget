@@ -361,6 +361,7 @@ tasks:
               tags: [ 'netflix' ]
     if:
       - uoccin_watched: reject
+      - "tvdb_network and tvdb_network=='Amazon'": reject
     transmission:
       bandwidth_priority: 1
 
@@ -560,16 +561,8 @@ tasks:
           from: bigfile_location
     #   - title:
     #       replace:
-    #         regexp: '.*from.dusk.till.dawn.(the.series)*[\b-.]*'
-    #         format: 'From Dusk Till Dawn '
-    #   - title:
-    #       replace:
     #         regexp: '^[^a-z0-9]*turn:?.(washington(.)?s.spies)?[^a-z0-9]*'
     #         format: 'Turn '
-    #   - title:
-    #       replace:
-    #         regexp: '^The\.Night\.Of\.Part\.'
-    #         format: 'The.Night.Of.S01E0'
     require_field:
       - transmission_progress
       - bigfile_location
